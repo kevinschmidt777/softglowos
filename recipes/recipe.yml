@@ -14,6 +14,11 @@ modules:
         destination: /
 
   - type: dnf
+    repos:
+      files:
+        - google-chrome.repo
+      keys:
+        - https://dl.google.com/linux/linux_signing_key.pub
     install:
       packages:
         # Native OBS instead of the Flatpak, so NVENC and plugins work without sandbox issues
@@ -22,6 +27,8 @@ modules:
         - https://github.com/GoXLR-on-Linux/goxlr-utility/releases/download/v1.2.4/goxlr-utility-1.2.4-1.x86_64.rpm
         # One app for the RGB lighting of most vendors (mainboards, RAM, GPUs, peripherals)
         - openrgb
+        # Default browser
+        - google-chrome-stable
 
   - type: fonts
     fonts:
@@ -46,6 +53,7 @@ modules:
 
   - type: script
     scripts:
+      - install-discord.sh
       - render-branding.sh
       - remove-bazzite-autostart.sh
 
