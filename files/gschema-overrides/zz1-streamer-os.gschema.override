@@ -19,6 +19,14 @@ disable-overview-on-startup=true
 # Window buttons on the right
 [org.gnome.desktop.wm.preferences]
 button-layout='appmenu:minimize,maximize,close'
+titlebar-font='Geist Medium 11'
+
+# Geist everywhere, GNOME's teal as the accent (see DESIGN.md)
+[org.gnome.desktop.interface]
+font-name='Geist 11'
+document-font-name='Geist 11'
+monospace-font-name='Geist Mono 11'
+accent-color='teal'
 
 [org.gnome.desktop.background]
 picture-options='zoom'

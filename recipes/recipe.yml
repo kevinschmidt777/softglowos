@@ -21,6 +21,12 @@ modules:
         # Daemon that drives the GoXLR; our own mixer will talk to its API later
         - https://github.com/GoXLR-on-Linux/goxlr-utility/releases/download/v1.2.4/goxlr-utility-1.2.4-1.x86_64.rpm
 
+  - type: fonts
+    fonts:
+      google-fonts:
+        - Geist
+        - Geist Mono
+
   - type: gnome-extensions
     install:
       - 307 # Dash to Dock
