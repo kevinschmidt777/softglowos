@@ -2,8 +2,9 @@
 
 [org.gnome.shell]
 # Bazzite's list plus Dash to Dock and Night Theme Switcher.
-# Logo Menu is left out because it shows the Bazzite logo.
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'bazaar-integration@kolunmi.github.io']
+# Logo Menu is left out because it shows the Bazzite logo, and the magic lamp
+# minimize effect is dropped because it is decorative (see DESIGN.md).
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
 
 # Mac-style dock: bottom, always visible
 [org.gnome.shell.extensions.dash-to-dock]
@@ -36,3 +37,8 @@ picture-uri-dark='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg
 [org.gnome.desktop.screensaver]
 picture-options='zoom'
 picture-uri='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg'
+
+# No system sounds, so nothing beeps into a microphone or a stream
+[org.gnome.desktop.sound]
+event-sounds=false
+input-feedback-sounds=false
