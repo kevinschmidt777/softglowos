@@ -1,0 +1,14 @@
+[Unit]
+Description=GoXLR Utility daemon
+Documentation=https://github.com/GoXLR-on-Linux/goxlr-utility
+After=pipewire.service wireplumber.service
+PartOf=graphical-session.target
+
+[Service]
+# Runs headless; the tray stays off because our own mixer will be the UI
+ExecStart=/usr/bin/goxlr-daemon --disable-tray true
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target
