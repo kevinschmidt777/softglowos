@@ -14,8 +14,13 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.
 - Mac-style **dock at the bottom**, always visible, and window buttons on the right.
+- macOS-style **top bar**: logo menu on the left, clock and status icons on the right.
+- **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
 - **Automatic light/dark theme** by time of day (Night Theme Switcher).
+- **No system sounds**, so nothing beeps into a stream.
 - Placeholder branding: name, wallpapers, boot splash and login logo.
+
+The look and feel is described in [DESIGN.md](DESIGN.md).
 
 ## Repository layout
 
