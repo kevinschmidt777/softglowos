@@ -12,12 +12,14 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - Based on `bazzite-gnome-nvidia-open` (NVIDIA RTX 20 series and newer). An AMD/Intel variant follows.
 - **OBS Studio as a native RPM** instead of the Flatpak.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
+- **Google Chrome** as the default browser and **Discord**, both as native RPMs.
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.
-- Mac-style **dock at the bottom**, always visible, and window buttons on the right.
+- Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, Discord, Steam and the terminal; window buttons on the right.
 - macOS-style **top bar**: logo menu on the left, clock and status icons on the right.
 - **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
 - **Automatic light/dark theme** by time of day (Night Theme Switcher).
 - **No system sounds**, so nothing beeps into a stream.
+- No Bazzite welcome portal, announcements or Steam autostart; a short own terminal greeting (English/German).
 - Placeholder branding: name, wallpapers, boot splash and login logo.
 
 The look and feel is described in [DESIGN.md](DESIGN.md).
