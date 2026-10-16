@@ -1,10 +1,10 @@
 # Streamer OS defaults on top of Bazzite's zz0-* overrides.
 
 [org.gnome.shell]
-# Bazzite's list plus Dash to Dock and Night Theme Switcher.
-# Logo Menu is left out because it shows the Bazzite logo, and the magic lamp
-# minimize effect is dropped because it is decorative (see DESIGN.md).
-enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
+# Bazzite's list plus Dash to Dock, Night Theme Switcher and Just Perfection.
+# The magic lamp minimize effect is dropped because it is decorative (see DESIGN.md).
+# Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-streamer-os-logomenu.
+enabled-extensions=['logomenu@aryan_k', 'just-perfection-desktop@just-perfection', 'dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
 
 # Mac-style dock: bottom, always visible
 [org.gnome.shell.extensions.dash-to-dock]
@@ -16,6 +16,13 @@ dash-max-icon-size=48
 show-trash=false
 show-mounts=false
 disable-overview-on-startup=true
+
+# macOS-style top bar: logo menu on the left, clock next to the status icons
+[org.gnome.shell.extensions.just-perfection]
+activities-button=false
+clock-menu-position=1
+startup-status=0
+support-notifier-type=0
 
 # Window buttons on the right
 [org.gnome.desktop.wm.preferences]

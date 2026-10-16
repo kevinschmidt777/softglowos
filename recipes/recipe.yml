@@ -31,6 +31,7 @@ modules:
     install:
       - 307 # Dash to Dock
       - 2236 # Night Theme Switcher (light/dark by time of day)
+      - 3843 # Just Perfection (clock on the right, no Activities button)
 
   - type: gschema-overrides
     include:

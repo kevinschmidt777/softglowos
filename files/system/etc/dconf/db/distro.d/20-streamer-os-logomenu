@@ -1,0 +1,10 @@
+# Logo Menu ships its schema only inside the extension, so its settings go into
+# the distro dconf database (compiled at boot by Bazzite's dconf-update.service).
+
+[org/gnome/shell/extensions/Logo-menu]
+use-custom-icon=true
+custom-icon-path='/usr/share/streamer-os/branding/logo-symbolic.svg'
+symbolic-icon=true
+show-activities-button=false
+show-power-options=true
+show-gamemode=false
