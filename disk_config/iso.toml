@@ -1,9 +1,10 @@
 # Installer ISO. After installation the system tracks the published image,
-# so updates come straight from the registry.
+# so updates come straight from the registry and must carry our signature
+# (the policy and public key ship in the image via the signing module).
 [customizations.installer.kickstart]
 contents = """
 %post
-bootc switch --mutate-in-place --transport registry ghcr.io/kevinschmidt777/streamer-os:latest
+bootc switch --mutate-in-place --enforce-container-sigpolicy --transport registry ghcr.io/kevinschmidt777/streamer-os:latest
 %end
 """
 

@@ -47,6 +47,8 @@ workflow, started manually:
 gh workflow run build-disk.yml
 ```
 
+Systems installed from the ISO only accept updates signed with our key.
+
 The qcow2 disk ships a throwaway test user (`tester` / `streamer`) because Bazzite
 has no first-boot account setup. Only use it in a VM.
 
