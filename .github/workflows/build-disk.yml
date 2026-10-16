@@ -13,7 +13,8 @@ on:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/streamer-os
-  BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
+  # Maintained successor of quay.io/centos-bootc/bootc-image-builder (frozen)
+  BIB_IMAGE: ghcr.io/osbuild/bootc-image-builder:v87.0.0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
