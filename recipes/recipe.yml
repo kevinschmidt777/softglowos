@@ -47,6 +47,7 @@ modules:
   - type: script
     scripts:
       - render-branding.sh
+      - remove-bazzite-autostart.sh
 
   - type: os-release
     properties:
