@@ -54,7 +54,8 @@ jobs:
           image: ${{ env.IMAGE }}:${{ inputs.tag }}
           types: ${{ matrix.disk-type }}
           chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
-          additional-args: --use-librepo=True
+          # Bazzite uses btrfs but does not declare a default root filesystem
+          additional-args: --use-librepo=True --rootfs btrfs
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
