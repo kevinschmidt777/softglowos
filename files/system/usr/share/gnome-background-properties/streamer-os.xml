@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false">
+    <name>Streamer OS</name>
+    <filename>/usr/share/backgrounds/streamer-os/streamer-os-light.svg</filename>
+    <filename-dark>/usr/share/backgrounds/streamer-os/streamer-os-dark.svg</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#0a0f1f</pcolor>
+    <scolor>#171034</scolor>
+  </wallpaper>
+</wallpapers>

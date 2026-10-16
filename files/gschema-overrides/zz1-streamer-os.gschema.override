@@ -19,3 +19,12 @@ disable-overview-on-startup=true
 # Window buttons on the right
 [org.gnome.desktop.wm.preferences]
 button-layout='appmenu:minimize,maximize,close'
+
+[org.gnome.desktop.background]
+picture-options='zoom'
+picture-uri='file:///usr/share/backgrounds/streamer-os/streamer-os-light.svg'
+picture-uri-dark='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg'
+
+[org.gnome.desktop.screensaver]
+picture-options='zoom'
+picture-uri='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg'

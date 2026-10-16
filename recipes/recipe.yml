@@ -35,4 +35,16 @@ modules:
       enabled:
         - goxlr-daemon.service
 
+  - type: script
+    scripts:
+      - render-branding.sh
+
+  - type: os-release
+    properties:
+      NAME: Streamer OS
+      PRETTY_NAME: Streamer OS
+
+  # Bakes the new boot splash watermark into the initramfs
+  - type: initramfs
+
   - type: signing
