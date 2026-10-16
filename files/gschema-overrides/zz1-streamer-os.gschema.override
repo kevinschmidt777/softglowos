@@ -1,0 +1,21 @@
+# Streamer OS defaults on top of Bazzite's zz0-* overrides.
+
+[org.gnome.shell]
+# Bazzite's list plus Dash to Dock and Night Theme Switcher.
+# Logo Menu is left out because it shows the Bazzite logo.
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'bazaar-integration@kolunmi.github.io']
+
+# Mac-style dock: bottom, always visible
+[org.gnome.shell.extensions.dash-to-dock]
+dock-position='BOTTOM'
+dock-fixed=true
+intellihide=false
+extend-height=false
+dash-max-icon-size=48
+show-trash=false
+show-mounts=false
+disable-overview-on-startup=true
+
+# Window buttons on the right
+[org.gnome.desktop.wm.preferences]
+button-layout='appmenu:minimize,maximize,close'
