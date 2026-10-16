@@ -12,6 +12,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - Based on `bazzite-gnome-nvidia-open` (NVIDIA RTX 20 series and newer). An AMD/Intel variant follows.
 - **OBS Studio as a native RPM** instead of the Flatpak.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
+- **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.
 - Mac-style **dock at the bottom**, always visible, and window buttons on the right.
 - **Automatic light/dark theme** by time of day (Night Theme Switcher).
 - Placeholder branding: name, wallpapers, boot splash and login logo.

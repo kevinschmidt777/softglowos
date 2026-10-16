@@ -20,6 +20,8 @@ modules:
         - obs-studio
         # Daemon that drives the GoXLR; our own mixer will talk to its API later
         - https://github.com/GoXLR-on-Linux/goxlr-utility/releases/download/v1.2.4/goxlr-utility-1.2.4-1.x86_64.rpm
+        # One app for the RGB lighting of most vendors (mainboards, RAM, GPUs, peripherals)
+        - openrgb
 
   - type: fonts
     fonts:
