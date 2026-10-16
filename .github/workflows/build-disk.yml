@@ -1,0 +1,66 @@
+name: Build disk images
+
+# Builds an installer ISO and a ready-to-boot qcow2 VM disk from the
+# published image. Triggered manually because each run takes a while.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to build from"
+        required: false
+        default: "latest"
+        type: string
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/streamer-os
+  BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.disk-type }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        disk-type: ["qcow2", "anaconda-iso"]
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Prepare environment
+        run: |
+          echo "USER_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "USER_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
+        with:
+          remove-codeql: true
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build disk image
+        id: build
+        uses: osbuild/bootc-image-builder-action@8661cd3832544ad68c12dcde8681b13ab0f56a8d # main
+        with:
+          builder-image: ${{ env.BIB_IMAGE }}
+          config-file: ${{ matrix.disk-type == 'anaconda-iso' && './disk_config/iso.toml' || './disk_config/disk.toml' }}
+          image: ${{ env.IMAGE }}:${{ inputs.tag }}
+          types: ${{ matrix.disk-type }}
+          chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
+          additional-args: --use-librepo=True
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamer-os-${{ matrix.disk-type }}
+          path: ${{ steps.build.outputs.output-directory }}
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

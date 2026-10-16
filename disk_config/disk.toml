@@ -1,0 +1,10 @@
+# qcow2 VM disk for testing. Bazzite ships no first-boot account setup,
+# so the disk comes with a throwaway test user (not for real installs).
+[[customizations.user]]
+name = "tester"
+password = "streamer"
+groups = ["wheel"]
+
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "40 GiB"
