@@ -3,6 +3,9 @@ Description=GoXLR Utility daemon
 Documentation=https://github.com/GoXLR-on-Linux/goxlr-utility
 After=pipewire.service wireplumber.service
 PartOf=graphical-session.target
+# Skip system users such as gdm: the login screen's session would otherwise
+# grab /tmp/goxlr.socket first and the real user's daemon fails with EPERM
+ConditionUser=!@system
 
 [Service]
 # Runs headless; the tray stays off because our own mixer will be the UI
