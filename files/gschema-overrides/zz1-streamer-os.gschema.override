@@ -1,6 +1,9 @@
 # Streamer OS defaults on top of Bazzite's zz0-* overrides.
 
 [org.gnome.shell]
+# Dock favorites; the Hub joins once it exists
+favorite-apps=['org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'com.obsproject.Studio.desktop', 'discord.desktop', 'steam.desktop', 'org.gnome.Ptyxis.desktop']
+
 # Bazzite's list plus Dash to Dock, Night Theme Switcher and Just Perfection.
 # The magic lamp minimize effect is dropped because it is decorative (see DESIGN.md).
 # Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-streamer-os-logomenu.
