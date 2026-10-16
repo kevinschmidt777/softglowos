@@ -43,6 +43,8 @@ modules:
     properties:
       NAME: Streamer OS
       PRETTY_NAME: Streamer OS
+      BOOTLOADER_NAME: Streamer OS
+      DEFAULT_HOSTNAME: streamer-os
 
   # Bakes the new boot splash watermark into the initramfs
   - type: initramfs
