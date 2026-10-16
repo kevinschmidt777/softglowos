@@ -3,11 +3,14 @@ Description=GoXLR Utility daemon
 Documentation=https://github.com/GoXLR-on-Linux/goxlr-utility
 After=pipewire.service wireplumber.service
 PartOf=graphical-session.target
-# Skip system users such as gdm: the login screen's session would otherwise
-# grab /tmp/goxlr.socket first and the real user's daemon fails with EPERM
+# Skip the login screen: its session would otherwise grab /tmp/goxlr.socket
+# first and the real user's daemon fails with EPERM. Recent GDM runs the
+# greeter as a dynamic "gdm-greeter" user that is not a system user, so
+# check the name as well.
 ConditionUser=!@system
 
 [Service]
+ExecCondition=/bin/sh -c 'case "$(id -un)" in gdm*) exit 1 ;; esac'
 # Runs headless; the tray stays off because our own mixer will be the UI
 ExecStart=/usr/bin/goxlr-daemon --disable-tray true
 Restart=on-failure
