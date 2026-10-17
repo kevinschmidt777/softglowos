@@ -19,8 +19,8 @@ shrink-icons=true
 icon-size=0.07
 animate-icons=true
 animation-magnify=1.0
-# Float 4 px above the screen edge (the value is in steps of 20 px)
-edge-distance=0.2
+# Float 12 px above the screen edge (the value is in steps of 20 px)
+edge-distance=0.6
 trash-icon=false
 mounted-icon=false
 
