@@ -58,6 +58,7 @@ modules:
       - hide-gnome-donate.sh
       - remove-bazzite-autostart.sh
       - hide-bazzite-apps.sh
+      - remove-bazzite-ujust-recipes.sh
       - disable-terra-mesa.sh
 
   - type: os-release
