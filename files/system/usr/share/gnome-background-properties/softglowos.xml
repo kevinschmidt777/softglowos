@@ -3,8 +3,8 @@
 <wallpapers>
   <wallpaper deleted="false">
     <name>SoftglowOS</name>
-    <filename>/usr/share/backgrounds/softglowos/softglowos-light.svg</filename>
-    <filename-dark>/usr/share/backgrounds/softglowos/softglowos-dark.svg</filename-dark>
+    <filename>/usr/share/backgrounds/softglowos/softglowos-light.jpg</filename>
+    <filename-dark>/usr/share/backgrounds/softglowos/softglowos-dark.jpg</filename-dark>
     <options>zoom</options>
     <shade_type>solid</shade_type>
     <pcolor>#141619</pcolor>

@@ -41,12 +41,12 @@ accent-color='teal'
 
 [org.gnome.desktop.background]
 picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-light.svg'
-picture-uri-dark='file:///usr/share/backgrounds/softglowos/softglowos-dark.svg'
+picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-light.jpg'
+picture-uri-dark='file:///usr/share/backgrounds/softglowos/softglowos-dark.jpg'
 
 [org.gnome.desktop.screensaver]
 picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-dark.svg'
+picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-dark.jpg'
 
 # No system sounds, so nothing beeps into a microphone or a stream
 [org.gnome.desktop.sound]
