@@ -67,6 +67,8 @@ modules:
       DEFAULT_HOSTNAME: softglowos
       # Icon name that Settings > System > About shows instead of the Bazzite logo
       LOGO: softglowos-logo
+      # Color of "Welcome to SoftglowOS!" while booting: our light teal (#5cc6d6)
+      ANSI_COLOR: "0;38;2;92;198;214"
 
   # Bakes the new boot splash watermark into the initramfs
   - type: initramfs
