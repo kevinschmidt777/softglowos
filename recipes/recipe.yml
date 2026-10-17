@@ -57,6 +57,7 @@ modules:
       - render-branding.sh
       - hide-gnome-donate.sh
       - remove-bazzite-autostart.sh
+      - hide-bazzite-apps.sh
       - disable-terra-mesa.sh
 
   - type: os-release
