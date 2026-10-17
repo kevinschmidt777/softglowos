@@ -69,6 +69,12 @@ modules:
       LOGO: softglowos-logo
       # Color of "Welcome to SoftglowOS!" while booting: our light teal (#5cc6d6)
       ANSI_COLOR: "0;38;2;92;198;214"
+      # Our links instead of Bazzite's (Settings > About and other tools show them).
+      # ID stays "bazzite", because Bazzite's own scripts check for it.
+      HOME_URL: https://softglowos.com
+      DOCUMENTATION_URL: https://softglowos.com
+      SUPPORT_URL: https://github.com/kevinschmidt777/softglowos/issues
+      BUG_REPORT_URL: https://github.com/kevinschmidt777/softglowos/issues
 
   # Bakes the new boot splash watermark into the initramfs
   - type: initramfs
