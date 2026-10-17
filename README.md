@@ -19,7 +19,9 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
 - **Automatic light/dark theme** by time of day (Night Theme Switcher).
 - **No system sounds**, so nothing beeps into a stream.
-- No Bazzite welcome portal, announcements or Steam autostart; a short own terminal greeting (English/German).
+- No Bazzite welcome portal, announcements or Steam autostart; a short own terminal greeting (English/German) in teal.
+- **Bazaar** (app store for Flatpaks) with our own start page: Creator Tools, Chat & Community, Gaming, Music & Media, Office & Tools. It doesn't offer Flatpaks of the apps we ship natively.
+- Bazzite's own entries (docs, forum, portal, updater, Steam Big Picture) are hidden from the app grid, `ujust` lost the recipes that would break our setup, and `fastfetch` shows our logo.
 - Placeholder branding: name, wallpapers, boot splash and login logo.
 
 The look and feel is described in [DESIGN.md](DESIGN.md).
@@ -33,6 +35,7 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 | `files/gschema-overrides/` | GNOME default settings |
 | `files/scripts/` | Build-time scripts |
 | `disk_config/` | Settings for the ISO and the qcow2 VM disk |
+| `tools/` | Generators for the wallpapers and the Bazaar banners (output is committed) |
 | `.github/workflows/` | Image build (on push and daily) and disk image build (manual) |
 
 ## Building
