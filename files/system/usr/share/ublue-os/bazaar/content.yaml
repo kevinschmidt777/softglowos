@@ -1,0 +1,152 @@
+# SoftglowOS start page of Bazaar, replacing Bazzite's.
+# Banners come from tools/make-bazaar-banners.py. Apps that SoftglowOS ships
+# natively are hidden via blocklist.yaml and must not be listed here.
+rows:
+  - banner:
+      height: 300
+      image:
+        light-uri: file:///usr/share/ublue-os/bazaar/softglowos-creator-light.jpg
+        dark-uri: file:///usr/share/ublue-os/bazaar/softglowos-creator-dark.jpg
+        fit: cover
+        can-shrink: true
+        alt: "Creator Tools"
+  - section:
+      title:
+        en: "Creator Tools"
+        de: "Creator-Tools"
+      subtitle:
+        string:
+          en: "Edit videos, photos, graphics and audio."
+          de: "Videos, Fotos, Grafiken und Audio bearbeiten."
+      appids:
+        list:
+          - org.kde.kdenlive
+          - org.shotcut.Shotcut
+          - org.gnome.gitlab.YaLTeR.VideoTrimmer
+          - fr.handbrake.ghb
+          - org.gimp.GIMP
+          - org.kde.krita
+          - org.inkscape.Inkscape
+          - org.blender.Blender
+          - org.audacityteam.Audacity
+          - org.ardour.Ardour
+          - org.upscayl.Upscayl
+
+  - banner:
+      height: 300
+      image:
+        light-uri: file:///usr/share/ublue-os/bazaar/softglowos-chat-light.jpg
+        dark-uri: file:///usr/share/ublue-os/bazaar/softglowos-chat-dark.jpg
+        fit: cover
+        can-shrink: true
+        alt: "Chat & Community"
+  - section:
+      title:
+        en: "Chat & Community"
+        de: "Chat & Community"
+      subtitle:
+        string:
+          en: "Talk to your friends, team and viewers."
+          de: "Mit Freunden, Team und Community schreiben und reden."
+      appids:
+        list:
+          - com.teamspeak.TeamSpeak
+          - info.mumble.Mumble
+          - im.riot.Riot
+          - org.signal.Signal
+          - org.telegram.desktop
+          - com.slack.Slack
+          - com.chatterino.chatterino
+
+  - banner:
+      height: 300
+      image:
+        light-uri: file:///usr/share/ublue-os/bazaar/softglowos-gaming-light.jpg
+        dark-uri: file:///usr/share/ublue-os/bazaar/softglowos-gaming-dark.jpg
+        fit: cover
+        can-shrink: true
+        alt: "Gaming"
+  - section:
+      title:
+        en: "Gaming"
+        de: "Gaming"
+      subtitle:
+        string:
+          en: "Launchers, emulators and remote play."
+          de: "Launcher, Emulatoren und Remote Play."
+      appids:
+        list:
+          - com.vysp3r.ProtonPlus
+          - io.itch.itch
+          - org.prismlauncher.PrismLauncher
+          - sh.ppy.osu
+          - org.libretro.RetroArch
+          - net.retrodeck.retrodeck
+          - net.pcsx2.PCSX2
+          - org.DolphinEmu.dolphin-emu
+          - net.rpcs3.RPCS3
+          - info.cemu.Cemu
+          - com.moonlight_stream.Moonlight
+          - com.parsecgaming.parsec
+          - io.github.radiolamp.mangojuice
+
+  - banner:
+      height: 300
+      image:
+        light-uri: file:///usr/share/ublue-os/bazaar/softglowos-media-light.jpg
+        dark-uri: file:///usr/share/ublue-os/bazaar/softglowos-media-dark.jpg
+        fit: cover
+        can-shrink: true
+        alt: "Music & Media"
+  - section:
+      title:
+        en: "Music & Media"
+        de: "Musik & Medien"
+      subtitle:
+        string:
+          en: "Music, videos and your media library."
+          de: "Musik, Videos und deine Mediathek."
+      appids:
+        list:
+          - com.spotify.Client
+          - sh.cider.Cider
+          - com.mastermindzh.tidal-hifi
+          - io.bassi.Amberol
+          - org.videolan.VLC
+          - com.github.rafostar.Clapper
+          - tv.plex.PlexDesktop
+          - org.jellyfin.JellyfinDesktop
+          - rocks.shy.VacuumTube
+
+  - banner:
+      height: 300
+      image:
+        light-uri: file:///usr/share/ublue-os/bazaar/softglowos-office-light.jpg
+        dark-uri: file:///usr/share/ublue-os/bazaar/softglowos-office-dark.jpg
+        fit: cover
+        can-shrink: true
+        alt: "Office & Tools"
+  - section:
+      title:
+        en: "Office & Tools"
+        de: "Office & Tools"
+      subtitle:
+        string:
+          en: "Documents, notes, passwords and handy helpers."
+          de: "Dokumente, Notizen, Passwörter und praktische Helfer."
+      appids:
+        list:
+          - org.libreoffice.LibreOffice
+          - org.onlyoffice.desktopeditors
+          - org.mozilla.thunderbird
+          - md.obsidian.Obsidian
+          - com.bitwarden.desktop
+          - org.keepassxc.KeePassXC
+          - io.github.ilya_zlobintsev.LACT
+          - app.drey.Warp
+          - com.rustdesk.RustDesk
+          - it.mijorus.gearlever
+          - com.github.tchx84.Flatseal
+          - org.qbittorrent.qBittorrent
+          - io.github.pwr_solaar.solaar
+          - org.fedoraproject.MediaWriter
