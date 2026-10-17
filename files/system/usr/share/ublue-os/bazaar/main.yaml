@@ -1,0 +1,5 @@
+# SoftglowOS replacement for Bazzite's Bazaar config: same blocklist location,
+# but without Bazzite's install hooks (JetBrains, VS Code and VSCodium dialogs
+# that point to Bazzite DX and Brew).
+yaml-blocklist-paths:
+  - /usr/share/ublue-os/bazaar/blocklist.yaml

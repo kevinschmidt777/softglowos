@@ -1,0 +1,19 @@
+# Apps that Bazaar must not offer. Based on Bazzite's list (system tools it
+# already ships), plus the Flatpaks of the apps SoftglowOS ships natively.
+blocklists:
+  - priority: 0
+    block:
+    # Shipped natively by SoftglowOS
+    - com.obsproject.Studio
+    - com.discordapp.Discord
+    - com.google.Chrome
+    - org.openrgb.OpenRGB
+    # Shipped natively by Bazzite
+    - io.github.kolunmi.Bazaar
+    - com.valvesoftware.Steam
+    - net.lutris.Lutris
+    - io.neovim.nvim
+    - org.vim.Vim
+    - io.github.zyedidia.micro
+    - com.helix_editor.Helix
+    - app.devsuite.Ptyxis
