@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Renders the placeholder branding from SVG sources into the PNGs
+# Renders the branding from SVG sources into the PNGs
 # that Plymouth (boot splash) and GDM (login screen) expect.
 set -euo pipefail
 
@@ -18,3 +18,7 @@ rsvg-convert -h 64 "$SRC/wordmark-white.svg" \
 # Login screen logo (GDM reads this path via Fedora's dconf defaults)
 rsvg-convert -h 48 "$SRC/wordmark-white.svg" \
   -o /usr/share/pixmaps/fedora-gdm-logo.png
+
+# Our OS logo (os-release LOGO) lives in hicolor; ostree resets file times, so
+# GTK would trust the stale icon cache and never find it without a refresh
+gtk-update-icon-cache -f /usr/share/icons/hicolor

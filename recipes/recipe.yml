@@ -64,6 +64,8 @@ modules:
       PRETTY_NAME: SoftglowOS
       BOOTLOADER_NAME: SoftglowOS
       DEFAULT_HOSTNAME: softglowos
+      # Icon name that Settings > System > About shows instead of the Bazzite logo
+      LOGO: softglowos-logo
 
   # Bakes the new boot splash watermark into the initramfs
   - type: initramfs

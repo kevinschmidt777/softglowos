@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 96" width="560" height="96">
-  <!-- Placeholder mark: rounded square with a play glyph and a live dot -->
-  <rect x="4" y="4" width="88" height="88" rx="24" fill="#ffffff" fill-opacity="0.14" stroke="#ffffff" stroke-width="4"/>
-  <path d="M38 30 L66 48 L38 66 Z" fill="#ffffff"/>
-  <circle cx="74" cy="22" r="8" fill="#ff4d6d"/>
-  <text x="116" y="64" fill="#ffffff" font-family="Noto Sans, Cantarell, sans-serif" font-size="48" font-weight="600" letter-spacing="0.5">SoftglowOS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 96" width="400" height="96">
+  <!-- Glow dot plus "SoftglowOS" for dark backgrounds (boot splash, login screen) -->
+  <circle cx="48" cy="48" r="44" fill="#5cc6d6" opacity="0.18"/>
+  <circle cx="48" cy="48" r="30" fill="#5cc6d6" opacity="0.38"/>
+  <circle cx="48" cy="48" r="16" fill="#5cc6d6"/>
+  <text x="116" y="64" fill="#ffffff" font-family="Geist, Noto Sans, sans-serif" font-size="48" letter-spacing="-0.6"><tspan font-weight="500">Softglow</tspan><tspan font-weight="400" fill-opacity="0.55">OS</tspan></text>
 </svg>

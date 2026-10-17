@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Full-color glow dot, readable on light and dark backgrounds -->
+  <circle cx="24" cy="24" r="22" fill="#2190A4" opacity="0.18"/>
+  <circle cx="24" cy="24" r="15" fill="#2190A4" opacity="0.38"/>
+  <circle cx="24" cy="24" r="8" fill="#2190A4"/>
+</svg>

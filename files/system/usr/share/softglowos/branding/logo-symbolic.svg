@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-  <!-- Placeholder mark for the top bar logo menu; symbolic, so GNOME recolors it -->
-  <path fill="#2e3436" d="M4.5 1A3.5 3.5 0 0 0 1 4.5v7A3.5 3.5 0 0 0 4.5 15h7a3.5 3.5 0 0 0 3.5-3.5v-7A3.5 3.5 0 0 0 11.5 1zm0 1.5h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/>
-  <path fill="#2e3436" d="M6.5 5.2v5.6L11 8z"/>
+  <!-- Glow dot for the top bar logo menu; symbolic, so GNOME recolors it and keeps the opacity steps -->
+  <circle cx="8" cy="8" r="8" fill="#2e3436" opacity="0.25"/>
+  <circle cx="8" cy="8" r="5.5" fill="#2e3436" opacity="0.5"/>
+  <circle cx="8" cy="8" r="3" fill="#2e3436"/>
 </svg>
