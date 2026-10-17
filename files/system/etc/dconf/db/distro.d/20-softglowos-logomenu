@@ -3,7 +3,7 @@
 
 [org/gnome/shell/extensions/Logo-menu]
 use-custom-icon=true
-custom-icon-path='/usr/share/streamer-os/branding/logo-symbolic.svg'
+custom-icon-path='/usr/share/softglowos/branding/logo-symbolic.svg'
 symbolic-icon=true
 show-activities-button=false
 show-power-options=true

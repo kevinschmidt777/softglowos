@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-# Published to ghcr.io/kevinschmidt777/streamer-os
-name: streamer-os
+# Published to ghcr.io/kevinschmidt777/softglowos
+name: softglowos
 description: A Linux desktop for gamers and Twitch streamers, built on Bazzite GNOME.
 
 # NVIDIA variant (open kernel modules, Turing and newer). AMD/Intel follows later.
@@ -44,7 +44,7 @@ modules:
 
   - type: gschema-overrides
     include:
-      - zz1-streamer-os.gschema.override
+      - zz1-softglowos.gschema.override
 
   - type: systemd
     user:
@@ -60,10 +60,10 @@ modules:
 
   - type: os-release
     properties:
-      NAME: Streamer OS
-      PRETTY_NAME: Streamer OS
-      BOOTLOADER_NAME: Streamer OS
-      DEFAULT_HOSTNAME: streamer-os
+      NAME: SoftglowOS
+      PRETTY_NAME: SoftglowOS
+      BOOTLOADER_NAME: SoftglowOS
+      DEFAULT_HOSTNAME: softglowos
 
   # Bakes the new boot splash watermark into the initramfs
   - type: initramfs

@@ -1,6 +1,6 @@
 # Design system
 
-How Streamer OS looks, feels and sounds. This applies to the shell, the system
+How SoftglowOS looks, feels and sounds. This applies to the shell, the system
 defaults and every app we build (Hub, mixer, setup assistant).
 
 ## Principles

@@ -1,4 +1,4 @@
-# Streamer OS defaults on top of Bazzite's zz0-* overrides.
+# SoftglowOS defaults on top of Bazzite's zz0-* overrides.
 
 [org.gnome.shell]
 # Dock favorites; the Hub joins once it exists
@@ -6,7 +6,7 @@ favorite-apps=['org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'com.obspr
 
 # Bazzite's list plus Dash to Dock, Night Theme Switcher and Just Perfection.
 # The magic lamp minimize effect is dropped because it is decorative (see DESIGN.md).
-# Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-streamer-os-logomenu.
+# Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-softglowos-logomenu.
 enabled-extensions=['logomenu@aryan_k', 'just-perfection-desktop@just-perfection', 'dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
 
 # Mac-style dock: bottom, always visible
@@ -41,12 +41,12 @@ accent-color='teal'
 
 [org.gnome.desktop.background]
 picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/streamer-os/streamer-os-light.svg'
-picture-uri-dark='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg'
+picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-light.svg'
+picture-uri-dark='file:///usr/share/backgrounds/softglowos/softglowos-dark.svg'
 
 [org.gnome.desktop.screensaver]
 picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/streamer-os/streamer-os-dark.svg'
+picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-dark.svg'
 
 # No system sounds, so nothing beeps into a microphone or a stream
 [org.gnome.desktop.sound]

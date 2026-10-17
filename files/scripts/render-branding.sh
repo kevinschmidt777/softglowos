@@ -3,7 +3,7 @@
 # that Plymouth (boot splash) and GDM (login screen) expect.
 set -euo pipefail
 
-SRC=/usr/share/streamer-os/branding
+SRC=/usr/share/softglowos/branding
 
 # Only pull in rsvg-convert temporarily if the base image doesn't ship it
 if ! rpm -q librsvg2-tools &>/dev/null; then

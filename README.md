@@ -1,6 +1,6 @@
-# Streamer OS
+# SoftglowOS
 
-> Working title. Early prototype, not ready for daily use.
+> Early prototype, not ready for daily use.
 
 A Linux desktop for gamers and Twitch streamers that works out of the box:
 native OBS, GoXLR, Stream Deck and audio routing without the usual fiddling.
@@ -38,7 +38,7 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 ## Building
 
 Every push to `main` builds the image and publishes it to
-`ghcr.io/kevinschmidt777/streamer-os`, signed with cosign.
+`ghcr.io/kevinschmidt777/softglowos`, signed with cosign.
 
 The ISO and a ready-to-boot qcow2 VM disk are built by the **Build disk images**
 workflow, started manually:
@@ -55,11 +55,11 @@ has no first-boot account setup. Only use it in a VM.
 ## Switching an existing Bazzite install
 
 ```bash
-sudo bootc switch ghcr.io/kevinschmidt777/streamer-os:latest
+sudo bootc switch ghcr.io/kevinschmidt777/softglowos:latest
 ```
 
 ## Verification
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/kevinschmidt777/streamer-os
+cosign verify --key cosign.pub ghcr.io/kevinschmidt777/softglowos
 ```
