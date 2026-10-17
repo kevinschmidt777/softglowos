@@ -78,7 +78,7 @@ Geist Medium.
 |---|---|
 | Top bar, left | Logo menu (system actions, settings, restart, power) instead of "Activities" |
 | Top bar, right | Clock and status icons |
-| Dock | Bottom, always visible (Dash to Dock) |
+| Dock | Bottom, always visible, icons magnify on hover (Dash2Dock Animated) |
 | Window buttons | Right side: minimize, maximize, close |
 | Startup | Desktop, not the overview |
 | Light/dark | Automatic by time of day (Night Theme Switcher) |

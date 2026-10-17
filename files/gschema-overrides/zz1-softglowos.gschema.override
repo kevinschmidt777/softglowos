@@ -4,21 +4,21 @@
 # Dock favorites; the Hub joins once it exists
 favorite-apps=['org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'com.obsproject.Studio.desktop', 'discord.desktop', 'steam.desktop', 'org.gnome.Ptyxis.desktop']
 
-# Bazzite's list plus Dash to Dock, Night Theme Switcher and Just Perfection.
+# Bazzite's list plus Dash2Dock Animated, Night Theme Switcher and Just Perfection.
 # The magic lamp minimize effect is dropped because it is decorative (see DESIGN.md).
 # Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-softglowos-logomenu.
-enabled-extensions=['logomenu@aryan_k', 'just-perfection-desktop@just-perfection', 'dash-to-dock@micxgx.gmail.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
+enabled-extensions=['logomenu@aryan_k', 'just-perfection-desktop@just-perfection', 'dash2dock-lite@icedman.github.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
 
-# Mac-style dock: bottom, always visible
-[org.gnome.shell.extensions.dash-to-dock]
-dock-position='BOTTOM'
-dock-fixed=true
-intellihide=false
-extend-height=false
-dash-max-icon-size=48
-show-trash=false
-show-mounts=false
-disable-overview-on-startup=true
+# Mac-style dock: bottom, always visible, slightly smaller icons that
+# magnify under the pointer
+[org.gnome.shell.extensions.dash2dock-lite]
+dock-location=0
+autohide-dash=false
+shrink-icons=true
+animate-icons=true
+animation-magnify=0.5
+trash-icon=false
+mounted-icon=false
 
 # macOS-style top bar: logo menu on the left, clock next to the status icons
 [org.gnome.shell.extensions.just-perfection]

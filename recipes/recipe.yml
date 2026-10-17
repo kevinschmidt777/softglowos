@@ -38,7 +38,7 @@ modules:
 
   - type: gnome-extensions
     install:
-      - 307 # Dash to Dock
+      - 4994 # Dash2Dock Animated (macOS-like dock with magnification)
       - 2236 # Night Theme Switcher (light/dark by time of day)
       - 3843 # Just Perfection (clock on the right, no Activities button)
 
