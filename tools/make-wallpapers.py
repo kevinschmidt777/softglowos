@@ -2,24 +2,24 @@
 """Generates the SoftglowOS wallpapers as 4K JPEGs.
 
 Each wallpaper is a flat background with a few very soft color clouds and a
-fine grain on top. The clouds are computed as exact smooth falloffs and the
-grain also dithers them, so there is no banding. The output is committed to
-the repo, because rendering this live at login is far too slow.
+fine grain on top (see clouds.py). The output is committed to the repo,
+because rendering this live at login is far too slow.
 
 Needs numpy and Pillow:  pip install numpy pillow
 Run from the repo root:  python3 tools/make-wallpapers.py
 """
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
+
+from clouds import render
 
 W, H = 3840, 2160
 OUT = Path("files/system/usr/share/backgrounds/softglowos")
 
 # Cloud positions and radii are in a 1600x900 design space, scaled to 4K.
-SCALE = W / 1600
-SOFTNESS = 150 * SCALE  # how far each cloud edge fades out
+DESIGN_WIDTH = 1600
+SOFTNESS = 150  # how far each cloud edge fades out, in design space
 
 WALLPAPERS = {
     # "Nebel": cool gray with a hint of teal
@@ -47,24 +47,7 @@ WALLPAPERS = {
 }
 
 
-def rgb(hex_color):
-    return np.array([int(hex_color[i:i + 2], 16) for i in (1, 3, 5)], dtype=np.float64)
-
-
-def render(spec, seed):
-    y, x = np.mgrid[0:H, 0:W].astype(np.float64)
-    image = np.empty((H, W, 3))
-    image[:] = rgb(spec["background"])
-    for cx, cy, r, color, opacity in spec["clouds"]:
-        dist = np.hypot(x - cx * SCALE, y - cy * SCALE)
-        # Smooth step from 1 inside the cloud to 0 outside (blurred disc)
-        alpha = opacity * 0.5 * (1 - np.tanh(0.85 * (dist - r * SCALE) / SOFTNESS))
-        image += (rgb(color) - image) * alpha[..., None]
-    noise = np.random.default_rng(seed).normal(0, spec["grain"], (H, W, 1))
-    return np.clip(image + noise, 0, 255).astype(np.uint8)
-
-
 for seed, (name, spec) in enumerate(WALLPAPERS.items()):
     path = OUT / f"softglowos-{name}.jpg"
-    Image.fromarray(render(spec, seed)).save(path, quality=92, subsampling=0)
+    Image.fromarray(render(spec, W, H, DESIGN_WIDTH, SOFTNESS, seed)).save(path, quality=92, subsampling=0)
     print(f"{path}  {path.stat().st_size / 1e6:.1f} MB")
