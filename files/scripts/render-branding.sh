@@ -19,6 +19,11 @@ rsvg-convert -h 64 "$SRC/wordmark-white.svg" \
 rsvg-convert -h 48 "$SRC/wordmark-white.svg" \
   -o /usr/share/pixmaps/fedora-gdm-logo.png
 
+# Settings > System > About: Fedora patches it to show these two files
+# (light and dark mode) instead of the os-release LOGO icon
+rsvg-convert -h 80 "$SRC/wordmark-dark.svg" -o /usr/share/pixmaps/fedora_logo_med.png
+rsvg-convert -h 80 "$SRC/wordmark-white.svg" -o /usr/share/pixmaps/fedora_whitelogo_med.png
+
 # Our OS logo (os-release LOGO) lives in hicolor; ostree resets file times, so
 # GTK would trust the stale icon cache and never find it without a refresh
 gtk-update-icon-cache -f /usr/share/icons/hicolor
