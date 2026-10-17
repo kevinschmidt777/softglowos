@@ -1,24 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2160" width="3840" height="2160">
+  <!-- "Nebel": soft cool-gray clouds with a hint of teal, plus fine grain -->
   <defs>
-    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0f1f"/>
-      <stop offset="1" stop-color="#171034"/>
-    </linearGradient>
-    <radialGradient id="violet" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#7c4dff" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#7c4dff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="teal" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#00bfa6" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#00bfa6" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="rose" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#ff4d6d" stop-opacity="0.25"/>
-      <stop offset="1" stop-color="#ff4d6d" stop-opacity="0"/>
-    </radialGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="360"/></filter>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
   </defs>
-  <rect width="3840" height="2160" fill="url(#base)"/>
-  <ellipse cx="2900" cy="600" rx="1500" ry="1100" fill="url(#violet)"/>
-  <ellipse cx="700" cy="1750" rx="1400" ry="1000" fill="url(#teal)"/>
-  <ellipse cx="2000" cy="2100" rx="1100" ry="700" fill="url(#rose)"/>
+  <rect width="3840" height="2160" fill="#141619"/>
+  <g filter="url(#blur)">
+    <circle cx="960" cy="720" r="1248" fill="#3a4a52" opacity="0.8"/>
+    <circle cx="2880" cy="1560" r="1344" fill="#24555f" opacity="0.6"/>
+    <circle cx="3240" cy="480" r="720" fill="#6d8c93" opacity="0.3"/>
+    <circle cx="1200" cy="1968" r="768" fill="#2c3b45" opacity="0.6"/>
+  </g>
+  <rect width="3840" height="2160" filter="url(#grain)" opacity="0.06" style="mix-blend-mode:overlay"/>
 </svg>
