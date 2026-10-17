@@ -52,3 +52,8 @@ picture-uri='file:///usr/share/backgrounds/softglowos/softglowos-dark.svg'
 [org.gnome.desktop.sound]
 event-sounds=false
 input-feedback-sounds=false
+
+# No GNOME donation reminder notifications (the Settings banner is removed
+# by hide-gnome-donate.sh)
+[org.gnome.settings-daemon.plugins.housekeeping]
+donation-reminder-enabled=false

@@ -55,6 +55,7 @@ modules:
     scripts:
       - install-discord.sh
       - render-branding.sh
+      - hide-gnome-donate.sh
       - remove-bazzite-autostart.sh
       - disable-terra-mesa.sh
 
