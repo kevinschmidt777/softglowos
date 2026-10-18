@@ -1,0 +1,57 @@
+using Gtk 4.0;
+using Adw 1;
+
+translation-domain "softglowos-hub";
+
+template $HubWindow: Adw.ApplicationWindow {
+  title: _("Hub");
+  default-width: 1280;
+  default-height: 800;
+  width-request: 360;
+  height-request: 294;
+
+  Adw.Breakpoint {
+    condition ("max-width: 640sp")
+
+    setters {
+      split_view.collapsed: true;
+    }
+  }
+
+  content: Adw.NavigationSplitView split_view {
+    min-sidebar-width: 200;
+    max-sidebar-width: 240;
+
+    sidebar: Adw.NavigationPage {
+      title: _("Hub");
+
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: ScrolledWindow {
+          hscrollbar-policy: never;
+
+          child: ListBox sidebar_list {
+            row-selected => $on_row_selected();
+
+            styles [
+              "navigation-sidebar",
+            ]
+          };
+        };
+      };
+    };
+
+    content: Adw.NavigationPage content_page {
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {}
+
+        content: Stack stack {
+          transition-type: crossfade;
+        };
+      };
+    };
+  };
+}

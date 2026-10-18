@@ -1,0 +1,27 @@
+#!@PYTHON@
+# Launcher: sets up translations and the bundled resources, then starts the Hub.
+
+import gettext
+import locale
+import os
+import signal
+import sys
+
+pkgdatadir = '@pkgdatadir@'
+localedir = '@localedir@'
+
+sys.path.insert(1, pkgdatadir)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+locale.bindtextdomain('softglowos-hub', localedir)
+locale.textdomain('softglowos-hub')
+gettext.install('softglowos-hub', localedir)
+
+if __name__ == '__main__':
+    from gi.repository import Gio
+
+    resource = Gio.Resource.load(os.path.join(pkgdatadir, 'hub.gresource'))
+    resource._register()
+
+    from hub import main
+    sys.exit(main.main())

@@ -1,0 +1,6 @@
+data/com.softglowos.Hub.desktop.in
+src/window.blp
+src/window.py
+src/mixer-page.blp
+src/mixer_page.py
+src/strips.py

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Hub
+Comment=Mixer, devices and software for creators
+Exec=softglowos-hub
+Icon=com.softglowos.Hub
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Settings;
+StartupNotify=true

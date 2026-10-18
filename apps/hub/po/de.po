@@ -1,0 +1,112 @@
+# German translation for the SoftglowOS Hub.
+msgid ""
+msgstr ""
+"Project-Id-Version: softglowos-hub\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Hub"
+msgstr "Hub"
+
+msgid "Mixer, devices and software for creators"
+msgstr "Mixer, Geräte und Software für Creator"
+
+msgid "Mixer"
+msgstr "Mixer"
+
+msgid "Devices"
+msgstr "Geräte"
+
+msgid "Software"
+msgstr "Software"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Coming soon"
+msgstr "Kommt bald"
+
+msgid "This area is still being built."
+msgstr "Dieser Bereich wird gerade gebaut."
+
+msgid "Game"
+msgstr "Game"
+
+msgid "Chat"
+msgstr "Chat"
+
+msgid "Music"
+msgstr "Musik"
+
+msgid "System"
+msgstr "System"
+
+msgid "Notifications"
+msgstr "Hinweise"
+
+msgid "Browser"
+msgstr "Browser"
+
+msgid "Console"
+msgstr "Konsole"
+
+#, python-brace-format
+msgid "Listening on <b>{device}</b>"
+msgstr "Ich hör über <b>{device}</b>"
+
+#, python-brace-format
+msgid "Stream goes to <b>{target}</b>"
+msgstr "Stream geht an <b>{target}</b>"
+
+msgid "Microphone"
+msgstr "Mikrofon"
+
+msgid "Microphone level"
+msgstr "Mikrofon-Pegel"
+
+msgid "Noise suppression"
+msgstr "Rauschunterdrückung"
+
+msgid "Compressor"
+msgstr "Kompressor"
+
+msgid "Noise gate"
+msgstr "Noise Gate"
+
+msgid "Mute"
+msgstr "Stummschalten"
+
+msgid "Muted – unmute"
+msgstr "Stumm – einschalten"
+
+#, python-brace-format
+msgid "{channel} – stream mix"
+msgstr "{channel} – Stream-Mix"
+
+#, python-brace-format
+msgid "{channel} – headphone mix"
+msgstr "{channel} – Kopfhörer-Mix"
+
+msgid "Stream"
+msgstr "Stream"
+
+msgid "Me"
+msgstr "Ich"
+
+msgid "Mute in stream"
+msgstr "Im Stream stummschalten"
+
+msgid "Mute in headphones"
+msgstr "Im Kopfhörer stummschalten"
+
+msgid "Offset"
+msgstr "Versatz"
+
+msgid "Decrease offset"
+msgstr "Versatz verringern"
+
+msgid "Increase offset"
+msgstr "Versatz erhöhen"

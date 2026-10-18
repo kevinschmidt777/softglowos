@@ -1,0 +1,53 @@
+using Gtk 4.0;
+using Adw 1;
+
+translation-domain "softglowos-hub";
+
+template $MixerPage: Adw.Bin {
+  child: ScrolledWindow {
+    child: Box {
+      orientation: vertical;
+      spacing: 18;
+      margin-top: 12;
+      margin-bottom: 24;
+      margin-start: 24;
+      margin-end: 24;
+
+      Box {
+        spacing: 18;
+
+        styles [
+          "dim-label",
+        ]
+
+        Box {
+          spacing: 8;
+
+          Image {
+            icon-name: "audio-headphones-symbolic";
+          }
+
+          Label listening_label {
+            use-markup: true;
+          }
+        }
+
+        Box {
+          spacing: 8;
+
+          Image {
+            icon-name: "media-record-symbolic";
+          }
+
+          Label stream_label {
+            use-markup: true;
+          }
+        }
+      }
+
+      Box strips {
+        spacing: 12;
+      }
+    };
+  };
+}

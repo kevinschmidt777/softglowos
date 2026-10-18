@@ -1,0 +1,39 @@
+blueprints = custom_target('blueprints',
+  input: files(
+    'window.blp',
+    'mixer-page.blp',
+  ),
+  output: '.',
+  command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+)
+
+gnome.compile_resources('hub',
+  'hub.gresource.xml',
+  gresource_bundle: true,
+  install: true,
+  install_dir: pkgdatadir,
+  dependencies: blueprints,
+)
+
+conf = configuration_data()
+conf.set('PYTHON', python.find_installation('python3').full_path())
+conf.set('pkgdatadir', pkgdatadir)
+conf.set('localedir', get_option('prefix') / get_option('localedir'))
+
+configure_file(
+  input: 'softglowos-hub.in',
+  output: 'softglowos-hub',
+  configuration: conf,
+  install: true,
+  install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x',
+)
+
+install_data(
+  '__init__.py',
+  'main.py',
+  'window.py',
+  'mixer_page.py',
+  'strips.py',
+  install_dir: pkgdatadir / 'hub',
+)

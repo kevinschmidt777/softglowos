@@ -1,0 +1,67 @@
+/* Mixer look, see the Hub mockup. Colors come from libadwaita's variables,
+   so light, dark and the system accent work without extra rules. */
+
+.mixer-strip {
+  padding: 16px 10px 12px;
+}
+
+.mixer-strip .strip-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.app-chip {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: alpha(currentColor, 0.07);
+  color: alpha(currentColor, 0.65);
+}
+
+/* Fader: thin track, wide flat knob, accent fill from the bottom */
+scale.fader {
+  padding: 0 11px;
+}
+
+scale.fader trough {
+  min-width: 6px;
+  border-radius: 3px;
+}
+
+scale.fader highlight {
+  background: var(--accent-bg-color);
+  border-radius: 3px;
+}
+
+scale.fader slider {
+  min-width: 28px;
+  min-height: 14px;
+  margin: -7px -11px;
+  border-radius: 7px;
+}
+
+.muted scale.fader highlight {
+  background: alpha(currentColor, 0.3);
+}
+
+/* Level meter */
+levelbar.meter trough {
+  min-width: 4px;
+  padding: 0;
+  border-radius: 2px;
+}
+
+levelbar.meter block {
+  min-width: 4px;
+  border-radius: 2px;
+}
+
+levelbar.meter block.filled {
+  background: var(--accent-bg-color);
+}
+
+/* Muted buttons turn red */
+.mute-button:checked {
+  background: alpha(var(--destructive-bg-color), 0.15);
+  color: var(--destructive-color);
+}
