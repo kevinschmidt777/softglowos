@@ -24,10 +24,13 @@ mkdir -p "$(dirname "$OUT")"
 gresource extract "$LIB" "$RES" | python3 -c '
 import sys
 code = sys.stdin.read()
-old = "output => !skippedApps.includes(output.get_application_id()));"
-new = ("output => !skippedApps.includes(output.get_application_id()) &&\n"
-       "                    !(output.get_name() ?? \"\").startsWith(\"softglowos.\"));")
+old = ".get_source_outputs().some("
+new = (".get_source_outputs()"
+       ".filter(o => !(o.get_name() ?? \"\").startsWith(\"softglowos.\")).some(")
 if code.count(old) != 1:
+    for number, line in enumerate(code.splitlines(), 1):
+        if "source_output" in line or "skippedApps" in line:
+            print(f"{number}: {line}", file=sys.stderr)
     sys.exit("mic indicator code not found in " + sys.argv[1])
 sys.stdout.write(code.replace(old, new))
 ' "$RES" > "$OUT"
