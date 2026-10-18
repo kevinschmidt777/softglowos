@@ -3,10 +3,17 @@
 
 The graph, per channel (game, chat, music, system, browser, console):
 
-  apps ──> sink "softglowos.<ch>"  ──[stream fader]──> source "softglowos.<ch>.track"
-                                │                          │  (single track for OBS)
-                                │                          └──> sink "softglowos.stream-mix"
-                                └──[headphone fader]──> your headphones (default output)
+  apps ──> sink "softglowos.<ch>" ──[stream fader]──> source "softglowos.<ch>.stream.out"
+                               │                         │  (single track for OBS)
+                               │                         └──> sink "softglowos.stream-mix"
+                               └──[headphone fader]──> your headphones (default output)
+
+With a GoXLR, the GoXLR mixes in hardware instead: game, chat, music and
+system go 1:1 into the GoXLR channel of the same name (its faders are the
+volume), browser and console go into its Sample channel, which the Hub takes
+out of the GoXLR's own stream mix, and the GoXLR's "Stream Mix 1" is fed into
+our stream mix. So OBS always records "SoftglowOS Stream-Mix". The WirePlumber
+script switches between both ways when a GoXLR comes or goes.
 
 The microphone runs through a filter chain (RNNoise, gate, 10-band EQ,
 compressor) into the source "softglowos.mic", which is also the default input,
@@ -14,7 +21,9 @@ so Discord and OBS get the same filtered mic. The capture card runs through a
 delay filter (the "offset", 0 ms by default) into the console channel.
 
 Fader volumes live on the capture side of each loopback, which is a stream, so
-WirePlumber remembers them. The WirePlumber script picks the real devices.
+WirePlumber remembers them. The WirePlumber script picks the real devices and
+links or unlinks the loopbacks for the current mode; node.linger keeps an
+unlinked loopback waiting instead of being torn down.
 
 Run from the repo root:
   python3 tools/make-audio-config.py
@@ -31,6 +40,9 @@ CHANNELS = [
     ("browser", "Browser"),
     ("console", "Console"),
 ]
+
+# Channels the GoXLR mixes itself (it has a channel of the same name).
+GOXLR_CHANNELS = ["game", "chat", "music", "system"]
 
 # LSP "Bypass" = 1 switches a filter off. Defaults as in the Hub mockup:
 # RNNoise and compressor on, gate off, EQ flat.
@@ -71,11 +83,13 @@ def loopback(name, description, capture, playback):
       capture.props = {{
         node.name  = "{name}.in"
         media.name = "{name}.in"
+        node.linger = true
 {props(capture)}
       }}
       playback.props = {{
         node.name  = "{name}.out"
         media.name = "{name}.out"
+        node.linger = true
 {props(playback)}
       }}
     }}
@@ -87,21 +101,17 @@ def channel_modules(ch, label):
     return [
         # Stream fader: channel -> its single track (a source OBS can record)
         loopback(f"softglowos.{ch}.stream", f"SoftglowOS {label} (Stream)",
-                 {"target.object": sink, "stream.capture.sink": "true",
-                  "node.dont-reconnect": "true"},
+                 {"target.object": sink, "stream.capture.sink": "true"},
                  {"media.class": "Audio/Source",
                   "node.description": f'"SoftglowOS {label} (Stream)"',
                   "priority.session": "0"}),
         # Track -> stream mix, always at full volume
         loopback(f"softglowos.{ch}.mix", f"SoftglowOS {label} to Stream-Mix",
-                 {"target.object": f'"softglowos.{ch}.stream.out"',
-                  "node.dont-reconnect": "true"},
-                 {"target.object": '"softglowos.stream-mix"',
-                  "node.dont-reconnect": "true"}),
+                 {"target.object": f'"softglowos.{ch}.stream.out"'},
+                 {"target.object": '"softglowos.stream-mix"'}),
         # Headphone fader: channel -> your headphones (picked by the script)
         loopback(f"softglowos.{ch}.monitor", f"SoftglowOS {label} (Me)",
-                 {"target.object": sink, "stream.capture.sink": "true",
-                  "node.dont-reconnect": "true"},
+                 {"target.object": sink, "stream.capture.sink": "true"},
                  {}),
     ]
 
@@ -163,6 +173,7 @@ def mic_chain():
       capture.props = {{
         node.name  = "softglowos.mic.in"
         media.name = "softglowos.mic.in"
+        node.linger = true
       }}
       playback.props = {{
         node.name        = "softglowos.mic"
@@ -193,12 +204,13 @@ def console_delay():
       capture.props = {
         node.name  = "softglowos.console-offset.in"
         media.name = "softglowos.console-offset.in"
+        node.linger = true
       }
       playback.props = {
         node.name  = "softglowos.console-offset.out"
         media.name = "softglowos.console-offset.out"
+        node.linger = true
         target.object = "softglowos.console"
-        node.dont-reconnect = true
       }
     }
   }"""
@@ -213,11 +225,19 @@ def main():
         modules += channel_modules(ch, label)
     modules.append(mic_chain())
     modules.append(loopback("softglowos.mic.mix", "SoftglowOS Microphone to Stream-Mix",
-                            {"target.object": '"softglowos.mic"',
-                             "node.dont-reconnect": "true"},
-                            {"target.object": '"softglowos.stream-mix"',
-                             "node.dont-reconnect": "true"}))
+                            {"target.object": '"softglowos.mic"'},
+                            {"target.object": '"softglowos.stream-mix"'}))
     modules.append(console_delay())
+    for ch, label in CHANNELS:
+        if ch in GOXLR_CHANNELS:
+            # Only linked with a GoXLR: channel -> GoXLR channel at full volume
+            modules.append(loopback(f"softglowos.{ch}.goxlr", f"SoftglowOS {label} to GoXLR",
+                                    {"target.object": f'"softglowos.{ch}"',
+                                     "stream.capture.sink": "true"},
+                                    {}))
+    # Only linked with a GoXLR: its hardware stream mix -> our stream mix
+    modules.append(loopback("softglowos.goxlr-stream", "SoftglowOS GoXLR Stream Mix",
+                            {}, {"target.object": '"softglowos.stream-mix"'}))
 
     text = (
         "# SoftglowOS mixer graph. Generated by tools/make-audio-config.py, don't edit.\n\n"
