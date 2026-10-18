@@ -1,6 +1,9 @@
-from gi.repository import Gdk, GObject, Gtk
+from gi.repository import Gdk, GLib, GObject, Gtk
 
 FADER_HEIGHT = 184
+# Ignore outside updates this long after the user moved a fader, so values
+# echoed back by the GoXLR while dragging don't make the knob jump.
+USER_HOLD_US = 400_000
 OFFSET_STEP_MS = 10
 OFFSET_MAX_MS = 2000
 
@@ -20,6 +23,7 @@ class Fader(Gtk.Box):
         self._on_mute = on_mute
         self._muted = False
         self._level = 0.0
+        self._touched = 0
 
         controls = Gtk.Box(spacing=3, halign=Gtk.Align.CENTER)
         self.meter = Gtk.LevelBar(orientation=Gtk.Orientation.VERTICAL, inverted=True,
@@ -64,8 +68,9 @@ class Fader(Gtk.Box):
         self.set_state(0, False)
 
     def set_state(self, value, muted):
-        with self.scale.handler_block(self._value_handler):
-            self.scale.set_value(value)
+        if GLib.get_monotonic_time() - self._touched > USER_HOLD_US:
+            with self.scale.handler_block(self._value_handler):
+                self.scale.set_value(value)
         if self.mute_button:
             with self.mute_button.handler_block(self._mute_handler):
                 self.mute_button.set_active(muted)
@@ -92,6 +97,7 @@ class Fader(Gtk.Box):
         self.meter.set_value(0 if self._muted else self._level * self.scale.get_value() / 100)
 
     def _on_value_changed(self, scale):
+        self._touched = GLib.get_monotonic_time()
         self._show(self._muted)
         if self._on_change:
             self._on_change(round(scale.get_value()))
@@ -140,6 +146,9 @@ class MicStrip(Gtk.Box):
         heading.append(title)
         device_picker.set_halign(Gtk.Align.START)
         heading.append(device_picker)
+        self.badge = Gtk.MenuButton(visible=False, halign=Gtk.Align.START)
+        self.badge.add_css_class('fader-badge')
+        heading.append(self.badge)
         strip.append(heading)
 
         self.fader = Fader(_('Microphone level'), unit=' %',
@@ -169,6 +178,11 @@ class MicStrip(Gtk.Box):
         self.mute_button.add_css_class('mute-button')
         self._mute_handler = self.mute_button.connect('toggled', self._on_mute_toggled)
         strip.append(self.mute_button)
+
+    def set_badge(self, text):
+        self.badge.set_visible(text is not None)
+        if text is not None:
+            self.badge.set_label(text)
 
     def set_state(self, value, muted):
         self.fader.set_state(value, muted)

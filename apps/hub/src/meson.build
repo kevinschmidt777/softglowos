@@ -40,5 +40,6 @@ install_data(
   'strips.py',
   'widgets.py',
   'audio.py',
+  'goxlr.py',
   install_dir: pkgdatadir / 'hub',
 )

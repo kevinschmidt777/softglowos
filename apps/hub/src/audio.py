@@ -72,6 +72,7 @@ class PipeWireMixer(GObject.Object):
         self._refresh_pending = False
         self._meters = []
         self._levels = {}
+        self._filters = None
 
         Gst.init(None)
         threading.Thread(target=self._listen, daemon=True).start()
@@ -174,16 +175,21 @@ class PipeWireMixer(GObject.Object):
                        capture_output=True, timeout=5)
 
     def filters(self):
-        """RNNoise, gate and compressor on/off plus the EQ gains in dB."""
-        controls = self._controls(MIC_FILTER)
-        return {
-            'rnnoise': controls.get('rnnoise_mix:Gain 1', 1.0) > 0.5,
-            'gate': not controls.get('gate:Bypass', True),
-            'compressor': not controls.get('compressor:Bypass', False),
-            'eq': [controls.get(f'eq{i}:Gain', 0.0) for i in range(1, len(EQ_BANDS) + 1)],
-        }
+        """RNNoise, gate and compressor on/off plus the EQ gains in dB.
+        Read from PipeWire once; afterwards only the Hub changes them."""
+        if self._filters is None:
+            controls = self._controls(MIC_FILTER)
+            self._filters = {
+                'rnnoise': controls.get('rnnoise_mix:Gain 1', 1.0) > 0.5,
+                'gate': not controls.get('gate:Bypass', True),
+                'compressor': not controls.get('compressor:Bypass', False),
+                'eq': [controls.get(f'eq{i}:Gain', 0.0) for i in range(1, len(EQ_BANDS) + 1)],
+            }
+        return {**self._filters, 'eq': list(self._filters['eq'])}
 
     def set_filter(self, name, active):
+        self.filters()
+        self._filters[name] = active
         if name == 'rnnoise':
             self._set_controls(MIC_FILTER, {'rnnoise_mix:Gain 1': 1.0 if active else 0.0,
                                             'rnnoise_mix:Gain 2': 0.0 if active else 1.0})
@@ -197,6 +203,8 @@ class PipeWireMixer(GObject.Object):
         return EQ_RANGE_DB
 
     def set_eq_gain(self, band, gain_db):
+        self.filters()
+        self._filters['eq'][band] = gain_db
         self._set_controls(MIC_FILTER, {f'eq{band + 1}:Gain': gain_db})
 
     def console_offset_ms(self):
@@ -283,7 +291,8 @@ class PipeWireMixer(GObject.Object):
         targets = [(channel, PREFIX + channel, True) for channel in CHANNELS]
         targets.append(('mic', PREFIX + 'mic', False))
         for key, target, from_sink in targets:
-            props = f'props,node.name={PREFIX}hub.meter.{key}'
+            # softglowos.* names keep the meters out of the mic indicator
+            props = f'props,node.name={PREFIX}hub.meter.{key},media.name={PREFIX}hub.meter.{key}'
             if from_sink:
                 props += ',stream.capture.sink=true'
             pipeline = Gst.parse_launch(

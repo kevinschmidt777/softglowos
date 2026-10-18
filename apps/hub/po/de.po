@@ -135,3 +135,10 @@ msgstr "Mixer nicht verfügbar"
 
 msgid "The SoftglowOS audio services are not running."
 msgstr "Die SoftglowOS-Audiodienste laufen nicht."
+
+#, python-brace-format
+msgid "GoXLR {fader}"
+msgstr "GoXLR {fader}"
+
+msgid "On this fader"
+msgstr "Auf diesem Fader"

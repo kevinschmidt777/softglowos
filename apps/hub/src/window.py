@@ -1,6 +1,6 @@
 from gi.repository import Adw, Gtk
 
-from .audio import PipeWireMixer
+from .goxlr import Mixer
 from .mixer_page import MixerPage
 
 
@@ -26,7 +26,7 @@ class HubWindow(Adw.ApplicationWindow):
 
         pages = (
             ('mixer', _('Mixer'), 'multimedia-volume-control-symbolic',
-             MixerPage(PipeWireMixer())),
+             MixerPage(Mixer())),
             ('devices', _('Devices'), 'preferences-system-devices-symbolic',
              coming_soon('preferences-system-devices-symbolic')),
             ('software', _('Software'), 'preferences-desktop-apps-symbolic',

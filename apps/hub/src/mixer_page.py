@@ -1,7 +1,15 @@
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, GLib, Gtk
 
 from .strips import ChannelStrip, MicStrip
 from .widgets import DevicePicker, EqDialog
+
+FADER_CHOICE_NAMES = {
+    'mic': _('Microphone'),
+    'game': _('Game'),
+    'chat': _('Chat'),
+    'music': _('Music'),
+    'system': _('System'),
+}
 
 CHANNEL_NAMES = {
     'game': _('Game'),
@@ -39,6 +47,7 @@ class MixerPage(Adw.Bin):
         self.mic.connect('mute-changed', lambda _s, muted: mixer.set_mic_muted(muted))
         self.mic.connect('filter-changed', lambda _s, name, on: mixer.set_filter(name, on))
         self.mic.connect('eq-requested', self._on_eq_requested)
+        self.mic.badge.set_popover(self._fader_menu('mic'))
         self.strips.append(self.mic)
 
         self.channels = {}
@@ -55,6 +64,7 @@ class MixerPage(Adw.Bin):
             strip.connect('app-dropped', self._on_app_dropped)
             strip.connect('offset-changed',
                           lambda _s, ms: mixer.set_console_offset_ms(ms))
+            strip.badge.set_popover(self._fader_menu(channel_id))
             self.channels[channel_id] = strip
             self.strips.append(strip)
 
@@ -64,7 +74,6 @@ class MixerPage(Adw.Bin):
         self.connect('unmap', lambda _page: mixer.stop_meters())
 
         self.refresh()
-        self.mic.set_filters(mixer.filters())
         self.channels['console'].set_offset_ms(mixer.console_offset_ms())
 
     def refresh(self):
@@ -78,11 +87,43 @@ class MixerPage(Adw.Bin):
         self.mic_picker.set_device(self.mixer.current_microphone())
         self.capture_picker.set_device(self.mixer.current_capture_card())
         self.mic.set_state(*self.mixer.mic())
+        self.mic.set_badge(self._badge('mic'))
+        self.mic.set_filters(self.mixer.filters())
         apps = self.mixer.apps()
         for channel_id, strip in self.channels.items():
             for mix, fader in strip.faders.items():
                 fader.set_state(*self.mixer.fader(channel_id, mix))
             strip.set_apps(apps.get(channel_id, []))
+            strip.set_badge(self._badge(channel_id))
+
+    def _badge(self, channel_id):
+        letter = self.mixer.fader_of(channel_id)
+        return _('GoXLR {fader}').format(fader=letter) if letter else None
+
+    def _fader_menu(self, channel_id):
+        """Popover of a GoXLR badge: which channel sits on this desk fader."""
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        title = Gtk.Label(label=_('On this fader'), xalign=0)
+        title.add_css_class('heading')
+        box.append(title)
+        rows = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        rows.add_css_class('boxed-list')
+        for choice in self.mixer.fader_choices():
+            row = Adw.ActionRow(title=GLib.markup_escape_text(FADER_CHOICE_NAMES[choice]),
+                                activatable=True)
+            row.choice = choice
+            rows.append(row)
+        box.append(rows)
+        popover = Gtk.Popover(child=box)
+
+        def on_activated(_rows, row):
+            popover.popdown()
+            letter = self.mixer.fader_of(channel_id)
+            if letter:
+                self.mixer.put_on_fader(letter, row.choice)
+
+        rows.connect('row-activated', on_activated)
+        return popover
 
     def _on_fader_changed(self, strip, mix, value):
         self.mixer.set_fader(strip.channel_id, mix, value)
