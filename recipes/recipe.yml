@@ -23,8 +23,13 @@ modules:
       packages:
         # Native OBS instead of the Flatpak, so NVENC and plugins work without sandbox issues
         - obs-studio
-        # Daemon that drives the GoXLR; our own mixer will talk to its API later
+        # Daemon that drives the GoXLR; the Hub talks to its API (its own UI is hidden)
         - https://github.com/GoXLR-on-Linux/goxlr-utility/releases/download/v1.2.4/goxlr-utility-1.2.4-1.x86_64.rpm
+        # Hub mixer: gate and compressor for the mic chain, Python bindings
+        - lsp-plugins-ladspa
+        - python3-pulsectl
+        - python3-gstreamer1
+        - pipewire-gstreamer
         # One app for the RGB lighting of most vendors (mainboards, RAM, GPUs, peripherals)
         - openrgb
         # Default browser
@@ -51,11 +56,19 @@ modules:
       enabled:
         - goxlr-daemon.service
 
+  # Hub source for install-hub.sh
+  - type: copy
+    src: apps/hub
+    dest: /tmp/softglowos-hub
+
   - type: script
     scripts:
       - install-discord.sh
+      - install-rnnoise.sh
+      - install-hub.sh
       - render-branding.sh
       - hide-gnome-donate.sh
+      - hide-mixer-from-mic-indicator.sh
       - remove-bazzite-autostart.sh
       - hide-bazzite-apps.sh
       - remove-bazzite-ujust-recipes.sh

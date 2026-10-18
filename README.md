@@ -35,8 +35,8 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 | `files/gschema-overrides/` | GNOME default settings |
 | `files/scripts/` | Build-time scripts |
 | `disk_config/` | Settings for the ISO and the qcow2 VM disk |
-| `apps/hub/` | The Hub app (Python, GTK4/libadwaita, Meson); `run-in-vm.sh` builds and starts it in the Fedora dev VM. The mixer shows placeholder values for now |
-| `tools/` | Generators for the wallpapers and the Bazaar banners (output is committed) |
+| `apps/hub/` | The Hub app (Python, GTK4/libadwaita, Meson): mixer for PipeWire and GoXLR; `run-in-vm.sh` builds and starts it in the Fedora dev VM |
+| `tools/` | Generators for the wallpapers, the Bazaar banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into the dev VM |
 | `.github/workflows/` | Image build (on push and daily) and disk image build (manual) |
 
 ## Building
