@@ -4,50 +4,62 @@ using Adw 1;
 translation-domain "softglowos-hub";
 
 template $MixerPage: Adw.Bin {
-  child: ScrolledWindow {
-    child: Box {
-      orientation: vertical;
-      spacing: 18;
-      margin-top: 12;
-      margin-bottom: 24;
-      margin-start: 24;
-      margin-end: 24;
+  child: Stack stack {
+    StackPage {
+      name: "mixer";
 
-      Box {
-        spacing: 18;
+      child: ScrolledWindow {
+        child: Box {
+          orientation: vertical;
+          spacing: 18;
+          margin-top: 12;
+          margin-bottom: 24;
+          margin-start: 24;
+          margin-end: 24;
 
-        styles [
-          "dim-label",
-        ]
+          Box {
+            spacing: 18;
 
-        Box {
-          spacing: 8;
+            styles [
+              "dim-label",
+            ]
 
-          Image {
-            icon-name: "audio-headphones-symbolic";
+            Box output_box {
+              spacing: 2;
+
+              Image {
+                icon-name: "audio-headphones-symbolic";
+              }
+            }
+
+            Box {
+              spacing: 8;
+
+              Image {
+                icon-name: "media-record-symbolic";
+              }
+
+              Label stream_label {
+                use-markup: true;
+              }
+            }
           }
 
-          Label listening_label {
-            use-markup: true;
+          Box strips {
+            spacing: 12;
           }
-        }
+        };
+      };
+    }
 
-        Box {
-          spacing: 8;
+    StackPage {
+      name: "missing";
 
-          Image {
-            icon-name: "media-record-symbolic";
-          }
-
-          Label stream_label {
-            use-markup: true;
-          }
-        }
-      }
-
-      Box strips {
-        spacing: 12;
-      }
-    };
+      child: Adw.StatusPage {
+        icon-name: "audio-volume-muted-symbolic";
+        title: _("Mixer not available");
+        description: _("The SoftglowOS audio services are not running.");
+      };
+    }
   };
 }

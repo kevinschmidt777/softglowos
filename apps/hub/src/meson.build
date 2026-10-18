@@ -3,8 +3,11 @@ blueprints = custom_target('blueprints',
     'window.blp',
     'mixer-page.blp',
   ),
-  output: '.',
-  command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+  output: [
+    'window.ui',
+    'mixer-page.ui',
+  ],
+  command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTDIR@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
 )
 
 gnome.compile_resources('hub',
@@ -35,5 +38,7 @@ install_data(
   'window.py',
   'mixer_page.py',
   'strips.py',
+  'widgets.py',
+  'audio.py',
   install_dir: pkgdatadir / 'hub',
 )

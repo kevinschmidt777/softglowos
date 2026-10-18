@@ -44,9 +44,6 @@ msgstr "Musik"
 msgid "System"
 msgstr "System"
 
-msgid "Notifications"
-msgstr "Hinweise"
-
 msgid "Browser"
 msgstr "Browser"
 
@@ -110,3 +107,31 @@ msgstr "Versatz verringern"
 
 msgid "Increase offset"
 msgstr "Versatz erhöhen"
+
+msgid "EQ …"
+msgstr "EQ …"
+
+msgid "Microphone EQ"
+msgstr "Mikrofon-EQ"
+
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#, python-brace-format
+msgid "{frequency} band"
+msgstr "Band {frequency}"
+
+msgid "Drag onto another channel"
+msgstr "Auf einen anderen Kanal ziehen"
+
+msgid "No microphone"
+msgstr "Kein Mikrofon"
+
+msgid "No capture card"
+msgstr "Keine Capture Card"
+
+msgid "Mixer not available"
+msgstr "Mixer nicht verfügbar"
+
+msgid "The SoftglowOS audio services are not running."
+msgstr "Die SoftglowOS-Audiodienste laufen nicht."

@@ -4,3 +4,4 @@ src/window.py
 src/mixer-page.blp
 src/mixer_page.py
 src/strips.py
+src/widgets.py
