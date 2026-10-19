@@ -12,7 +12,7 @@ from gi.repository import Gio, GLib
 ITEM_PATH = '/StatusNotifierItem'
 MENU_PATH = '/StatusNotifierItem/Menu'
 WATCHER = 'org.kde.StatusNotifierWatcher'
-ICON = 'multimedia-volume-control-symbolic'
+ICON = 'com.softglowos.Hub.Mixer-symbolic'
 
 ITEM_XML = '''
 <node>

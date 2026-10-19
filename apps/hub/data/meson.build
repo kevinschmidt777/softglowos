@@ -12,6 +12,12 @@ install_data(
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
 )
 
+# Mixer icon in the top bar
+install_data(
+  'icons' / app_id + '.Mixer-symbolic.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps',
+)
+
 # Daily update check with a notification (enabled in the image's recipe)
 unit_conf = configuration_data()
 unit_conf.set('pkgdatadir', pkgdatadir)
