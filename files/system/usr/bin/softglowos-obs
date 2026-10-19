@@ -9,15 +9,23 @@ start, when there are no OBS settings yet, it prepares them first:
   chat, music and console alone for editing; recordings keep all six
 - no scenes beyond OBS's empty default one, and OBS's own auto-configuration
   wizard still runs for resolution and bitrate
+- OBS's remote control (obs-websocket, port 4455) with a random password,
+  which also goes into StreamController's OBS plugin, so the Stream Deck
+  controls OBS right away. It's reachable on the home network too (Fedora's
+  firewall lets ports above 1024 in), the password protects it.
 
 Existing OBS settings are never touched."""
 import json
 import os
 import re
+import secrets
 import subprocess
 from pathlib import Path
 
 CONFIG = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'obs-studio'
+WEBSOCKET_PORT = 4455
+STREAMCONTROLLER_OBS = (Path.home() / '.var' / 'app' / 'com.core447.StreamController' / 'data'
+                        / 'settings' / 'plugins' / 'com_core447_OBSPlugin' / 'settings.json')
 NAME = 'SoftglowOS'
 GERMAN = os.environ.get('LANG', '').startswith('de')
 
@@ -84,6 +92,32 @@ def prepare():
     (CONFIG / 'user.ini').write_text(
         f'[Basic]\nProfile={NAME}\nProfileDir={NAME}\n'
         f'SceneCollection={NAME}\nSceneCollectionFile={NAME}\n')
+    connect_stream_deck()
+
+
+def connect_stream_deck():
+    """Turns on obs-websocket and gives StreamController's OBS plugin the same
+    password, unless the user already set up a connection there."""
+    password = secrets.token_urlsafe(18)
+    websocket = CONFIG / 'plugin_config' / 'obs-websocket' / 'config.json'
+    websocket.parent.mkdir(parents=True, exist_ok=True)
+    websocket.write_text(json.dumps({
+        'alerts_enabled': False, 'auth_required': True, 'first_load': False,
+        'server_enabled': True, 'server_password': password, 'server_port': WEBSOCKET_PORT,
+    }, indent=2))
+
+    try:
+        settings = json.loads(STREAMCONTROLLER_OBS.read_text())
+    except (OSError, ValueError):
+        settings = {}
+    connections = settings.get('connections') or []
+    if any(c.get('password') for c in connections) or settings.get('password'):
+        return
+    settings['connections'] = [{'id': 'default', 'name': 'OBS', 'ip': 'localhost',
+                                'port': WEBSOCKET_PORT, 'password': password}]
+    settings['default_connection'] = 'default'
+    STREAMCONTROLLER_OBS.parent.mkdir(parents=True, exist_ok=True)
+    STREAMCONTROLLER_OBS.write_text(json.dumps(settings, indent=4))
 
 
 if __name__ == '__main__':

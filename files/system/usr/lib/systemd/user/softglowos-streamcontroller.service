@@ -1,0 +1,10 @@
+[Unit]
+Description=Get StreamController ready for SoftglowOS
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/softglowos-streamcontroller
+
+[Install]
+WantedBy=graphical-session.target

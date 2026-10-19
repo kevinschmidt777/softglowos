@@ -1,0 +1,18 @@
+{
+    "version": "1.0.0",
+    "author": "SoftglowOS",
+    "thumbnail": "assets/speaker.svg",
+    "id": "com_softglowos_Mixer",
+    "name": "SoftglowOS Mixer",
+    "descriptions": {
+        "en_US": "Mute channels and the mic and change their volume in the SoftglowOS mixer.",
+        "de_DE": "Kanäle und Mikro im SoftglowOS-Mixer stummschalten und ihre Lautstärke ändern."
+    },
+    "short-descriptions": {
+        "en_US": "Control the SoftglowOS mixer",
+        "de_DE": "Den SoftglowOS-Mixer steuern"
+    },
+    "tags": ["Audio"],
+    "minimum-app-version": "1.5.0-beta",
+    "app-version": "1.5.0-beta.16"
+}

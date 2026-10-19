@@ -70,6 +70,7 @@ modules:
     user:
       enabled:
         - goxlr-daemon.service
+        - softglowos-streamcontroller.service
 
   # Hub source for install-hub.sh
   - type: copy
@@ -83,6 +84,7 @@ modules:
       - preconfigure-obs.sh
       - prefer-dedicated-gpu.sh
       - build-obs-plugins.sh
+      - install-streamcontroller-plugins.sh
       - install-rnnoise.sh
       - install-hub.sh
       - render-branding.sh

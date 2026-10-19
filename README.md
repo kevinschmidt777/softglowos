@@ -15,7 +15,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - **OBS ready on first start:** the hardware encoder of the graphics card (NVENC, VA-API or x264) and the mixer as global audio: track 1 is the Stream-Mix, tracks 2–6 mic, game, chat, music and console for editing. Resolution and bitrate come from OBS's own wizard; existing OBS settings are never touched.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
-- **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package).
+- **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package), with our mixer plugin (mute and volume per channel and the mic, also with a GoXLR) and its OBS plugin already connected to OBS.
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant hides it when it finds no RGB lighting to control; the Hub can bring it back.
 - Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, Discord, Steam and the terminal; window buttons on the right.
 - macOS-style **top bar**: logo menu on the left, clock and status icons on the right.

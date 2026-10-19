@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Gets StreamController ready on every login: our mixer plugin and the OBS
+# plugin in its plugin folder, and the right to talk to the Hub (a flatpak
+# override; the mixer plugin works through the Hub's D-Bus actions).
+# Our own plugin follows the image's version; the OBS plugin is only put
+# there once, after that StreamController's store keeps it up to date.
+set -euo pipefail
+
+APP=com.core447.StreamController
+SRC=/usr/share/softglowos/streamcontroller
+DEST="$HOME/.var/app/$APP/data/plugins"
+OURS=com_softglowos_Mixer
+
+flatpak info "$APP" &>/dev/null || exit 0
+flatpak override --user --talk-name=com.softglowos.Hub "$APP"
+
+mkdir -p "$DEST"
+for plugin in "$SRC"/*/; do
+  id=$(basename "$plugin")
+  if [ -d "$DEST/$id" ]; then
+    [ "$id" = "$OURS" ] || continue
+    [ "$(jq -r .version "$plugin/manifest.json")" = "$(jq -r .version "$DEST/$id/manifest.json" 2>/dev/null)" ] && continue
+    rm -rf "${DEST:?}/$id"
+  fi
+  cp -r --no-preserve=mode "$plugin" "$DEST/$id"
+done
