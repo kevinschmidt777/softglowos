@@ -142,3 +142,78 @@ msgstr "GoXLR {fader}"
 
 msgid "On this fader"
 msgstr "Auf diesem Fader"
+
+msgid "Stream and record, encoder matched to the graphics card"
+msgstr "Streamen und aufnehmen, Encoder passend zur Grafikkarte"
+
+msgid "Controls your Stream Deck"
+msgstr "Steuert dein Stream Deck"
+
+msgid "Lighting from every vendor"
+msgstr "Beleuchtung aller Hersteller"
+
+msgid "Game library"
+msgstr "Spiele-Bibliothek"
+
+msgid "Epic, GOG and Amazon Games"
+msgstr "Epic, GOG und Amazon Games"
+
+msgid "More games and launchers"
+msgstr "Weitere Spiele und Launcher"
+
+msgid "Chat and voice"
+msgstr "Chat und Voice"
+
+msgid "Video editing"
+msgstr "Videoschnitt"
+
+msgid "Unpacking the installer …"
+msgstr "Entpackt den Installer …"
+
+msgid "Downloading the Resolve environment, this takes a while …"
+msgstr "Lädt die Resolve-Umgebung, das dauert eine Weile …"
+
+msgid "Installing …"
+msgstr "Wird installiert …"
+
+msgid "Removing …"
+msgstr "Wird entfernt …"
+
+msgid "Ready for creators"
+msgstr "Für Creator vorbereitet"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "More apps"
+msgstr "Weitere Apps"
+
+msgid "Thousands of apps from Flathub in the app store"
+msgstr "Tausende Apps von Flathub im App Store"
+
+msgid "Open app store"
+msgstr "App Store öffnen"
+
+msgid "Download DaVinci Resolve for Linux in your browser, the Hub takes over from there"
+msgstr "Lade DaVinci Resolve für Linux im Browser herunter, den Rest macht der Hub"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "The installation didn't work. Try again."
+msgstr "Die Installation hat nicht geklappt. Versuch es nochmal."
+
+msgid "Try again"
+msgstr "Nochmal versuchen"
+
+msgid "Video editing, downloads the official installer from Blackmagic"
+msgstr "Videoschnitt, lädt den offiziellen Installer von Blackmagic"
+
+msgid "Install"
+msgstr "Installieren"
+
+msgid "Remove DaVinci Resolve?"
+msgstr "DaVinci Resolve entfernen?"
+
+msgid "Resolve and its environment are deleted. Your projects and media stay."
+msgstr "Resolve und seine Umgebung werden gelöscht. Deine Projekte und Medien bleiben."

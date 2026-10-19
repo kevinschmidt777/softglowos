@@ -41,5 +41,14 @@ install_data(
   'widgets.py',
   'audio.py',
   'goxlr.py',
+  'software.py',
+  'software_page.py',
+  'resolve.py',
   install_dir: pkgdatadir / 'hub',
+)
+
+install_data(
+  'softglowos-resolve',
+  install_dir: pkgdatadir,
+  install_mode: 'rwxr-xr-x',
 )

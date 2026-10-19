@@ -2,6 +2,7 @@ from gi.repository import Adw, Gtk
 
 from .goxlr import Mixer
 from .mixer_page import MixerPage
+from .software_page import SoftwarePage
 
 
 def coming_soon(icon_name):
@@ -30,7 +31,7 @@ class HubWindow(Adw.ApplicationWindow):
             ('devices', _('Devices'), 'preferences-system-devices-symbolic',
              coming_soon('preferences-system-devices-symbolic')),
             ('software', _('Software'), 'preferences-desktop-apps-symbolic',
-             coming_soon('preferences-desktop-apps-symbolic')),
+             SoftwarePage()),
             ('settings', _('Settings'), 'emblem-system-symbolic',
              coming_soon('emblem-system-symbolic')),
         )

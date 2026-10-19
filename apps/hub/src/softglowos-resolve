@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Installs or removes DaVinci Resolve for the Hub, the same way Bazzite's
+# "ujust install-resolve" does it (which needs a terminal): Resolve runs in a
+# davincibox container, set up by davincibox's script at the commit Bazzite
+# pins.
+#   softglowos-resolve install <path to DaVinci_Resolve_*_Linux.zip>
+#   softglowos-resolve remove
+# Lines starting with "@@step" tell the Hub which step is running.
+set -euo pipefail
+
+SETUP_URL=https://raw.githubusercontent.com/zelikos/davincibox/10b4b82f0e7f121596b33595f584bc576c03bb3a/setup.sh
+SETUP_SHA256=45e9e09af81042ae5b9079a2cedf66c04eda3da285f7457cab53f8b082e2cf57
+
+tmp=$(mktemp -d /var/tmp/softglowos-resolve.XXXXXX)
+trap 'rm -rf "$tmp"' EXIT
+
+curl -fsSL "$SETUP_URL" -o "$tmp/setup.sh"
+echo "$SETUP_SHA256  $tmp/setup.sh" | sha256sum -c --quiet
+chmod +x "$tmp/setup.sh"
+
+case "${1:-}" in
+  install)
+    echo "@@step unpack"
+    unzip -q -o -d "$tmp" "$2"
+    runfile=$(find "$tmp" -maxdepth 1 -name 'DaVinci_Resolve_*_Linux.run' | head -n 1)
+    [ -n "$runfile" ] || { echo "No installer in $2" >&2; exit 1; }
+    chmod +x "$runfile"
+    echo "@@step container"
+    cd "$tmp"
+    # setup.sh prints "Extracting ..." once the container is ready and the
+    # actual installation starts.
+    ./setup.sh "$runfile" | while IFS= read -r line; do
+      [[ $line == Extracting* ]] && echo "@@step install"
+      echo "$line"
+    done
+    podman container exists davincibox
+    ;;
+  remove)
+    cd "$tmp"
+    ./setup.sh remove
+    rm -f "$HOME"/.local/share/applications/{DaVinci,blackmagicraw}*.desktop
+    ;;
+  *)
+    echo "Usage: softglowos-resolve install <zip> | remove" >&2
+    exit 2
+    ;;
+esac
