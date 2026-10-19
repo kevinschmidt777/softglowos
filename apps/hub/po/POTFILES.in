@@ -11,3 +11,4 @@ src/software_page.py
 src/devices_page.py
 src/settings_page.py
 src/bug_report.py
+src/setup.py

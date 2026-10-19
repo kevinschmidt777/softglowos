@@ -19,23 +19,26 @@ def stream_deck_connected():
 
 class DevicesPage(Adw.PreferencesPage):
     """What's plugged in and what it's used for. A click leads to where the
-    device is set up: the mixer's device pickers or StreamController."""
+    device is set up: the mixer's device pickers or StreamController.
+    Without open_in_mixer (setup assistant) the list is only for looking."""
 
-    def __init__(self, mixer, open_in_mixer, **kwargs):
+    def __init__(self, mixer, open_in_mixer=None, **kwargs):
         super().__init__(**kwargs)
         self.mixer = mixer
         self._open_in_mixer = open_in_mixer
 
-        group = Adw.PreferencesGroup(
-            title=_('Detected devices'),
-            description=_('New devices show up here as soon as you plug them in.'))
+        group = Adw.PreferencesGroup()
+        if open_in_mixer:
+            group.set_title(_('Detected devices'))
+            group.set_description(_('New devices show up here as soon as you plug them in.'))
         self.rows = {}
         for device_id in ('goxlr', 'capture', 'streamdeck', 'mic', 'headphones'):
-            row = Adw.ActionRow(activatable=True)
+            row = Adw.ActionRow(activatable=open_in_mixer is not None)
             status = Gtk.Label(valign=Gtk.Align.CENTER)
             status.add_css_class('caption')
             row.add_suffix(status)
-            row.add_suffix(Gtk.Image(icon_name='go-next-symbolic'))
+            if open_in_mixer:
+                row.add_suffix(Gtk.Image(icon_name='go-next-symbolic'))
             row.status = status
             row.connect('activated', self._on_activated, device_id)
             group.add(row)

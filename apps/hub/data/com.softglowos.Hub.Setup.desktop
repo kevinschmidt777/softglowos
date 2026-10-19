@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=SoftglowOS Setup
+Exec=softglowos-hub --setup
+Icon=com.softglowos.Hub
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

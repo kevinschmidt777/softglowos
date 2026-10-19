@@ -48,6 +48,7 @@ install_data(
   'settings_page.py',
   'updates.py',
   'bug_report.py',
+  'setup.py',
   install_dir: pkgdatadir / 'hub',
 )
 

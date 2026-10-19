@@ -324,3 +324,150 @@ msgstr "Hilfe"
 
 msgid "Checks first whether it's already known"
 msgstr "Prüft vorher, ob es den Fehler schon gibt"
+
+msgid "German"
+msgstr "Deutsch"
+
+msgid "German (Switzerland)"
+msgstr "Deutsch (Schweiz)"
+
+msgid "German (Austria)"
+msgstr "Deutsch (Österreich)"
+
+msgid "English (US)"
+msgstr "Englisch (US)"
+
+msgid "English (UK)"
+msgstr "Englisch (UK)"
+
+msgid "French"
+msgstr "Französisch"
+
+msgid "Spanish"
+msgstr "Spanisch"
+
+msgid "Italian"
+msgstr "Italienisch"
+
+msgid "Dutch"
+msgstr "Niederländisch"
+
+msgid "Polish"
+msgstr "Polnisch"
+
+msgid "Blue"
+msgstr "Blau"
+
+msgid "Teal"
+msgstr "Blaugrün"
+
+msgid "Green"
+msgstr "Grün"
+
+msgid "Yellow"
+msgstr "Gelb"
+
+msgid "Orange"
+msgstr "Orange"
+
+msgid "Red"
+msgstr "Rot"
+
+msgid "Pink"
+msgstr "Pink"
+
+msgid "Purple"
+msgstr "Lila"
+
+msgid "Slate"
+msgstr "Schiefer"
+
+msgid "Welcome"
+msgstr "Willkommen"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Continue"
+msgstr "Weiter"
+
+msgid "Keyboard"
+msgstr "Tastatur"
+
+msgid "Welcome to SoftglowOS"
+msgstr "Willkommen bei SoftglowOS"
+
+msgid "Pick your language. You can change everything else later."
+msgstr "Wähl deine Sprache. Alles andere kannst du später noch ändern."
+
+msgid "One quick restart of your session"
+msgstr "Einmal kurz neu anmelden"
+
+msgid "SoftglowOS logs you out once so everything shows up in your language. After logging in again, the setup continues here."
+msgstr "SoftglowOS meldet dich einmal ab, damit alles in deiner Sprache erscheint. Nach dem Anmelden geht die Einrichtung hier weiter."
+
+msgid "Log out"
+msgstr "Abmelden"
+
+msgid "Get online"
+msgstr "Ab ins Internet"
+
+msgid "For updates, apps and streaming. You can also do this later."
+msgstr "Für Updates, Apps und Streams. Geht auch später."
+
+msgid "You're online"
+msgstr "Du bist online"
+
+msgid "No Wi-Fi found"
+msgstr "Kein WLAN gefunden"
+
+msgid "Plug in a network cable or continue without."
+msgstr "Steck ein Netzwerkkabel ein oder mach ohne weiter."
+
+msgid "Looking for networks …"
+msgstr "Sucht nach Netzwerken …"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Connect"
+msgstr "Verbinden"
+
+msgid "Light"
+msgstr "Hell"
+
+msgid "Dark"
+msgstr "Dunkel"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Accent color"
+msgstr "Akzentfarbe"
+
+msgid "Choose your look"
+msgstr "Wähl deinen Look"
+
+msgid "Automatic switches between light and dark with the time of day."
+msgstr "Automatisch wechselt je nach Tageszeit zwischen hell und dunkel."
+
+msgid "Your apps"
+msgstr "Deine Apps"
+
+msgid "Everything is installed. Switch off what you don't need, it only disappears from the app grid and the dock."
+msgstr "Alles ist schon installiert. Schalt aus, was du nicht brauchst, es verschwindet nur aus der App-Übersicht und dem Dock."
+
+msgid "Your devices"
+msgstr "Deine Geräte"
+
+msgid "Plug in what you stream with. The Hub sets it up for you."
+msgstr "Steck ein, womit du streamst. Der Hub richtet es für dich ein."
+
+msgid "Let's go"
+msgstr "Los geht's"
+
+msgid "All set"
+msgstr "Alles bereit"
+
+msgid "Mixer, devices, software and updates are always in the Hub."
+msgstr "Mixer, Geräte, Software und Updates findest du jederzeit im Hub."

@@ -33,3 +33,9 @@ configure_file(
   configuration: unit_conf,
   install_dir: get_option('datadir') / 'polkit-1' / 'actions',
 )
+
+# Setup assistant on the first login (exits right away once it's finished)
+install_data(
+  app_id + '.Setup.desktop',
+  install_dir: get_option('sysconfdir') / 'xdg' / 'autostart',
+)

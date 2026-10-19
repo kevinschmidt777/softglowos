@@ -11,6 +11,18 @@ RESOLVE_STEPS = {
 }
 
 
+def app_switches(group):
+    """Adds a switch row for every installed curated app to a group (also
+    used by the setup assistant)."""
+    for app in software.APPS:
+        if not software.is_installed(app):
+            continue
+        row = Adw.SwitchRow(title=app.name, subtitle=app.detail,
+                            active=software.is_shown(app))
+        row.connect('notify::active', lambda r, _param, a=app: software.set_shown(a, r.get_active()))
+        group.add(row)
+
+
 class SoftwarePage(Adw.PreferencesPage):
     """Curated creator apps with a switch each, DaVinci Resolve to install
     on demand, and a way into Bazaar for everything else."""
@@ -19,13 +31,7 @@ class SoftwarePage(Adw.PreferencesPage):
         super().__init__(**kwargs)
 
         apps = Adw.PreferencesGroup(title=_('Ready for creators'))
-        for app in software.APPS:
-            if not software.is_installed(app):
-                continue
-            row = Adw.SwitchRow(title=app.name, subtitle=app.detail,
-                                active=software.is_shown(app))
-            row.connect('notify::active', self._on_switch, app)
-            apps.add(row)
+        app_switches(apps)
 
         self.resolve = Resolve()
         self.resolve.connect('changed', lambda _resolve: self._show_resolve())
@@ -57,9 +63,6 @@ class SoftwarePage(Adw.PreferencesPage):
         self.add(more)
 
         self._show_resolve()
-
-    def _on_switch(self, row, _param, app):
-        software.set_shown(app, row.get_active())
 
     def _show_resolve(self):
         state = self.resolve.state
