@@ -127,6 +127,13 @@ class MixerPage(Adw.Bin):
         rows.connect('row-activated', on_activated)
         return popover
 
+    def open_picker(self, picker):
+        """Opens the device list for 'output', 'mic' or 'capture'."""
+        button = {'output': self.output_picker, 'mic': self.mic_picker,
+                  'capture': self.capture_picker}[picker]
+        # After the page switch, so the popover has a place to show up
+        GLib.idle_add(lambda: button.popup() or GLib.SOURCE_REMOVE)
+
     def _on_fader_changed(self, strip, mix, value):
         self.mixer.set_fader(strip.channel_id, mix, value)
 

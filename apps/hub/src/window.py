@@ -1,5 +1,6 @@
 from gi.repository import Adw, Gtk
 
+from .devices_page import DevicesPage
 from .goxlr import Mixer
 from .mixer_page import MixerPage
 from .software_page import SoftwarePage
@@ -25,11 +26,13 @@ class HubWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        mixer = Mixer()
+        self.mixer_page = MixerPage(mixer)
         pages = (
             ('mixer', _('Mixer'), 'multimedia-volume-control-symbolic',
-             MixerPage(Mixer())),
+             self.mixer_page),
             ('devices', _('Devices'), 'preferences-system-devices-symbolic',
-             coming_soon('preferences-system-devices-symbolic')),
+             DevicesPage(mixer, self._open_in_mixer)),
             ('software', _('Software'), 'preferences-desktop-apps-symbolic',
              SoftwarePage()),
             ('settings', _('Settings'), 'emblem-system-symbolic',
@@ -46,6 +49,19 @@ class HubWindow(Adw.ApplicationWindow):
             self._titles[page_id] = title
 
         self.sidebar_list.select_row(self.sidebar_list.get_row_at_index(0))
+
+    def show_page(self, page_id):
+        row = self.sidebar_list.get_first_child()
+        while row and row.get_name() != page_id:
+            row = row.get_next_sibling()
+        if row:
+            self.sidebar_list.select_row(row)
+
+    def _open_in_mixer(self, picker=None):
+        """Shows the mixer, with one of its device pickers opened."""
+        self.show_page('mixer')
+        if picker:
+            self.mixer_page.open_picker(picker)
 
     @Gtk.Template.Callback()
     def on_row_selected(self, _list, row):

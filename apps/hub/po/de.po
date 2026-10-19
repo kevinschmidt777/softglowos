@@ -220,3 +220,33 @@ msgstr "DaVinci Resolve entfernen?"
 
 msgid "Resolve and its environment are deleted. Your projects and media stay."
 msgstr "Resolve und seine Umgebung werden gelöscht. Deine Projekte und Medien bleiben."
+
+msgid "Detected devices"
+msgstr "Erkannte Geräte"
+
+msgid "New devices show up here as soon as you plug them in."
+msgstr "Neue Geräte erscheinen hier, sobald du sie ansteckst."
+
+msgid "The mixer controls its hardware channels"
+msgstr "Der Mixer steuert seine Hardware-Kanäle"
+
+msgid "Capture card"
+msgstr "Capture Card"
+
+msgid "Its sound goes into the Console channel"
+msgstr "Der Ton landet im Kanal „Konsole“"
+
+msgid "Set up in StreamController"
+msgstr "Einrichten in StreamController"
+
+msgid "Headphones"
+msgstr "Kopfhörer"
+
+msgid "No output"
+msgstr "Keine Ausgabe"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Not connected"
+msgstr "Nicht angeschlossen"

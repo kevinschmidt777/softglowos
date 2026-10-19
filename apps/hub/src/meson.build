@@ -44,6 +44,7 @@ install_data(
   'software.py',
   'software_page.py',
   'resolve.py',
+  'devices_page.py',
   install_dir: pkgdatadir / 'hub',
 )
 
