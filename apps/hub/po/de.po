@@ -397,8 +397,8 @@ msgstr "Tastatur"
 msgid "Welcome to SoftglowOS"
 msgstr "Willkommen bei SoftglowOS"
 
-msgid "Pick your language. You can change everything else later."
-msgstr "Wähl deine Sprache. Alles andere kannst du später noch ändern."
+msgid "Pick your language. You can change everything later, too."
+msgstr "Wähl deine Sprache. Du kannst alles später auch noch ändern."
 
 msgid "One quick restart of your session"
 msgstr "Einmal kurz neu anmelden"

@@ -202,7 +202,7 @@ class SetupWindow(Adw.ApplicationWindow):
         keyboards.add(self.keyboard_row)
         box.append(keyboards)
         return _step(_('Welcome to SoftglowOS'),
-                     _('Pick your language. You can change everything else later.'), box)
+                     _('Pick your language. You can change everything later, too.'), box)
 
     def _on_language_toggled(self, button, code):
         if not button.get_active():
