@@ -13,6 +13,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
+- **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package).
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.
 - Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, Discord, Steam and the terminal; window buttons on the right.
 - macOS-style **top bar**: logo menu on the left, clock and status icons on the right.

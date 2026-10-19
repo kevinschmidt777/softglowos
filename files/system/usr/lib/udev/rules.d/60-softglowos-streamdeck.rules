@@ -1,0 +1,4 @@
+# Lets the logged-in user access Elgato devices (Stream Deck), so the
+# StreamController Flatpak can talk to them. Flatpaks can't ship udev rules.
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="0fd9", TAG+="uaccess"

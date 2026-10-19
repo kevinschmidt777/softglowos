@@ -44,6 +44,16 @@ modules:
         # Default browser
         - google-chrome-stable
 
+  # The one exception to "everything native": StreamController (Stream Deck)
+  # only exists as a Flatpak, a native build would pull ~100 PyPI packages.
+  # Installed system-wide on boot; its udev rule lives in files/system.
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        notify: false
+        install:
+          - com.core447.StreamController
+
   - type: fonts
     fonts:
       google-fonts:
