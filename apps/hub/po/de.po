@@ -555,3 +555,12 @@ msgstr "Aktualisieren"
 
 msgid "Version {version} is out"
 msgstr "Version {version} ist da"
+
+msgid "Open Hub"
+msgstr "Hub öffnen"
+
+msgid "Mixer in the top bar"
+msgstr "Mixer in der Leiste"
+
+msgid "An icon for quick access, starts with your login"
+msgstr "Ein Symbol für den schnellen Zugriff, startet mit deiner Anmeldung"

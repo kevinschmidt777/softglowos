@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=SoftglowOS Mixer
+Exec=softglowos-hub --tray
+Icon=com.softglowos.Hub
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

@@ -51,6 +51,8 @@ install_data(
   'gpu.py',
   'bug_report.py',
   'setup.py',
+  'tray.py',
+  'mini_mixer.py',
   install_dir: pkgdatadir / 'hub',
 )
 

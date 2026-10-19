@@ -1,4 +1,4 @@
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, Gio, Gtk
 
 from .bug_report import BugReportDialog
 from .gpu import GraphicsDriver
@@ -50,6 +50,15 @@ class SettingsPage(Adw.PreferencesPage):
         self.driver_row.add_suffix(self.driver_button)
         driver_group.add(self.driver_row)
         self.add(driver_group)
+
+        mixer_group = Adw.PreferencesGroup(title=_('Mixer'))
+        tray = Adw.SwitchRow(title=_('Mixer in the top bar'),
+                             subtitle=_('An icon for quick access, starts with your login'),
+                             active=Gio.Application.get_default().tray_enabled())
+        tray.connect('notify::active', lambda row, _param:
+                     Gio.Application.get_default().set_tray_enabled(row.get_active()))
+        mixer_group.add(tray)
+        self.add(mixer_group)
 
         self.updates = Updates()
         self.updates.connect('changed', lambda _updates: self._show_updates())

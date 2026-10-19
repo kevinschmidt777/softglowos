@@ -1,7 +1,6 @@
 from gi.repository import Adw, Gtk
 
 from .devices_page import DevicesPage
-from .goxlr import Mixer
 from .mixer_page import MixerPage
 from .settings_page import SettingsPage
 from .software_page import SoftwarePage
@@ -19,7 +18,7 @@ class HubWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        mixer = Mixer()
+        mixer = self.get_application().mixer
         self.mixer_page = MixerPage(mixer)
         pages = (
             ('mixer', _('Mixer'), 'multimedia-volume-control-symbolic',

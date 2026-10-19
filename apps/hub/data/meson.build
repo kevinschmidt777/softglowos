@@ -47,3 +47,9 @@ install_data(
   app_id + '.Setup.desktop',
   install_dir: get_option('sysconfdir') / 'xdg' / 'autostart',
 )
+
+# Mixer icon in the top bar (switched off per user from the Hub's settings)
+install_data(
+  app_id + '.Tray.desktop',
+  install_dir: get_option('sysconfdir') / 'xdg' / 'autostart',
+)
