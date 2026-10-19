@@ -54,6 +54,7 @@ install_data(
   'tray.py',
   'mini_mixer.py',
   'mixer_actions.py',
+  'crash_reports.py',
   install_dir: pkgdatadir / 'hub',
 )
 

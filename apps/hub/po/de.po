@@ -585,3 +585,21 @@ msgstr "Du bekommst Neues früher, es kann aber Fehler enthalten. Einstellungen,
 
 msgid "The next stable version replaces the beta. Settings, apps and files stay. Active after a restart."
 msgstr "Die aktuelle stabile Version ersetzt die Beta. Einstellungen, Apps und Dateien bleiben. Aktiv nach einem Neustart."
+
+msgid "Help make SoftglowOS better"
+msgstr "Hilf mit, SoftglowOS besser zu machen"
+
+msgid "When a program crashes, SoftglowOS can send a report: which program, where it crashed and your system details (version, graphics card). Nothing personal, deleted after a year."
+msgstr "Wenn ein Programm abstürzt, kann SoftglowOS einen Bericht schicken: welches Programm, wo es abgestürzt ist und deine Systemdaten (Version, Grafikkarte). Nichts Persönliches, nach einem Jahr gelöscht."
+
+msgid "Send crash reports"
+msgstr "Absturzberichte senden"
+
+msgid "Off by default. You can change it any time in the Hub."
+msgstr "Standardmäßig aus. Du kannst das jederzeit im Hub ändern."
+
+msgid "Helps find bugs. Nothing personal, deleted after a year."
+msgstr "Hilft, Fehler zu finden. Nichts Persönliches, nach einem Jahr gelöscht."
+
+msgid "Privacy policy"
+msgstr "Datenschutzerklärung"

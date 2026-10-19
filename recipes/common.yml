@@ -71,6 +71,7 @@ modules:
       enabled:
         - goxlr-daemon.service
         - softglowos-streamcontroller.service
+        - softglowos-crash-reporter.service
 
   # Hub source for install-hub.sh
   - type: copy

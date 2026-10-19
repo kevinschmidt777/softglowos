@@ -1,0 +1,11 @@
+[Unit]
+Description=Send SoftglowOS crash reports (only with the user's consent)
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/libexec/softglowos-crash-reporter
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=graphical-session.target

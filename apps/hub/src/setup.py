@@ -22,6 +22,7 @@ gi.require_version('NM', '1.0')
 
 from gi.repository import Adw, Gio, GLib, Gtk, NM
 
+from . import crash_reports
 from .devices_page import DevicesPage
 from .goxlr import Mixer
 from .gpu import GraphicsDriver
@@ -106,6 +107,7 @@ class SetupWindow(Adw.ApplicationWindow):
             ('look', self._look_step()),
             ('software', self._software_step()),
             ('devices', self._devices_step()),
+            ('privacy', self._privacy_step()),
             ('done', self._done_step()),
         ]
 
@@ -504,6 +506,26 @@ class SetupWindow(Adw.ApplicationWindow):
         page.set_size_request(-1, 420)
         return _step(_('Your devices'),
                      _('Plug in what you stream with. The Hub sets it up for you.'), box)
+
+    # Crash reports (opt-in, off by default)
+
+    def _privacy_step(self):
+        group = Adw.PreferencesGroup()
+        row = Adw.SwitchRow(title=_('Send crash reports'),
+                            subtitle=_('Off by default. You can change it any time in the Hub.'),
+                            active=crash_reports.enabled())
+        row.connect('notify::active', lambda r, _p: self.preview or crash_reports.set_enabled(r.get_active()))
+        group.add(row)
+        language = 'de' if current_language().startswith('de') else 'en'
+        link = Gtk.LinkButton(uri=crash_reports.PRIVACY_URL[language], label=_('Privacy policy'),
+                              halign=Gtk.Align.CENTER)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.append(group)
+        box.append(link)
+        return _step(_('Help make SoftglowOS better'),
+                     _('When a program crashes, SoftglowOS can send a report: which program, where it '
+                       'crashed and your system details (version, graphics card). Nothing personal, '
+                       'deleted after a year.'), box)
 
     def _done_step(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)

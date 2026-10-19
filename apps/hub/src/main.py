@@ -9,6 +9,7 @@ gi.require_version('Adw', '1')
 
 from gi.repository import Adw, Gio, GLib
 
+from . import crash_reports
 from .goxlr import Mixer
 from .mini_mixer import MiniMixer
 from .mixer_actions import MixerActions
@@ -128,4 +129,5 @@ class HubApplication(Adw.Application):
 
 
 def main():
+    crash_reports.install('softglowos-hub')
     return HubApplication().run(sys.argv)

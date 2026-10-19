@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Sends crash reports to softglowos.com, but only with the user's consent
+(setup assistant or Hub settings; ~/.config/softglowos/crash-reports.json).
+
+Runs as a user service. Two sources:
+- crashes of any of the user's programs, from systemd-coredump in the
+  journal: program, package and version, signal and the stack trace of the
+  crashed thread
+- crashes of our own apps: the Hub drops them into the queue folder
+
+Every report gets the system details (SoftglowOS version, variant, channel,
+kernel, GPU), home paths become "~". Reports wait in
+~/.local/state/softglowos/crash-reports until they're sent, so nothing gets
+lost offline.
+"""
+import json
+import os
+import re
+import select
+import subprocess
+import time
+import urllib.error
+import urllib.request
+import uuid
+from pathlib import Path
+
+URL = os.environ.get('SOFTGLOWOS_CRASH_URL', 'https://softglowos.com/api/crash')
+CONSENT = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'softglowos' / 'crash-reports.json'
+QUEUE = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local' / 'state')) / 'softglowos' / 'crash-reports'
+COREDUMP = 'MESSAGE_ID=fc2e22bc6ee647b6b90729ab34a250b1'
+CHECK_S = 60  # how often to look for reports the Hub queued
+RETRY_S = 30 * 60  # how long to wait after a failed send
+MAX_FRAMES = 30
+HOME_PATHS = re.compile(r'/(?:var/)?home/[^/\s\'"()]+')
+
+
+def consent():
+    try:
+        return json.loads(CONSENT.read_text()).get('enabled') is True
+    except (OSError, ValueError):
+        return False
+
+
+def scrub(text):
+    return HOME_PATHS.sub('~', text).replace(str(Path.home()), '~')
+
+
+def system_details():
+    details = {'kernel': os.uname().release}
+    try:
+        release = dict(line.rstrip('\n').split('=', 1) for line in open('/etc/os-release') if '=' in line)
+        details['version'] = release.get('VERSION', '').strip('"').split(' (')[0]
+    except OSError:
+        pass
+    try:
+        status = json.loads(subprocess.run(['rpm-ostree', 'status', '--json'], capture_output=True,
+                                           text=True, timeout=20).stdout)
+        ref = next(d['container-image-reference'] for d in status['deployments'] if d.get('booted'))
+        name, _, tag = ref.rsplit('/', 1)[-1].partition(':')
+        details['variant'] = 'nvidia' if name.endswith('-nvidia') else 'amd'
+        details['channel'] = 'beta' if tag == 'beta' else 'stable'
+    except (OSError, ValueError, KeyError, StopIteration, subprocess.SubprocessError):
+        pass
+    try:
+        lspci = subprocess.run(['lspci'], capture_output=True, text=True, timeout=5).stdout
+        gpus = [line.split(': ', 1)[-1] for line in lspci.splitlines() if ' VGA ' in line or ' 3D ' in line]
+        if gpus:
+            details['gpu'] = '; '.join(gpus)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return details
+
+
+def from_coredump(entry):
+    """A report from systemd-coredump's journal entry, or None."""
+    if entry.get('COREDUMP_UID') != str(os.getuid()):
+        return None
+    frames = []
+    in_first_thread = False
+    for line in entry.get('MESSAGE', '').splitlines():
+        if line.startswith('Stack trace of thread'):
+            if frames:
+                break  # only the crashed thread, it comes first
+            in_first_thread = True
+        elif in_first_thread and line.lstrip().startswith('#'):
+            frames.append(scrub(line.strip()))
+    package = entry.get('COREDUMP_PACKAGE_NAME')
+    if package and entry.get('COREDUMP_PACKAGE_VERSION'):
+        package += '-' + entry['COREDUMP_PACKAGE_VERSION']
+    return {
+        'kind': 'system',
+        'program': entry.get('COREDUMP_COMM') or Path(entry.get('COREDUMP_EXE', '?')).name,
+        'signal': entry.get('COREDUMP_SIGNAL_NAME'),
+        'package': package,
+        'frames': frames[:MAX_FRAMES],
+    }
+
+
+def enqueue(report):
+    QUEUE.mkdir(parents=True, exist_ok=True)
+    path = QUEUE / f'{int(time.time())}-{uuid.uuid4().hex[:8]}.json'
+    path.write_text(json.dumps(report))
+
+
+def send_queue():
+    """Sends what's waiting. Returns False when offline (try again later)."""
+    if not consent():
+        return True
+    details = None
+    for path in sorted(QUEUE.glob('*.json')) if QUEUE.exists() else []:
+        try:
+            report = json.loads(path.read_text())
+        except (OSError, ValueError):
+            path.unlink(missing_ok=True)
+            continue
+        details = details or system_details()
+        report['os'] = details
+        report['frames'] = [scrub(frame) for frame in report.get('frames', [])]
+        request = urllib.request.Request(URL, data=json.dumps(report).encode(), method='POST',
+                                         headers={'Content-Type': 'application/json'})
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                response.read()
+        except urllib.error.HTTPError as error:
+            if 400 <= error.code < 500:
+                path.unlink(missing_ok=True)  # the server will never take it
+                continue
+            return False
+        except OSError:
+            return False  # offline: try again later
+        path.unlink(missing_ok=True)
+    return True
+
+
+def main():
+    journal = subprocess.Popen(
+        ['journalctl', '--follow', '--output=json', '--lines=0', COREDUMP],
+        stdout=subprocess.PIPE, text=True)
+    next_send = 0
+    while True:
+        ready, _, _ = select.select([journal.stdout], [], [], CHECK_S)
+        if ready:
+            line = journal.stdout.readline()
+            if not line:
+                break  # journalctl ended
+            try:
+                report = from_coredump(json.loads(line))
+            except ValueError:
+                report = None
+            if report and consent():
+                enqueue(report)
+                next_send = 0
+        if time.time() >= next_send:
+            next_send = 0 if send_queue() else time.time() + RETRY_S
+
+
+if __name__ == '__main__':
+    main()

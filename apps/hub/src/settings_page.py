@@ -1,5 +1,6 @@
 from gi.repository import Adw, Gio, Gtk
 
+from . import crash_reports
 from .bug_report import BugReportDialog
 from .gpu import GraphicsDriver
 from .updates import Updates, version
@@ -84,6 +85,11 @@ class SettingsPage(Adw.PreferencesPage):
         report.add_suffix(Gtk.Image(icon_name='go-next-symbolic'))
         report.connect('activated', lambda _row: BugReportDialog().present(self))
         help_group.add(report)
+        crashes = Adw.SwitchRow(title=_('Send crash reports'),
+                                subtitle=_('Helps find bugs. Nothing personal, deleted after a year.'),
+                                active=crash_reports.enabled())
+        crashes.connect('notify::active', lambda row, _p: crash_reports.set_enabled(row.get_active()))
+        help_group.add(crashes)
         self.add(help_group)
 
         self.footer = Adw.PreferencesGroup()
