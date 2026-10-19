@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.softglowos.Hub
+Exec=@bindir@/softglowos-hub --gapplication-service

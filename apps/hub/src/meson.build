@@ -53,6 +53,7 @@ install_data(
   'setup.py',
   'tray.py',
   'mini_mixer.py',
+  'mixer_actions.py',
   install_dir: pkgdatadir / 'hub',
 )
 

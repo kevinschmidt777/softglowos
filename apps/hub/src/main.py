@@ -11,6 +11,7 @@ from gi.repository import Adw, Gio, GLib
 
 from .goxlr import Mixer
 from .mini_mixer import MiniMixer
+from .mixer_actions import MixerActions
 from .setup import SetupWindow, setup_done
 from .tray import Tray
 from .window import HubWindow
@@ -46,6 +47,14 @@ class HubApplication(Adw.Application):
         if self._mixer is None:
             self._mixer = Mixer()
         return self._mixer
+
+    def do_startup(self):
+        Adw.Application.do_startup(self)
+        # Started over D-Bus for a mixer action (StreamController): stay
+        # around like the tray, so the next key press is instant
+        if self.get_flags() & Gio.ApplicationFlags.IS_SERVICE:
+            self.hold()
+        self._mixer_actions = MixerActions(self, self.mixer)
 
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()

@@ -54,6 +54,16 @@ install_data(
   install_dir: get_option('sysconfdir') / 'xdg' / 'autostart',
 )
 
+# Lets D-Bus start the Hub for a mixer action (StreamController plugin)
+dbus_conf = configuration_data()
+dbus_conf.set('bindir', get_option('prefix') / get_option('bindir'))
+configure_file(
+  input: app_id + '.service.in',
+  output: app_id + '.service',
+  configuration: dbus_conf,
+  install_dir: get_option('datadir') / 'dbus-1' / 'services',
+)
+
 # Mixer icon in the top bar (switched off per user from the Hub's settings)
 install_data(
   app_id + '.Tray.desktop',
