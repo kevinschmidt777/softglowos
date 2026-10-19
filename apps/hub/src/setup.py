@@ -1,7 +1,8 @@
 """The setup assistant on the first login: language and keyboard, Wi-Fi,
 look, software and devices, one full-screen step at a time. Once online it
 also switches to the image that fits the graphics card (see gpu.py), in the
-background and without asking.
+background and without asking, and it hides OpenRGB when OpenRGB finds no
+RGB lighting to control.
 
 It starts from autostart (softglowos-hub --setup) until it's finished. A
 language change only fully applies after logging in again, so the
@@ -11,6 +12,8 @@ assistant logs out right after that step and continues where it left off
 
 import json
 import locale
+import re
+import tempfile
 from pathlib import Path
 
 import gi
@@ -139,6 +142,7 @@ class SetupWindow(Adw.ApplicationWindow):
         self.driver.connect('changed', self._on_driver_changed)
         self.nm.connect('notify::primary-connection', lambda *_args: self._maybe_switch_driver())
         self.driver.check()
+        self._check_rgb()
 
     # Navigation
 
@@ -190,6 +194,36 @@ class SetupWindow(Adw.ApplicationWindow):
         elif self.driver.state == 'switching':
             self._notify_when_driver_ready()
         self.close()
+
+    # RGB lighting
+
+    def _check_rgb(self):
+        """Once per setup: OpenRGB lists the RGB devices it can control. With
+        none, OpenRGB leaves the app grid (the Hub can bring it back)."""
+        if self.preview or self.state.get('rgb_checked') or 'openrgb' not in self.app_rows:
+            return
+        self._rgb_config = tempfile.TemporaryDirectory()  # keep ~/.config/OpenRGB untouched
+        try:
+            process = Gio.Subprocess.new(
+                ['openrgb', '--noautoconnect', '--config', self._rgb_config.name,
+                 '--list-devices'],
+                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE)
+        except GLib.Error:
+            return
+        process.communicate_utf8_async(None, None, self._on_rgb_checked)
+
+    def _on_rgb_checked(self, process, result):
+        self._rgb_config.cleanup()
+        try:
+            _ok, stdout, _stderr = process.communicate_utf8_finish(result)
+        except GLib.Error:
+            return  # can't tell: leave OpenRGB as it is
+        if process.get_exit_status() != 0:
+            return
+        self.state['rgb_checked'] = True
+        save_state(self.state)
+        if not re.search(r'^\d+: ', stdout or '', re.M):
+            self.app_rows['openrgb'].set_active(False)
 
     # Graphics driver
 
@@ -457,7 +491,7 @@ class SetupWindow(Adw.ApplicationWindow):
 
     def _software_step(self):
         group = Adw.PreferencesGroup()
-        app_switches(group)
+        self.app_rows = app_switches(group)
         return _step(_('Your apps'),
                      _('Everything is installed. Switch off what you don\'t need, '
                        'it only disappears from the app grid and the dock.'), group)

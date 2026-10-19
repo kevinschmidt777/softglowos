@@ -7,7 +7,8 @@ from .resolve import Resolve
 
 def app_switches(group):
     """Adds a switch row for every installed curated app to a group (also
-    used by the setup assistant)."""
+    used by the setup assistant). Returns the rows by app id."""
+    rows = {}
     for app in software.APPS:
         if not software.is_installed(app):
             continue
@@ -15,6 +16,8 @@ def app_switches(group):
                             active=software.is_shown(app))
         row.connect('notify::active', lambda r, _param, a=app: software.set_shown(a, r.get_active()))
         group.add(row)
+        rows[app.id] = row
+    return rows
 
 
 class OnDemandRow(Adw.ActionRow):

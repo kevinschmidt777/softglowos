@@ -16,7 +16,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
 - **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package).
-- **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.
+- **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant hides it when it finds no RGB lighting to control; the Hub can bring it back.
 - Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, Discord, Steam and the terminal; window buttons on the right.
 - macOS-style **top bar**: logo menu on the left, clock and status icons on the right.
 - **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
