@@ -49,6 +49,9 @@ Geist Medium.
 - Corner radii follow libadwaita: windows and cards are rounded around 12 px,
   buttons and entries a bit less. We never override them, so our apps match
   third-party apps.
+- Buttons with text always keep libadwaita's default, slightly rounded corners:
+  never the fully rounded `pill` style. Only icon-only buttons may be round
+  (`circular`), as usual in GNOME.
 - Spacing follows libadwaita's 6 px grid.
 - Density is GNOME's default: spacious and easy to hit, like macOS.
 

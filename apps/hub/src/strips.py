@@ -167,7 +167,6 @@ class MicStrip(Gtk.Box):
             row.append(switch)
             filters.append(row)
         eq_button = Gtk.Button(label=_('Open EQ'), halign=Gtk.Align.CENTER, margin_top=4)
-        eq_button.add_css_class('pill')
         eq_button.connect('clicked', lambda _button: self.emit('eq-requested'))
         filters.append(eq_button)
         strip.append(filters)
