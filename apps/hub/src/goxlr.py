@@ -13,8 +13,9 @@ How our mixer maps onto the GoXLR:
 - browser and console: our own software faders; their sound reaches the
   GoXLR through its Sample channel, which we take out of the GoXLR's stream
   mix (the WirePlumber script adds them to ours instead)
-- microphone: level, gate, compressor and EQ in hardware; RNNoise runs in
-  software and then takes the raw mic out of the GoXLR's stream mix
+- microphone: level, gate, compressor and EQ in hardware; RNNoise and the
+  mic offset run in software, so either takes the raw mic out of the
+  GoXLR's stream mix
 """
 import json
 
@@ -166,6 +167,7 @@ class Mixer(PipeWireMixer):
         super().__init__()
         self.goxlr = GoXLRClient()
         self._prepared = None
+        self._mic_offset_ms = None
         self.goxlr.connect('changed', self._on_goxlr_changed)
 
     @property
@@ -197,7 +199,14 @@ class Mixer(PipeWireMixer):
         # Browser and console arrive on Sample and go to the stream through ours
         self.goxlr.command('SetRouter', 'Samples', 'BroadcastMix', False)
         self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
-                           not super().filters()['rnnoise'])
+                           not self._mic_in_software())
+
+    def _mic_in_software(self):
+        """RNNoise and a mic offset only work in software: the GoXLR's own
+        stream mix then goes without the mic, and ours adds the processed one."""
+        if self._mic_offset_ms is None:
+            self._mic_offset_ms = self.offsets_ms()['mic']
+        return super().filters()['rnnoise'] or self._mic_offset_ms > 0
 
     def _hardware(self, channel):
         return CHANNELS.get(channel) if self.goxlr_active else None
@@ -262,7 +271,7 @@ class Mixer(PipeWireMixer):
             super().set_mic_muted(muted)
             return
         self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', not muted)
-        stream = not muted and not super().filters()['rnnoise']
+        stream = not muted and not self._mic_in_software()
         self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix', stream)
 
     # Filters
@@ -283,13 +292,26 @@ class Mixer(PipeWireMixer):
         if not self.goxlr_active:
             return
         if name == 'rnnoise':
-            # Filtered mic goes in through our stream mix instead
-            self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix', not active)
+            self._route_mic()
         elif name == 'gate':
             self.goxlr.command('SetGateActive', active)
         elif name == 'compressor':
             self.goxlr.command('SetCompressorRatio',
                                COMPRESSOR_ON if active else COMPRESSOR_OFF)
+
+    # Offsets
+
+    def set_offset_ms(self, target, ms):
+        super().set_offset_ms(target, ms)
+        if target == 'mic':
+            self._mic_offset_ms = ms
+            if self.goxlr_active:
+                self._route_mic()
+
+    def _route_mic(self):
+        muted = self.mic()[1]
+        self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
+                           not muted and not self._mic_in_software())
 
     def _eq(self):
         mic = self.goxlr.mixer['mic_status']

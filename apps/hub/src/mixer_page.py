@@ -47,6 +47,7 @@ class MixerPage(Adw.Bin):
         self.mic.connect('mute-changed', lambda _s, muted: mixer.set_mic_muted(muted))
         self.mic.connect('filter-changed', lambda _s, name, on: mixer.set_filter(name, on))
         self.mic.connect('eq-requested', self._on_eq_requested)
+        self.mic.connect('offset-changed', lambda _s, ms: mixer.set_offset_ms('mic', ms))
         self.mic.badge.set_popover(self._fader_menu('mic'))
         self.strips.append(self.mic)
 
@@ -57,13 +58,12 @@ class MixerPage(Adw.Bin):
                 picker = DevicePicker(mixer.capture_cards, mixer.set_capture_card,
                                       empty_label=_('No capture card'), small=True)
                 self.capture_picker = picker
-            strip = ChannelStrip(channel_id, name, device_picker=picker,
-                                 with_offset=channel_id == 'console')
+            strip = ChannelStrip(channel_id, name, device_picker=picker)
             strip.connect('fader-changed', self._on_fader_changed)
             strip.connect('mute-changed', self._on_mute_changed)
             strip.connect('app-dropped', self._on_app_dropped)
             strip.connect('offset-changed',
-                          lambda _s, ms: mixer.set_console_offset_ms(ms))
+                          lambda _s, ms, c=channel_id: mixer.set_offset_ms(c, ms))
             strip.badge.set_popover(self._fader_menu(channel_id))
             self.channels[channel_id] = strip
             self.strips.append(strip)
@@ -74,7 +74,9 @@ class MixerPage(Adw.Bin):
         self.connect('unmap', lambda _page: mixer.stop_meters())
 
         self.refresh()
-        self.channels['console'].set_offset_ms(mixer.console_offset_ms())
+        for target, ms in mixer.offsets_ms().items():
+            strip = self.mic if target == 'mic' else self.channels[target]
+            strip.offset.set_ms(ms)
 
     def refresh(self):
         """Reads every value from the mixer again."""

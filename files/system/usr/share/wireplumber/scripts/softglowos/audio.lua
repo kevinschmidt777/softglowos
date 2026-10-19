@@ -9,7 +9,7 @@
 -- 3. The microphone chain records the best real microphone (or the GoXLR's
 --    "Chat Mic"), the console channel the capture card. Neither falls back
 --    to anything else, and a device picked in the Hub wins.
--- 4. Filter settings (EQ, gate, ...) and the console offset are remembered.
+-- 4. Filter settings (EQ, gate, ...) and the offsets are remembered.
 
 lutils = require ("linking-utils")
 cutils = require ("common-utils")
@@ -146,8 +146,11 @@ local function default_output (om, si_props)
   return best_device (om, si_props, "Audio/Sink", function () return true end)
 end
 
--- RNNoise state of the mic chain, kept up to date by the filter code below.
+-- RNNoise state of the mic chain and whether the mic has an offset, kept up
+-- to date by the filter code below.
 local rnnoise_on = true
+local mic_offset_on = false
+local MIC_OFFSET = PREFIX .. "mic.mix.in"
 
 -- Where one of our own loopbacks belongs right now. Returns the target (or
 -- nil to stay unlinked), or "keep" to leave WirePlumber's choice alone.
@@ -174,8 +177,9 @@ local function own_target (om, si_props, si_flags)
     return goxlr and goxlr_node (om, "Audio/Source", GOXLR_STREAM_MIX) or nil
   elseif name == PREFIX .. "mic.mix.out" then
     -- With a GoXLR the mic is already in its hardware stream mix, unless
-    -- RNNoise is on: then the Hub takes it out there and we add it here.
-    if goxlr and not rnnoise_on then
+    -- RNNoise or an offset is on: then the Hub takes it out there and we add
+    -- it here.
+    if goxlr and not rnnoise_on and not mic_offset_on then
       return nil
     end
     return find_by_name (om, PREFIX .. "stream-mix")
@@ -277,7 +281,7 @@ local function rescan ()
   end
 end
 
--- Remember filter settings (EQ, gate, compressor, RNNoise, console offset).
+-- Remember filter settings (EQ, gate, compressor, RNNoise) and offsets.
 
 local state = State ("softglowos-audio")
 local saved = state:load ()
@@ -331,6 +335,13 @@ local function save_params (node)
     rnnoise_on = gain > 0.5
     rescan ()
   end
+  if node.properties ["node.name"] == MIC_OFFSET then
+    local on = (values ["offset:Delay (s)"] or 0) > 0
+    if on ~= mic_offset_on then
+      mic_offset_on = on
+      rescan ()
+    end
+  end
 end
 
 local function restore_params (node)
@@ -349,6 +360,9 @@ local function restore_params (node)
   if values ["rnnoise_mix:Gain 1"] ~= nil then
     rnnoise_on = values ["rnnoise_mix:Gain 1"] > 0.5
   end
+  if node.properties ["node.name"] == MIC_OFFSET then
+    mic_offset_on = (values ["offset:Delay (s)"] or 0) > 0
+  end
   if #params > 0 then
     node:set_param ("Props", Pod.Object {
       "Spa:Pod:Object:Param:Props", "Props",
@@ -357,10 +371,20 @@ local function restore_params (node)
   end
 end
 
+-- The mic chain and every delay filter behind an offset.
+local FILTER_NODES = { PREFIX .. "mic.in", PREFIX .. "console-offset.in", MIC_OFFSET }
+for _, channel in ipairs ({ "game", "chat", "music", "system", "browser" }) do
+  for _, path in ipairs ({ "stream", "monitor", "goxlr" }) do
+    if path ~= "goxlr" or GOXLR_SINKS [channel] then
+      table.insert (FILTER_NODES, PREFIX .. channel .. "." .. path .. ".in")
+    end
+  end
+end
+
 filters_om = ObjectManager {
   Interest {
     type = "node",
-    Constraint { "node.name", "c", PREFIX .. "mic.in", PREFIX .. "console-offset.in" },
+    Constraint { "node.name", "c", table.unpack (FILTER_NODES) },
   }
 }
 

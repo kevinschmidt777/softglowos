@@ -5,8 +5,8 @@ tools/make-audio-config.py and the WirePlumber script audio.lua), so audio
 keeps working while the Hub is closed. The Hub only reads and changes it:
 
 - fader volumes and mutes sit on loopback streams (PulseAudio API)
-- filter settings (RNNoise, gate, compressor, EQ, console offset) are
-  controls of two filter-chain nodes (pw-cli)
+- filter settings (RNNoise, gate, compressor, EQ) and offsets are controls
+  of filter-chain nodes (pw-cli)
 - level meters record the channel sinks with GStreamer
 """
 import json
@@ -27,6 +27,20 @@ MIXES = ('stream', 'monitor')  # stream fader, headphone ("Me") fader
 
 MIC_FILTER = PREFIX + 'mic.in'
 CONSOLE_FILTER = PREFIX + 'console-offset.in'
+GOXLR_CHANNELS = ('game', 'chat', 'music', 'system')
+
+# Delay filters behind each offset. A channel's offset delays its stream and
+# headphone faders (and the way into the GoXLR), the console's sits right
+# after the capture card, the mic's only on its way into the stream mix.
+OFFSET_NODES = {
+    channel: tuple(f'{PREFIX}{channel}.{path}.in' for path in
+                   (('stream', 'monitor', 'goxlr') if channel in GOXLR_CHANNELS
+                    else ('stream', 'monitor')))
+    for channel in CHANNELS if channel != 'console'
+}
+OFFSET_NODES['console'] = (CONSOLE_FILTER,)
+OFFSET_NODES['mic'] = (PREFIX + 'mic.mix.in',)
+OFFSET_CONTROL = 'offset:Delay (s)'
 
 # Same bands as the full-size GoXLR, see tools/make-audio-config.py.
 EQ_BANDS = (31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000)
@@ -154,16 +168,19 @@ class PipeWireMixer(GObject.Object):
 
     def _controls(self, name):
         """Current filter controls of a filter-chain node, e.g. {"eq3:Gain": 4.5}."""
-        controls = {}
+        return self._all_controls().get(name, {})
+
+    def _all_controls(self):
+        """Filter controls of every node at once (one pw-dump), by node name."""
+        nodes = {}
         for obj in self._pw_dump():
             info = obj.get('info', {})
-            if info.get('props', {}).get('node.name') != name:
-                continue
+            controls = nodes.setdefault(info.get('props', {}).get('node.name'), {})
             for props in info.get('params', {}).get('Props', []):
                 params = props.get('params', [])
                 for key, value in zip(params[::2], params[1::2]):
                     controls[key] = value
-        return controls
+        return nodes
 
     def _set_controls(self, name, controls):
         node_id = self._node_id(name)
@@ -207,11 +224,15 @@ class PipeWireMixer(GObject.Object):
         self._filters['eq'][band] = gain_db
         self._set_controls(MIC_FILTER, {f'eq{band + 1}:Gain': gain_db})
 
-    def console_offset_ms(self):
-        return round(self._controls(CONSOLE_FILTER).get('offset:Delay (s)', 0.0) * 1000)
+    def offsets_ms(self):
+        """Offset of every channel and the mic in ms, e.g. {"game": 0, "mic": 40}."""
+        nodes = self._all_controls()
+        return {target: round(nodes.get(names[0], {}).get(OFFSET_CONTROL, 0.0) * 1000)
+                for target, names in OFFSET_NODES.items()}
 
-    def set_console_offset_ms(self, ms):
-        self._set_controls(CONSOLE_FILTER, {'offset:Delay (s)': ms / 1000})
+    def set_offset_ms(self, target, ms):
+        for name in OFFSET_NODES[target]:
+            self._set_controls(name, {OFFSET_CONTROL: ms / 1000})
 
     # Devices
 

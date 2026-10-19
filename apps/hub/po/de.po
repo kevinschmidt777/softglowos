@@ -99,6 +99,9 @@ msgstr "Im Stream stummschalten"
 msgid "Mute in headphones"
 msgstr "Im Kopfhörer stummschalten"
 
+msgid "Offset (stream)"
+msgstr "Versatz (Stream)"
+
 msgid "Offset"
 msgstr "Versatz"
 

@@ -121,14 +121,58 @@ def _heading(text):
     return label
 
 
+class OffsetControl(Gtk.Box):
+    """Delay in 10 ms steps (− / value / +) at the bottom of a strip."""
+
+    __gsignals__ = {
+        'changed': (GObject.SignalFlags.RUN_FIRST, None, (int,)),
+    }
+
+    def __init__(self, caption):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.add_css_class('strip-section')
+        self.add_css_class('offset-control')
+        label = Gtk.Label(label=caption)
+        label.add_css_class('caption')
+        label.add_css_class('dim-label')
+        self.append(label)
+
+        row = Gtk.Box(spacing=2, halign=Gtk.Align.CENTER)
+        down = Gtk.Button(icon_name='list-remove-symbolic', tooltip_text=_('Decrease offset'))
+        self._label = Gtk.Label(width_chars=7)
+        self._label.add_css_class('monospace')
+        self._label.add_css_class('caption')
+        up = Gtk.Button(icon_name='list-add-symbolic', tooltip_text=_('Increase offset'))
+        for button in (down, up):
+            button.add_css_class('circular')
+            button.add_css_class('flat')
+        down.connect('clicked', lambda _button: self._change(-OFFSET_STEP_MS))
+        up.connect('clicked', lambda _button: self._change(OFFSET_STEP_MS))
+        row.append(down)
+        row.append(self._label)
+        row.append(up)
+        self.append(row)
+        self.set_ms(0)
+
+    def set_ms(self, ms):
+        self._ms = ms
+        self._label.set_label(f'+{ms} ms')
+
+    def _change(self, delta):
+        ms = min(OFFSET_MAX_MS, max(0, self._ms + delta))
+        self.set_ms(ms)
+        self.emit('changed', ms)
+
+
 class MicStrip(Gtk.Box):
-    """The microphone input: device, level, filters, EQ and mute."""
+    """The microphone input: device, level, filters, EQ, mute and offset."""
 
     __gsignals__ = {
         'level-changed': (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         'mute-changed': (GObject.SignalFlags.RUN_FIRST, None, (bool,)),
         'filter-changed': (GObject.SignalFlags.RUN_FIRST, None, (str, bool)),
         'eq-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
+        'offset-changed': (GObject.SignalFlags.RUN_FIRST, None, (int,)),
     }
 
     FILTERS = (('rnnoise', _('Noise suppression')),
@@ -177,6 +221,11 @@ class MicStrip(Gtk.Box):
         self._mute_handler = self.mute_button.connect('toggled', self._on_mute_toggled)
         strip.append(self.mute_button)
 
+        # Only the stream: Discord and the headphones keep the mic undelayed
+        self.offset = OffsetControl(_('Offset (stream)'))
+        self.offset.connect('changed', lambda _control, ms: self.emit('offset-changed', ms))
+        strip.append(self.offset)
+
     def set_badge(self, text):
         self.badge.set_visible(text is not None)
         if text is not None:
@@ -222,7 +271,7 @@ class ChannelStrip(Gtk.Box):
         'offset-changed': (GObject.SignalFlags.RUN_FIRST, None, (int,)),
     }
 
-    def __init__(self, channel_id, name, device_picker=None, with_offset=False):
+    def __init__(self, channel_id, name, device_picker=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
         self.channel_id = channel_id
         self._apps = {}
@@ -257,9 +306,11 @@ class ChannelStrip(Gtk.Box):
             faders.append(fader)
         self.strip.append(faders)
 
-        self._offset_label = None
-        if with_offset:
-            self.strip.append(self._offset_controls())
+        self.offset = OffsetControl(_('Offset'))
+        self.offset.set_vexpand(True)
+        self.offset.set_valign(Gtk.Align.END)
+        self.offset.connect('changed', lambda _control, ms: self.emit('offset-changed', ms))
+        self.strip.append(self.offset)
 
         drop = Gtk.DropTarget.new(GObject.TYPE_PYOBJECT, Gdk.DragAction.MOVE)
         drop.connect('drop', self._on_drop)
@@ -288,11 +339,6 @@ class ChannelStrip(Gtk.Box):
         if text is not None:
             self.badge.set_label(text)
 
-    def set_offset_ms(self, ms):
-        if self._offset_label:
-            self._offset_ms = ms
-            self._offset_label.set_label(f'+{ms} ms')
-
     def _highlight(self, on):
         if on:
             self.strip.add_css_class('drop-target')
@@ -303,36 +349,3 @@ class ChannelStrip(Gtk.Box):
         self._highlight(False)
         self.emit('app-dropped', app)
         return True
-
-    def _offset_controls(self):
-        self._offset_ms = 0
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, vexpand=True,
-                      valign=Gtk.Align.END)
-        box.add_css_class('strip-section')
-        caption = Gtk.Label(label=_('Offset'))
-        caption.add_css_class('caption')
-        caption.add_css_class('dim-label')
-        box.append(caption)
-
-        row = Gtk.Box(spacing=4, halign=Gtk.Align.CENTER)
-        down = Gtk.Button(icon_name='list-remove-symbolic', tooltip_text=_('Decrease offset'))
-        self._offset_label = Gtk.Label(width_chars=7)
-        self._offset_label.add_css_class('monospace')
-        up = Gtk.Button(icon_name='list-add-symbolic', tooltip_text=_('Increase offset'))
-        for button in (down, up):
-            button.add_css_class('circular')
-            button.add_css_class('flat')
-        down.connect('clicked', lambda _button: self._change_offset(-OFFSET_STEP_MS))
-        up.connect('clicked', lambda _button: self._change_offset(OFFSET_STEP_MS))
-        row.append(down)
-        row.append(self._offset_label)
-        row.append(up)
-        box.append(row)
-
-        self.set_offset_ms(0)
-        return box
-
-    def _change_offset(self, delta):
-        ms = min(OFFSET_MAX_MS, max(0, self._offset_ms + delta))
-        self.set_offset_ms(ms)
-        self.emit('offset-changed', ms)

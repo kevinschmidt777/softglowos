@@ -20,6 +20,12 @@ compressor) into the source "softglowos.mic", which is also the default input,
 so Discord and OBS get the same filtered mic. The capture card runs through a
 delay filter (the "offset", 0 ms by default) into the console channel.
 
+Every other channel has an offset too: its stream and headphone faders (and
+its way into the GoXLR) are delay filters instead of plain loopbacks, all set
+to the same delay by the Hub. The mic's offset sits only on its way into the
+stream mix, so Discord gets it undelayed. At 0 ms a delay filter passes the
+sound straight through.
+
 Fader volumes live on the capture side of each loopback, which is a stream, so
 WirePlumber remembers them. The WirePlumber script picks the real devices and
 links or unlinks the loopbacks for the current mode; node.linger keeps an
@@ -50,6 +56,9 @@ GOXLR_CHANNELS = ["game", "chat", "music", "system"]
 # Same bands as the full-size GoXLR, so the software EQ feels the same.
 EQ_BANDS = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 EQ_Q = 1.41  # about one octave per band
+
+# Longest offset the Hub allows (OFFSET_MAX_MS in apps/hub/src/strips.py)
+MAX_OFFSET_S = 2.0
 
 LSP = "lsp-plugins-ladspa"
 LSP_GATE = "http://lsp-plug.in/plugins/ladspa/gate_mono"
@@ -96,11 +105,49 @@ def loopback(name, description, capture, playback):
   }}"""
 
 
+def delayed_loopback(name, description, capture, playback):
+    """Like loopback(), with the offset's delay filter in between. Same node
+    names, so faders and the WirePlumber script treat both the same."""
+    def props(items):
+        return "\n".join(f"        {k} = {v}" for k, v in items.items())
+
+    return f"""  {{ name = libpipewire-module-filter-chain
+    args = {{
+      node.description = "{description}"
+      media.name       = "{description}"
+      filter.graph = {{
+        nodes = [
+          {{ type = builtin name = offset label = delay
+            config = {{ "max-delay" = {MAX_OFFSET_S} }}
+            control = {{ "Delay (s)" = 0.0 }} }}
+        ]
+      }}
+      audio.rate     = 48000
+      audio.channels = 2
+      audio.position = [ FL FR ]
+      capture.props = {{
+        node.name  = "{name}.in"
+        media.name = "{name}.in"
+        node.linger = true
+{props(capture)}
+      }}
+      playback.props = {{
+        node.name  = "{name}.out"
+        media.name = "{name}.out"
+        node.linger = true
+{props(playback)}
+      }}
+    }}
+  }}"""
+
+
 def channel_modules(ch, label):
     sink = f'"softglowos.{ch}"'
+    # The console's offset sits right after the capture card instead
+    fader = loopback if ch == "console" else delayed_loopback
     return [
         # Stream fader: channel -> its single track (a source OBS can record)
-        loopback(f"softglowos.{ch}.stream", f"SoftglowOS {label} (Stream)",
+        fader(f"softglowos.{ch}.stream", f"SoftglowOS {label} (Stream)",
                  {"target.object": sink, "stream.capture.sink": "true"},
                  {"media.class": "Audio/Source",
                   "node.description": f'"SoftglowOS {label} (Stream)"',
@@ -110,7 +157,7 @@ def channel_modules(ch, label):
                  {"target.object": f'"softglowos.{ch}.stream.out"'},
                  {"target.object": '"softglowos.stream-mix"'}),
         # Headphone fader: channel -> your headphones (picked by the script)
-        loopback(f"softglowos.{ch}.monitor", f"SoftglowOS {label} (Me)",
+        fader(f"softglowos.{ch}.monitor", f"SoftglowOS {label} (Me)",
                  {"target.object": sink, "stream.capture.sink": "true"},
                  {}),
     ]
@@ -194,7 +241,7 @@ def console_delay():
       filter.graph = {
         nodes = [
           { type = builtin name = offset label = delay
-            config = { "max-delay" = 2.0 }
+            config = { "max-delay" = %s }
             control = { "Delay (s)" = 0.0 } }
         ]
       }
@@ -213,7 +260,7 @@ def console_delay():
         target.object = "softglowos.console"
       }
     }
-  }"""
+  }""" % MAX_OFFSET_S
 
 
 def main():
@@ -224,14 +271,14 @@ def main():
     for ch, label in CHANNELS:
         modules += channel_modules(ch, label)
     modules.append(mic_chain())
-    modules.append(loopback("softglowos.mic.mix", "SoftglowOS Microphone to Stream-Mix",
+    modules.append(delayed_loopback("softglowos.mic.mix", "SoftglowOS Microphone to Stream-Mix",
                             {"target.object": '"softglowos.mic"'},
                             {"target.object": '"softglowos.stream-mix"'}))
     modules.append(console_delay())
     for ch, label in CHANNELS:
         if ch in GOXLR_CHANNELS:
             # Only linked with a GoXLR: channel -> GoXLR channel at full volume
-            modules.append(loopback(f"softglowos.{ch}.goxlr", f"SoftglowOS {label} to GoXLR",
+            modules.append(delayed_loopback(f"softglowos.{ch}.goxlr", f"SoftglowOS {label} to GoXLR",
                                     {"target.object": f'"softglowos.{ch}"',
                                      "stream.capture.sink": "true"},
                                     {}))
