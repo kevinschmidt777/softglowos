@@ -10,6 +10,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 ## What's in the prototype (v0)
 
 - Two images on top of Bazzite GNOME: `softglowos` for AMD and Intel graphics (`bazzite-gnome`) and `softglowos-nvidia` for NVIDIA RTX 20 / GTX 16 series and newer (`bazzite-gnome-nvidia-open`).
+- **One download for every graphics card:** the ISO installs `softglowos`; with a supported NVIDIA card the setup assistant switches to `softglowos-nvidia` in the background. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files.
 - **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder. Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check whether SoftglowOS fits the graphics card
+After=graphical-session.target
+
+[Service]
+# Waits while its notification is open
+Type=simple
+ExecStart=@pkgdatadir@/softglowos-gpu-check --notify
+
+[Install]
+WantedBy=graphical-session.target

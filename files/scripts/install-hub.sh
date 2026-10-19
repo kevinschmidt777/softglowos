@@ -23,6 +23,8 @@ rm -rf /tmp/hub-build "$SRC"
 # update happens in the Hub (automatic system updates are off, see
 # /etc/uupd/config.json).
 systemctl --global enable softglowos-update-check.timer
+# On every login: does the image fit the graphics card (AMD/Intel or NVIDIA)?
+systemctl --global enable softglowos-gpu-check.service
 
 # The Hub is the only GoXLR interface: the GoXLR Utility daemon keeps running
 # in the background as the driver, but its own app entry goes away, so there

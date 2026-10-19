@@ -286,9 +286,6 @@ msgstr "System-Updates"
 msgid "Restart now?"
 msgstr "Jetzt neu starten?"
 
-msgid "Open apps close. SoftglowOS starts with the new version."
-msgstr "Offene Apps werden geschlossen. SoftglowOS startet mit der neuen Version."
-
 msgid "Report a bug"
 msgstr "Fehler melden"
 
@@ -471,3 +468,69 @@ msgstr "Alles bereit"
 
 msgid "Mixer, devices, software and updates are always in the Hub."
 msgstr "Mixer, Geräte, Software und Updates findest du jederzeit im Hub."
+
+msgid "Graphics"
+msgstr "Grafik"
+
+msgid "Graphics driver"
+msgstr "Grafiktreiber"
+
+msgid "Looking at the graphics card …"
+msgstr "Grafikkarte wird geprüft …"
+
+msgid "Set up for AMD and Intel graphics"
+msgstr "Eingerichtet für AMD- und Intel-Grafik"
+
+msgid "NVIDIA driver set up"
+msgstr "NVIDIA-Treiber eingerichtet"
+
+msgid "Free driver: the NVIDIA driver supports RTX 20 / GTX 16 and newer"
+msgstr "Freier Treiber: Der NVIDIA-Treiber unterstützt erst RTX 20 / GTX 16 und neuer"
+
+msgid "NVIDIA graphics card found, its driver isn't set up yet"
+msgstr "NVIDIA-Grafikkarte erkannt, ihr Treiber ist noch nicht eingerichtet"
+
+msgid "The driver doesn't fit your graphics card anymore"
+msgstr "Der Treiber passt nicht mehr zu deiner Grafikkarte"
+
+msgid "Setting up, this takes a few minutes …"
+msgstr "Wird eingerichtet, das dauert ein paar Minuten …"
+
+msgid "Set up, active after a restart"
+msgstr "Eingerichtet, aktiv nach einem Neustart"
+
+msgid "Setting up the driver didn't work"
+msgstr "Der Treiber ließ sich nicht einrichten"
+
+msgid "Couldn't look at the graphics card"
+msgstr "Grafikkarte konnte nicht geprüft werden"
+
+msgid "Set up"
+msgstr "Einrichten"
+
+msgid "Open apps close."
+msgstr "Offene Apps werden geschlossen."
+
+msgid "SoftglowOS starts with the new version."
+msgstr "SoftglowOS startet mit der neuen Version."
+
+msgid "SoftglowOS starts with the new graphics driver."
+msgstr "SoftglowOS startet mit dem neuen Grafiktreiber."
+
+msgid "Setting up the driver for your graphics card …"
+msgstr "Treiber für deine Grafikkarte wird eingerichtet …"
+
+msgid "The driver for your graphics card is ready, it starts with a restart."
+msgstr "Der Treiber für deine Grafikkarte ist bereit und startet mit einem Neustart."
+
+msgid "Setting up the graphics driver didn't work. Try again in the Hub under Settings."
+msgstr "Der Grafiktreiber ließ sich nicht einrichten. Versuch es im Hub unter Einstellungen noch mal."
+
+msgid "Your graphics card still needs its driver. It's in the Hub under Settings."
+msgstr "Deine Grafikkarte braucht noch ihren Treiber. Du findest ihn im Hub unter Einstellungen."
+
+msgid "Graphics driver ready"
+msgstr "Grafiktreiber bereit"
+
+msgid "It starts with the next restart."
+msgstr "Er startet mit dem nächsten Neustart."

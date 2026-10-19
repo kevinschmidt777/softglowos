@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Switches to the SoftglowOS image that fits the graphics card (see
+# softglowos-gpu-check); it becomes active with the next restart. Settings,
+# apps and files all stay. Runs as root without a password (the Hub starts
+# it through pkexec), so it picks the target itself and only ever switches
+# between our two images.
+set -euo pipefail
+
+target=$("$(dirname "$0")/softglowos-gpu-check" --target) || { echo "Nothing to switch" >&2; exit 0; }
+[[ $target =~ /kevinschmidt777/softglowos(-nvidia)?:[A-Za-z0-9._-]+$ ]] || { echo "Unexpected target: $target" >&2; exit 1; }
+
+if bootc status --format=json 2>/dev/null | jq -e '.status.booted.image' >/dev/null; then
+  case "$target" in
+    ostree-image-signed:docker://*) exec bootc switch --enforce-container-sigpolicy "${target#*docker://}" ;;
+    ostree-unverified-registry:*) exec bootc switch "${target#*:}" ;;
+  esac
+fi
+exec rpm-ostree rebase "$target"

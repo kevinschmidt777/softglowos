@@ -26,7 +26,15 @@ install_data(
   install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
 )
 
-# Readable password prompt for installing updates
+# Graphics card check on every login (enabled in the image's recipe)
+configure_file(
+  input: 'systemd' / 'softglowos-gpu-check.service',
+  output: 'softglowos-gpu-check.service',
+  configuration: unit_conf,
+  install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
+)
+
+# Readable password prompt for installing updates, none for the driver switch
 configure_file(
   input: app_id + '.policy.in',
   output: app_id + '.policy',

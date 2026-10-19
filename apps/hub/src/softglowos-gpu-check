@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# Checks whether the running SoftglowOS image fits the graphics card, without
+# admin rights. softglowos is for AMD and Intel, softglowos-nvidia for NVIDIA
+# cards the open driver supports (RTX 20 / GTX 16 series and newer). Prints:
+#   fits-amd         the AMD/Intel image runs and fits
+#   fits-nvidia      the NVIDIA image runs and fits
+#   nvidia           a supported NVIDIA card is in, the NVIDIA image is needed
+#   amd              no supported NVIDIA card (anymore), the AMD/Intel image is needed
+#   staged           the fitting image is installed and waits for a restart
+#   old-nvidia       only an older NVIDIA card, it stays on the free driver
+#   unknown          can't tell (not one of our images, ...)
+# With --target it prints the image to switch to instead (for softglowos-switch-gpu).
+# With --notify (on login) a needed switch or an older card gets a desktop
+# notification; clicking it opens the Hub's settings.
+set -uo pipefail
+
+PCI_DEVICES=${PCI_DEVICES:-/sys/bus/pci/devices}
+# The open NVIDIA driver starts with Turing, whose device IDs start at 0x1e00
+FIRST_SUPPORTED_NVIDIA=$((0x1e00))
+
+supported_nvidia=false
+old_nvidia=false
+for device in "$PCI_DEVICES"/*; do
+  [[ $(cat "$device/class" 2>/dev/null) == 0x03* ]] || continue
+  [ "$(cat "$device/vendor" 2>/dev/null)" = 0x10de ] || continue
+  if (($(cat "$device/device") >= FIRST_SUPPORTED_NVIDIA)); then
+    supported_nvidia=true
+  else
+    old_nvidia=true
+  fi
+done
+
+status=$(rpm-ostree status --json 2>/dev/null) || { echo unknown; exit 0; }
+booted_ref=$(jq -r '.deployments[] | select(.booted) | ."container-image-reference" // empty' <<<"$status")
+staged_ref=$(jq -r '.deployments[] | select(.staged) | ."container-image-reference" // empty' <<<"$status")
+
+# "ostree-image-signed:docker://ghcr.io/kevinschmidt777/softglowos-nvidia:latest"
+# -> name "softglowos-nvidia"
+name=${booted_ref##*/}
+name=${name%%[:@]*}
+case "$name" in
+  softglowos) current=amd ;;
+  softglowos-nvidia) current=nvidia ;;
+  *) echo unknown; exit 0 ;;
+esac
+wanted=$([ "$supported_nvidia" = true ] && echo nvidia || echo amd)
+target_name=$([ "$wanted" = nvidia ] && echo softglowos-nvidia || echo softglowos)
+# Same transport and tag, other name; a pinned digest becomes :latest
+tag=${booted_ref##*/}
+tag=${tag#"$name"}
+[[ $tag == :* ]] || tag=:latest
+target_ref="${booted_ref%/*}/$target_name$tag"
+
+if [ "${1:-}" = --target ]; then
+  [ "$wanted" = "$current" ] && exit 1
+  echo "$target_ref"
+  exit 0
+fi
+
+if [ "$wanted" = "$current" ]; then
+  state=$([ "$old_nvidia" = true ] && [ "$current" = amd ] && echo old-nvidia || echo "fits-$current")
+elif [[ ${staged_ref##*/} == "$target_name"[:@]* ]]; then
+  state=staged
+else
+  state=$wanted
+fi
+echo "$state"
+
+[ "${1:-}" = --notify ] || exit 0
+# The setup assistant switches by itself on the first login
+[ "$(jq -r '.done // false' "${XDG_CONFIG_HOME:-$HOME/.config}/softglowos/setup.json" 2>/dev/null)" = true ] || exit 0
+german=false
+[[ ${LANG:-} == de* ]] && german=true
+case "$state" in
+  nvidia)
+    $german && title="NVIDIA-Grafikkarte erkannt" || title="NVIDIA graphics card found"
+    $german && body="Richte den NVIDIA-Treiber ein, damit Spiele und Streams die volle Leistung bekommen." \
+      || body="Set up the NVIDIA driver so games and streams get its full power." ;;
+  amd)
+    $german && title="Neue Grafikkarte erkannt" || title="New graphics card found"
+    $german && body="Richte den passenden Treiber für deine AMD- oder Intel-Grafik ein." \
+      || body="Set up the right driver for your AMD or Intel graphics." ;;
+  old-nvidia)
+    # Only once: nothing changes until the card does
+    seen="${XDG_CONFIG_HOME:-$HOME/.config}/softglowos/old-nvidia-notified"
+    [ -e "$seen" ] && exit 0
+    mkdir -p "$(dirname "$seen")" && touch "$seen"
+    $german && title="Ältere NVIDIA-Grafikkarte" || title="Older NVIDIA graphics card"
+    $german && body="Deine Karte läuft mit dem freien Treiber. Das klappt, ist aber langsamer und ohne NVENC. Der NVIDIA-Treiber unterstützt erst RTX 20 / GTX 16 und neuer." \
+      || body="Your card runs on the free driver. It works, but it's slower and has no NVENC. The NVIDIA driver supports RTX 20 / GTX 16 and newer." ;;
+  *) exit 0 ;;
+esac
+$german && open="Öffnen" || open="Open"
+action=$(notify-send --app-name=Hub --icon=com.softglowos.Hub --wait \
+  --action=open="$open" "$title" "$body")
+[ "$action" = open ] && exec softglowos-hub --page=settings
+exit 0

@@ -47,6 +47,7 @@ install_data(
   'devices_page.py',
   'settings_page.py',
   'updates.py',
+  'gpu.py',
   'bug_report.py',
   'setup.py',
   install_dir: pkgdatadir / 'hub',
@@ -56,6 +57,8 @@ install_data(
   'softglowos-resolve',
   'softglowos-update',
   'softglowos-update-check',
+  'softglowos-gpu-check',
+  'softglowos-switch-gpu',
   install_dir: pkgdatadir,
   install_mode: 'rwxr-xr-x',
 )

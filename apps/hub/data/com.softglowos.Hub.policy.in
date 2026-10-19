@@ -17,4 +17,18 @@
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">@pkgdatadir@/softglowos-update</annotate>
   </action>
+  <!-- No password: it only ever switches between our two signed images -->
+  <action id="com.softglowos.Hub.switch-gpu">
+    <description>Set up the graphics driver</description>
+    <description xml:lang="de">Grafiktreiber einrichten</description>
+    <message>Setting up the graphics driver needs your password.</message>
+    <message xml:lang="de">Zum Einrichten des Grafiktreibers wird dein Passwort benötigt.</message>
+    <icon_name>com.softglowos.Hub</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">@pkgdatadir@/softglowos-switch-gpu</annotate>
+  </action>
 </policyconfig>

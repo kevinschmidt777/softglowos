@@ -1,6 +1,7 @@
 from gi.repository import Adw, Gtk
 
 from .bug_report import BugReportDialog
+from .gpu import GraphicsDriver
 from .updates import Updates, version
 
 # State -> (description, button label or None); see Updates
@@ -14,13 +15,41 @@ UPDATE_STATES = {
     'unknown': (_('Couldn\'t look for updates'), _('Check for updates')),
 }
 
+# State -> (description, button label or None); see GraphicsDriver
+DRIVER_STATES = {
+    'checking': (_('Looking at the graphics card …'), None),
+    'fits-amd': (_('Set up for AMD and Intel graphics'), None),
+    'fits-nvidia': (_('NVIDIA driver set up'), None),
+    'old-nvidia': (_('Free driver: the NVIDIA driver supports RTX 20 / GTX 16 and newer'), None),
+    'nvidia': (_('NVIDIA graphics card found, its driver isn\'t set up yet'), _('Set up')),
+    'amd': (_('The driver doesn\'t fit your graphics card anymore'), _('Set up')),
+    'switching': (_('Setting up, this takes a few minutes …'), None),
+    'staged': (_('Set up, active after a restart'), _('Restart')),
+    'failed': (_('Setting up the driver didn\'t work'), _('Try again')),
+    'unknown': (_('Couldn\'t look at the graphics card'), None),
+}
+
 
 class SettingsPage(Adw.PreferencesPage):
-    """System updates (checked here, installed only when the user says so),
-    bug reports and the version."""
+    """Graphics driver, system updates (checked here, installed only when the
+    user says so), bug reports and the version."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        self.driver = GraphicsDriver()
+        self.driver.connect('changed', lambda _driver: self._show_driver())
+
+        driver_group = Adw.PreferencesGroup(title=_('Graphics'))
+        self.driver_row = Adw.ActionRow(title=_('Graphics driver'))
+        self.driver_spinner = Adw.Spinner()
+        self.driver_button = Gtk.Button(valign=Gtk.Align.CENTER)
+        self.driver_button.add_css_class('suggested-action')
+        self.driver_button.connect('clicked', self._on_driver_button)
+        self.driver_row.add_suffix(self.driver_spinner)
+        self.driver_row.add_suffix(self.driver_button)
+        driver_group.add(self.driver_row)
+        self.add(driver_group)
 
         self.updates = Updates()
         self.updates.connect('changed', lambda _updates: self._show_updates())
@@ -49,12 +78,31 @@ class SettingsPage(Adw.PreferencesPage):
         self.footer.add(label)
         self.add(self.footer)
 
+        self._show_driver()
         self._show_updates()
         self.connect('map', self._on_map)
 
     def _on_map(self, _page):
+        if self.driver.state in ('unknown', 'fits-amd', 'fits-nvidia', 'old-nvidia', 'nvidia', 'amd'):
+            self.driver.check()
         if self.updates.state == 'unknown':
             self.updates.check()
+
+    def _show_driver(self):
+        state = self.driver.state
+        text, button = DRIVER_STATES[state]
+        self.driver_row.set_subtitle(text)
+        self.driver_spinner.set_visible(state in ('checking', 'switching'))
+        self.driver_button.set_visible(button is not None)
+        if button:
+            self.driver_button.set_label(button)
+
+    def _on_driver_button(self, _button):
+        if self.driver.state == 'staged':
+            self._confirm_restart(_('SoftglowOS starts with the new graphics driver.'),
+                                  self.driver.restart)
+        else:
+            self.driver.switch()
 
     def _show_updates(self):
         state = self.updates.state
@@ -74,17 +122,18 @@ class SettingsPage(Adw.PreferencesPage):
         if state in ('available', 'failed'):
             self.updates.install()
         elif state == 'staged':
-            self._confirm_restart()
+            self._confirm_restart(_('SoftglowOS starts with the new version.'),
+                                  self.updates.restart)
         else:
             self.updates.check()
 
-    def _confirm_restart(self):
+    def _confirm_restart(self, reason, restart):
         dialog = Adw.AlertDialog(
             heading=_('Restart now?'),
-            body=_('Open apps close. SoftglowOS starts with the new version.'))
+            body=_('Open apps close.') + ' ' + reason)
         dialog.add_response('cancel', _('Cancel'))
         dialog.add_response('restart', _('Restart'))
         dialog.set_response_appearance('restart', Adw.ResponseAppearance.SUGGESTED)
         dialog.connect('response', lambda _dialog, response:
-                       response == 'restart' and self.updates.restart())
+                       response == 'restart' and restart())
         dialog.present(self)
