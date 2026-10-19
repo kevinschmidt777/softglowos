@@ -13,8 +13,6 @@ from pathlib import Path
 REMOVE = {
     # Overwrite our GNOME defaults and app folders with Bazzite's
     "restore-gnome-de-settings", "restore-gnome-folders",
-    # Rebases to a "-nvidia"-less image name that doesn't exist for us
-    "toggle-nvk",
     # Swaps the shell setup, including our terminal greeting
     "bazzite-cli",
     # Virtual sinks that clash with our own audio mixer
@@ -28,6 +26,11 @@ REMOVE = {
     # Show Bazzite's release notes, not ours
     "changelogs", "changelogs-testing",
 }
+
+# May only exist in the NVIDIA image, so not required. It rebases between the NVIDIA
+# driver and NVK behind the Hub's back; the Hub picks the image itself.
+OPTIONAL = {"toggle-nvk"}
+REMOVE |= OPTIONAL
 
 header = re.compile(r"^([a-z0-9-]+)(\s[^:]*)?:(?!=)")
 alias = re.compile(r"^alias\s+\S+\s*:=\s*([a-z0-9-]+)\s*$")
@@ -56,7 +59,7 @@ for path in sorted(Path(sys.argv[1]).glob("*.just")):
         i += 1
     path.write_text("".join(out))
 
-missing = REMOVE - found
+missing = REMOVE - OPTIONAL - found
 if missing:
     sys.exit(f"ujust recipes not found: {', '.join(sorted(missing))}")
 EOF

@@ -9,7 +9,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 
 ## What's in the prototype (v0)
 
-- Based on `bazzite-gnome-nvidia-open` (NVIDIA RTX 20 series and newer). An AMD/Intel variant follows.
+- Two images on top of Bazzite GNOME: `softglowos` for AMD and Intel graphics (`bazzite-gnome`) and `softglowos-nvidia` for NVIDIA RTX 20 / GTX 16 series and newer (`bazzite-gnome-nvidia-open`).
 - **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder. Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
@@ -31,7 +31,8 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 
 | Path | Purpose |
 |---|---|
-| `recipes/recipe.yml` | The image recipe: base image and all modules |
+| `recipes/common.yml` | All modules, shared by both images |
+| `recipes/softglowos.yml`, `recipes/softglowos-nvidia.yml` | The two image recipes: name and base image |
 | `files/system/` | Files copied 1:1 into the image root |
 | `files/gschema-overrides/` | GNOME default settings |
 | `files/scripts/` | Build-time scripts |
@@ -42,8 +43,9 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 
 ## Building
 
-Every push to `main` builds the image and publishes it to
-`ghcr.io/kevinschmidt777/softglowos`, signed with cosign.
+Every push to `main` builds both images and publishes them to
+`ghcr.io/kevinschmidt777/softglowos` and `ghcr.io/kevinschmidt777/softglowos-nvidia`,
+signed with cosign.
 
 The ISO and a ready-to-boot qcow2 VM disk are built by the **Build disk images**
 workflow, started manually:
@@ -60,7 +62,10 @@ has no first-boot account setup. Only use it in a VM.
 ## Switching an existing Bazzite install
 
 ```bash
+# AMD/Intel graphics
 sudo bootc switch ghcr.io/kevinschmidt777/softglowos:latest
+# NVIDIA
+sudo bootc switch ghcr.io/kevinschmidt777/softglowos-nvidia:latest
 ```
 
 ## Verification

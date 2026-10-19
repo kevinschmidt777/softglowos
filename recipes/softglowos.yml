@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# Published to ghcr.io/kevinschmidt777/softglowos
+name: softglowos
+description: A Linux desktop for gamers and Twitch streamers, built on Bazzite GNOME.
+
+# AMD and Intel graphics. Also what the ISO installs: SoftglowOS switches
+# itself to softglowos-nvidia when it finds a supported NVIDIA card.
+base-image: ghcr.io/ublue-os/bazzite-gnome
+image-version: stable
+
+modules:
+  - from-file: common.yml
