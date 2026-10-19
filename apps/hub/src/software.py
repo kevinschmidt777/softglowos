@@ -37,7 +37,7 @@ class App:
 
 class LocalApp(App):
     """An app whose launchers live in ~/.local/share/applications
-    (DaVinci Resolve from davincibox), found by file name."""
+    (DaVinci Resolve from davincibox, Affinity), found by file name."""
 
     def __init__(self, app_id, name, detail, patterns):
         super().__init__(app_id, name, detail, ())
@@ -69,6 +69,8 @@ APPS = (
 
 RESOLVE = LocalApp('resolve', 'DaVinci Resolve', _('Video editing'),
                    ('DaVinci*.desktop', 'blackmagicraw*.desktop'))
+AFFINITY = LocalApp('affinity', 'Affinity', _('Photo, design and layout'),
+                    ('com.softglowos.Affinity.desktop',))
 
 
 def is_installed(app):

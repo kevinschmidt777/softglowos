@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Installs Affinity (Photo, Designer and Publisher in one app) for the
+current user from the AffinityOnLinux AppImage: Affinity for Windows with a
+preconfigured Wine, nothing goes into the system. Always the newest release;
+the AppImage doesn't update itself, so the Hub asks "check" and installs
+again over the old one.
+
+  check      prints "missing", "current <version>" or "update <version>"
+  install    downloads the newest release, checks it against the digest
+             GitHub publishes, adds a launcher; reports "@@step download",
+             "@@progress <percent>" and "@@step setup"
+  remove     deletes the AppImage and the launcher (Affinity's own Wine
+             prefix with settings stays, like files of other apps)
+"""
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+from pathlib import Path
+
+RELEASES = 'https://api.github.com/repos/ryzendew/Linux-Affinity-Installer/releases/latest'
+ASSET = re.compile(r'^Affinity-[\d.]+-x86_64\.AppImage$')
+
+DATA = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share'))
+HOME = DATA / 'softglowos' / 'affinity'
+APPIMAGE = HOME / 'Affinity.AppImage'
+VERSION = HOME / 'version'
+ICON = HOME / 'icon.png'
+LAUNCHER = DATA / 'applications' / 'com.softglowos.Affinity.desktop'
+
+
+def latest():
+    request = urllib.request.Request(RELEASES, headers={'Accept': 'application/vnd.github+json'})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        release = json.load(response)
+    asset = next(a for a in release['assets'] if ASSET.match(a['name']))
+    return release['tag_name'], asset
+
+
+def installed_version():
+    try:
+        return VERSION.read_text().strip() if APPIMAGE.exists() else None
+    except OSError:
+        return None
+
+
+def check():
+    version = installed_version()
+    if version is None:
+        print('missing')
+        return
+    try:
+        tag, _asset = latest()
+    except (OSError, ValueError, StopIteration):
+        print(f'current {version}')  # offline: nothing to offer
+        return
+    print(f'{"current" if tag == version else "update"} {tag}')
+
+
+def install():
+    print('@@step download', flush=True)
+    tag, asset = latest()
+    HOME.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256()
+    with tempfile.NamedTemporaryFile(dir=HOME, delete=False) as part:
+        try:
+            with urllib.request.urlopen(asset['browser_download_url'], timeout=60) as response:
+                total = int(response.headers.get('Content-Length') or asset['size'])
+                done, shown = 0, -1
+                while chunk := response.read(1 << 20):
+                    part.write(chunk)
+                    digest.update(chunk)
+                    done += len(chunk)
+                    percent = done * 100 // total
+                    if percent != shown:
+                        print(f'@@progress {percent}', flush=True)
+                        shown = percent
+            expected = (asset.get('digest') or '').removeprefix('sha256:')
+            if expected and digest.hexdigest() != expected:
+                sys.exit('The download is damaged (checksum mismatch)')
+        except BaseException:
+            os.unlink(part.name)
+            raise
+
+    print('@@step setup', flush=True)
+    os.chmod(part.name, 0o755)
+    os.replace(part.name, APPIMAGE)
+    VERSION.write_text(tag + '\n')
+    extract_icon()
+    # An update keeps the app hidden if the Hub's switch hid it (see software.py)
+    hidden = LAUNCHER.exists() and 'X-SoftglowOS-Hidden=true' in LAUNCHER.read_text()
+    LAUNCHER.parent.mkdir(parents=True, exist_ok=True)
+    LAUNCHER.write_text(
+        '[Desktop Entry]\n'
+        'Type=Application\n'
+        'Name=Affinity\n'
+        'Comment=Photo, design and layout\n'
+        'Comment[de]=Foto, Design und Layout\n'
+        f'Exec="{APPIMAGE}" %F\n'
+        f'Icon={ICON if ICON.exists() else "applications-graphics"}\n'
+        'Categories=Graphics;2DGraphics;RasterGraphics;VectorGraphics;Publishing;\n'
+        'Terminal=false\n'
+        + ('Hidden=true\nX-SoftglowOS-Hidden=true\n' if hidden else ''))
+
+
+def extract_icon():
+    """The AppImage's own icon (.DirIcon, often a link to the real file)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        name = '.DirIcon'
+        for _hop in range(3):
+            subprocess.run([APPIMAGE, '--appimage-extract', name], cwd=tmp,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            path = Path(tmp) / 'squashfs-root' / name
+            if not path.is_symlink():
+                break
+            name = os.path.normpath(os.path.join(os.path.dirname(name), os.readlink(path)))
+        if path.is_file():
+            shutil.copyfile(path, ICON)
+
+
+def remove():
+    LAUNCHER.unlink(missing_ok=True)
+    shutil.rmtree(HOME, ignore_errors=True)
+
+
+if __name__ == '__main__':
+    command = sys.argv[1] if len(sys.argv) > 1 else ''
+    {'check': check, 'install': install, 'remove': remove}.get(
+        command, lambda: sys.exit(f'Usage: {sys.argv[0]} check|install|remove'))()
