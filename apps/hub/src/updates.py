@@ -15,14 +15,15 @@ SWITCH_CHANNEL = os.path.join(HELPERS, 'softglowos-switch-channel')
 
 
 def version():
-    """The SoftglowOS version from os-release, e.g. "44.20261019.0"."""
-    try:
-        with open('/etc/os-release') as release:
-            fields = dict(line.rstrip('\n').split('=', 1) for line in release if '=' in line)
-    except OSError:
-        return ''
-    # VERSION="44.20261019.0 (Silverblue)"; VERSION_ID would only be "44"
-    return fields.get('VERSION', '').strip('"').split(' (')[0]
+    """The SoftglowOS version and the image's build date, e.g. ("1.0.0",
+    "2026-10-19"). Empty outside the image (Dev VM)."""
+    def read(name):
+        try:
+            with open(f'/usr/share/softglowos/{name}') as file:
+                return file.read().strip()
+        except OSError:
+            return ''
+    return read('version'), read('build-date')
 
 
 class Updates(GObject.Object):

@@ -93,7 +93,8 @@ class SettingsPage(Adw.PreferencesPage):
         self.add(help_group)
 
         self.footer = Adw.PreferencesGroup()
-        label = Gtk.Label(label=f'SoftglowOS {version()}'.strip())
+        number, build = version()
+        label = Gtk.Label(label=f'SoftglowOS {number}'.strip() + (f' · Build {build}' if build else ''))
         label.add_css_class('dim-label')
         self.footer.add(label)
         self.add(self.footer)

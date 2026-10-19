@@ -42,6 +42,7 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 | `apps/hub/` | The Hub app (Python, GTK4/libadwaita, Meson): mixer for PipeWire and GoXLR; `run-in-vm.sh` builds and starts it in the Fedora dev VM |
 | `tools/` | Generators for the wallpapers, the Bazaar banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into the dev VM |
 | `.github/workflows/` | Image build (on push and daily) and disk image build (manual) |
+| `VERSION` | The SoftglowOS version (SemVer: new features raise the minor, fixes the patch number); every release gets a `v<version>` tag |
 
 ## Building
 

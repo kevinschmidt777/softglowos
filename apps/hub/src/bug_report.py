@@ -27,7 +27,8 @@ SEARCH_DELAY_MS = 600
 
 
 def system_details():
-    lines = [f'- SoftglowOS {version()}', f'- Kernel {os.uname().release}']
+    number, build = version()
+    lines = [f'- SoftglowOS {number} (Build {build})', f'- Kernel {os.uname().release}']
     try:
         lspci = subprocess.run(['lspci'], capture_output=True, text=True, timeout=5).stdout
     except (OSError, subprocess.SubprocessError):

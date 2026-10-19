@@ -48,8 +48,9 @@ def scrub(text):
 def system_details():
     details = {'kernel': os.uname().release}
     try:
-        release = dict(line.rstrip('\n').split('=', 1) for line in open('/etc/os-release') if '=' in line)
-        details['version'] = release.get('VERSION', '').strip('"').split(' (')[0]
+        number, build = (Path('/usr/share/softglowos', name).read_text().strip()
+                         for name in ('version', 'build-date'))
+        details['version'] = f'{number} (Build {build})'
     except OSError:
         pass
     try:

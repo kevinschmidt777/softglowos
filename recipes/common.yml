@@ -78,8 +78,14 @@ modules:
     src: apps/hub
     dest: /tmp/softglowos-hub
 
+  # The SoftglowOS version (SemVer); stamp-build-date.sh adds the build date
+  - type: copy
+    src: VERSION
+    dest: /usr/share/softglowos/version
+
   - type: script
     scripts:
+      - stamp-build-date.sh
       - install-from-terra.sh
       - enable-game-capture.sh
       - preconfigure-obs.sh
