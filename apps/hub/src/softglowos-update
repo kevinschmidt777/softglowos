@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Installs the newest SoftglowOS image; it becomes active with the next
+# restart. Runs as root (the Hub starts it through pkexec). Automatic system
+# updates are off (/etc/uupd/config.json), so this is the only way in.
+set -euo pipefail
+
+if bootc status --format=json 2>/dev/null | jq -e '.status.booted.image' >/dev/null; then
+  exec bootc upgrade
+fi
+exec rpm-ostree upgrade

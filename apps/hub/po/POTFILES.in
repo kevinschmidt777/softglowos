@@ -9,3 +9,4 @@ src/goxlr.py
 src/software.py
 src/software_page.py
 src/devices_page.py
+src/settings_page.py

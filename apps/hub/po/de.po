@@ -26,11 +26,7 @@ msgstr "Software"
 msgid "Settings"
 msgstr "Einstellungen"
 
-msgid "Coming soon"
-msgstr "Kommt bald"
 
-msgid "This area is still being built."
-msgstr "Dieser Bereich wird gerade gebaut."
 
 msgid "Game"
 msgstr "Game"
@@ -250,3 +246,45 @@ msgstr "Verbunden"
 
 msgid "Not connected"
 msgstr "Nicht angeschlossen"
+
+msgid "Looking for updates …"
+msgstr "Sucht nach Updates …"
+
+msgid "SoftglowOS is up to date"
+msgstr "SoftglowOS ist aktuell"
+
+msgid "Check for updates"
+msgstr "Nach Updates suchen"
+
+msgid "A new version is out"
+msgstr "Eine neue Version ist da"
+
+msgid "Install update"
+msgstr "Update installieren"
+
+msgid "Installing, this takes a few minutes …"
+msgstr "Wird installiert, das dauert ein paar Minuten …"
+
+msgid "Installed, active after a restart"
+msgstr "Installiert, aktiv nach dem Neustart"
+
+msgid "Restart"
+msgstr "Neu starten"
+
+msgid "The update didn't work"
+msgstr "Das Update hat nicht geklappt"
+
+msgid "Couldn't look for updates"
+msgstr "Konnte nicht nach Updates suchen"
+
+msgid "Updates"
+msgstr "Updates"
+
+msgid "System updates"
+msgstr "System-Updates"
+
+msgid "Restart now?"
+msgstr "Jetzt neu starten?"
+
+msgid "Open apps close. SoftglowOS starts with the new version."
+msgstr "Offene Apps werden geschlossen. SoftglowOS startet mit der neuen Version."

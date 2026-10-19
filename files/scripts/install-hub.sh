@@ -19,6 +19,11 @@ meson setup /tmp/hub-build "$SRC" --prefix=/usr
 meson install -C /tmp/hub-build
 rm -rf /tmp/hub-build "$SRC"
 
+# Daily "Update available" notification for every user; installing the
+# update happens in the Hub (automatic system updates are off, see
+# /etc/uupd/config.json).
+systemctl --global enable softglowos-update-check.timer
+
 # The Hub is the only GoXLR interface: the GoXLR Utility daemon keeps running
 # in the background as the driver, but its own app entry goes away, so there
 # are no two places with the same settings.

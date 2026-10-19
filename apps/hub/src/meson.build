@@ -45,11 +45,15 @@ install_data(
   'software_page.py',
   'resolve.py',
   'devices_page.py',
+  'settings_page.py',
+  'updates.py',
   install_dir: pkgdatadir / 'hub',
 )
 
 install_data(
   'softglowos-resolve',
+  'softglowos-update',
+  'softglowos-update-check',
   install_dir: pkgdatadir,
   install_mode: 'rwxr-xr-x',
 )

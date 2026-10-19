@@ -1,0 +1,8 @@
+[Unit]
+Description=Check for a new SoftglowOS version
+After=graphical-session.target network-online.target
+
+[Service]
+# Waits while its notification is open, so there's never a second one
+Type=simple
+ExecStart=@pkgdatadir@/softglowos-update-check --notify

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Checks whether a newer SoftglowOS image is out, without admin rights: it
+# compares the digest of the running (or already installed) image with the
+# one on the registry. Prints one of:
+#   current          up to date
+#   available        a new version is out
+#   staged           the new version is installed and waits for a restart
+#   unknown          can't tell (offline, not an image-based system, ...)
+# With --notify (the daily timer), a new version also gets a desktop
+# notification once; clicking it opens the Hub's settings.
+set -uo pipefail
+
+status=$(rpm-ostree status --json 2>/dev/null) || { echo unknown; exit 0; }
+booted_ref=$(jq -r '.deployments[] | select(.booted) | ."container-image-reference" // empty' <<<"$status")
+booted_digest=$(jq -r '.deployments[] | select(.booted) | ."container-image-reference-digest" // empty' <<<"$status")
+staged_digest=$(jq -r '.deployments[] | select(.staged) | ."container-image-reference-digest" // empty' <<<"$status")
+if [ -z "$booted_ref" ] || [ -z "$booted_digest" ]; then
+  echo unknown
+  exit 0
+fi
+
+# "ostree-image-signed:docker://ghcr.io/..." or
+# "ostree-unverified-registry:ghcr.io/..." -> "docker://ghcr.io/..."
+if [[ $booted_ref == *docker://* ]]; then
+  image="docker://${booted_ref#*docker://}"
+else
+  image="docker://${booted_ref#*:}"
+fi
+latest=$(skopeo inspect --no-tags --format '{{.Digest}}' "$image" 2>/dev/null) || { echo unknown; exit 0; }
+
+if [ "$latest" = "$booted_digest" ]; then
+  echo current
+  exit 0
+elif [ "$latest" = "$staged_digest" ]; then
+  echo staged
+  exit 0
+fi
+echo available
+
+[ "${1:-}" = "--notify" ] || exit 0
+seen="${XDG_CACHE_HOME:-$HOME/.cache}/softglowos/notified-update"
+[ "$(cat "$seen" 2>/dev/null)" = "$latest" ] && exit 0
+mkdir -p "$(dirname "$seen")" && echo "$latest" >"$seen"
+
+if [[ "${LANG:-}" == de* ]]; then
+  title="Update verfügbar"
+  body="Eine neue Version von SoftglowOS ist da."
+  open="Öffnen"
+else
+  title="Update available"
+  body="A new version of SoftglowOS is out."
+  open="Open"
+fi
+action=$(notify-send --app-name=Hub --icon=com.softglowos.Hub --wait \
+  --action=open="$open" "$title" "$body")
+[ "$action" = open ] && exec softglowos-hub --page=settings
+exit 0

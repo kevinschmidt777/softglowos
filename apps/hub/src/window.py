@@ -3,15 +3,8 @@ from gi.repository import Adw, Gtk
 from .devices_page import DevicesPage
 from .goxlr import Mixer
 from .mixer_page import MixerPage
+from .settings_page import SettingsPage
 from .software_page import SoftwarePage
-
-
-def coming_soon(icon_name):
-    return Adw.StatusPage(
-        icon_name=icon_name,
-        title=_('Coming soon'),
-        description=_('This area is still being built.'),
-    )
 
 
 @Gtk.Template(resource_path='/com/softglowos/Hub/window.ui')
@@ -36,7 +29,7 @@ class HubWindow(Adw.ApplicationWindow):
             ('software', _('Software'), 'preferences-desktop-apps-symbolic',
              SoftwarePage()),
             ('settings', _('Settings'), 'emblem-system-symbolic',
-             coming_soon('emblem-system-symbolic')),
+             SettingsPage()),
         )
 
         self._titles = {}
