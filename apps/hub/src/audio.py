@@ -13,6 +13,7 @@ import json
 import math
 import subprocess
 import threading
+import time
 
 import gi
 
@@ -51,6 +52,7 @@ CAPTURE_CARD_WORDS = ('elgato', 'game capture', 'cam link', 'avermedia',
 
 METER_INTERVAL_NS = 50 * Gst.MSECOND
 METER_FLOOR_DB = -60.0
+RECONNECT_DELAY_S = 1
 
 
 def is_capture_card(description):
@@ -82,6 +84,7 @@ class PipeWireMixer(GObject.Object):
     def __init__(self):
         super().__init__()
         self._pulse = pulsectl.Pulse('softglowos-hub')
+        self._connected = True
         self._node_ids = {}
         self._refresh_pending = False
         self._meters = []
@@ -93,6 +96,8 @@ class PipeWireMixer(GObject.Object):
 
     def available(self):
         """False when the SoftglowOS mixer graph isn't there (e.g. PipeWire is down)."""
+        if not self._connected:
+            return False
         try:
             return self._loopback('system', 'stream') is not None
         except pulsectl.PulseError:
@@ -343,11 +348,44 @@ class PipeWireMixer(GObject.Object):
     # Changes made elsewhere (GNOME settings, other apps, WirePlumber)
 
     def _listen(self):
-        with pulsectl.Pulse('softglowos-hub-events') as events:
-            events.event_mask_set('sink', 'source', 'sink_input', 'source_output', 'server')
-            events.event_callback_set(self._on_event)
-            while True:
-                events.event_listen()
+        while True:
+            try:
+                with pulsectl.Pulse('softglowos-hub-events') as events:
+                    events.event_mask_set('sink', 'source', 'sink_input', 'source_output', 'server')
+                    events.event_callback_set(self._on_event)
+                    GLib.idle_add(self._reconnect)
+                    while True:
+                        events.event_listen()
+            except (pulsectl.PulseError, pulsectl.PulseDisconnected):
+                # PipeWire restarted (e.g. after an update) or isn't up yet
+                GLib.idle_add(self._disconnected)
+                time.sleep(RECONNECT_DELAY_S)
+
+    # Both run on the GTK thread, like every other use of self._pulse
+
+    def _disconnected(self):
+        """Shows the mixer as missing instead of touching the dead connection."""
+        if self._connected:
+            self._connected = False
+            self._emit_changed()
+        return GLib.SOURCE_REMOVE
+
+    def _reconnect(self):
+        """Swaps in a fresh connection once PipeWire is back."""
+        if self._connected:
+            return GLib.SOURCE_REMOVE  # the Hub just started
+        self._pulse.close()
+        try:
+            self._pulse = pulsectl.Pulse('softglowos-hub')
+        except pulsectl.PulseError:
+            GLib.timeout_add_seconds(RECONNECT_DELAY_S, self._reconnect)
+            return GLib.SOURCE_REMOVE
+        self._connected = True
+        if self._meters:
+            self.stop_meters()
+            self.start_meters()
+        self._emit_changed()
+        return GLib.SOURCE_REMOVE
 
     def _on_event(self, _event):
         if not self._refresh_pending:

@@ -53,7 +53,7 @@ class DevicesPage(Adw.PreferencesPage):
         self._dev_monitor.connect('changed', self._on_dev_changed)
 
     def refresh(self):
-        if not self.get_mapped():
+        if not self.get_mapped() or not self.mixer.available():
             return
         goxlr = self.mixer.goxlr_active
         capture = self.mixer.current_capture_card()
