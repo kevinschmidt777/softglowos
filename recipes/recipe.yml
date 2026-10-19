@@ -72,7 +72,7 @@ modules:
 
   - type: script
     scripts:
-      - install-discord.sh
+      - install-from-terra.sh
       - install-rnnoise.sh
       - install-hub.sh
       - render-branding.sh

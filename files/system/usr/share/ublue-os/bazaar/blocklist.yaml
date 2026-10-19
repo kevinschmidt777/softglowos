@@ -8,6 +8,7 @@ blocklists:
     - com.discordapp.Discord
     - com.google.Chrome
     - org.openrgb.OpenRGB
+    - com.heroicgameslauncher.hgl
     # Shipped natively by Bazzite
     - io.github.kolunmi.Bazaar
     - com.valvesoftware.Steam
