@@ -10,7 +10,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 ## What's in the prototype (v0)
 
 - Based on `bazzite-gnome-nvidia-open` (NVIDIA RTX 20 series and newer). An AMD/Intel variant follows.
-- **OBS Studio as a native RPM** instead of the Flatpak.
+- **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser and **Discord**, both as native RPMs.
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant will later detect RGB hardware and only show it when needed.

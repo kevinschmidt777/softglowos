@@ -1,0 +1,17 @@
+# RPM Fusion Free, limited to OBS's x264 encoder plugin. Fedora's OBS ships
+# without it, and Bazzite already provides the x264 library it needs.
+[rpmfusion-free-x264]
+name=RPM Fusion for Fedora $releasever - Free (OBS x264 plugin only)
+metalink=https://mirrors.rpmfusion.org/metalink?repo=free-fedora-$releasever&arch=$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020
+includepkgs=obs-studio-plugin-x264
+
+[rpmfusion-free-updates-x264]
+name=RPM Fusion for Fedora $releasever - Free - Updates (OBS x264 plugin only)
+metalink=https://mirrors.rpmfusion.org/metalink?repo=free-fedora-updates-released-$releasever&arch=$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020
+includepkgs=obs-studio-plugin-x264
