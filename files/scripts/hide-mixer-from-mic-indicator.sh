@@ -25,8 +25,10 @@ gresource extract "$LIB" "$RES" | python3 -c '
 import sys
 code = sys.stdin.read()
 old = ".get_source_outputs().some("
+# Gvc keeps a source output's media.name as its description, its name is null
 new = (".get_source_outputs()"
-       ".filter(o => !(o.get_name() ?? \"\").startsWith(\"softglowos.\")).some(")
+       ".filter(o => ![o.get_name(), o.get_description()]"
+       ".some(n => (n ?? \"\").startsWith(\"softglowos.\"))).some(")
 if code.count(old) != 1:
     for number, line in enumerate(code.splitlines(), 1):
         if "source_output" in line or "skippedApps" in line:
