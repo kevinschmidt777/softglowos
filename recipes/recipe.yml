@@ -29,6 +29,8 @@ modules:
         # Vulkan/OpenGL, VLC playlists, phone as webcam, x264 software encoder
         - obs-studio-plugin-browser
         - obs-studio-plugin-vkcapture
+        - obs-studio-plugin-vkcapture-hook-libs.x86_64
+        - obs-studio-plugin-vkcapture-hook-libs.i686
         - obs-studio-plugin-vlc-video
         - obs-studio-plugin-droidcam
         - obs-studio-plugin-x264
@@ -83,6 +85,7 @@ modules:
   - type: script
     scripts:
       - install-from-terra.sh
+      - enable-game-capture.sh
       - install-rnnoise.sh
       - install-hub.sh
       - render-branding.sh

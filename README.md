@@ -10,7 +10,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 ## What's in the prototype (v0)
 
 - Based on `bazzite-gnome-nvidia-open` (NVIDIA RTX 20 series and newer). An AMD/Intel variant follows.
-- **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder.
+- **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam and the x264 encoder. Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
 - **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package).
