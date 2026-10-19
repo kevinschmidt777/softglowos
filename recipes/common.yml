@@ -81,6 +81,7 @@ modules:
       - install-from-terra.sh
       - enable-game-capture.sh
       - preconfigure-obs.sh
+      - prefer-dedicated-gpu.sh
       - build-obs-plugins.sh
       - install-rnnoise.sh
       - install-hub.sh
