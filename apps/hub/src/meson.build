@@ -47,6 +47,7 @@ install_data(
   'devices_page.py',
   'settings_page.py',
   'updates.py',
+  'bug_report.py',
   install_dir: pkgdatadir / 'hub',
 )
 

@@ -288,3 +288,39 @@ msgstr "Jetzt neu starten?"
 
 msgid "Open apps close. SoftglowOS starts with the new version."
 msgstr "Offene Apps werden geschlossen. SoftglowOS startet mit der neuen Version."
+
+msgid "Report a bug"
+msgstr "Fehler melden"
+
+msgid "Bugs are collected on GitHub, sending one needs a GitHub account."
+msgstr "Fehler werden auf GitHub gesammelt, zum Abschicken brauchst du ein GitHub-Konto."
+
+msgid "What went wrong, in one sentence"
+msgstr "Was ist schiefgelaufen, in einem Satz"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "What did you do, what happened, what did you expect? Version and graphics card are added for you."
+msgstr "Was hast du gemacht, was ist passiert, was hast du erwartet? Version und Grafikkarte werden automatisch ergänzt."
+
+msgid "Already reported?"
+msgstr "Schon gemeldet?"
+
+msgid "If your bug is in here, add to it instead of reporting it again."
+msgstr "Ist dein Fehler hier dabei, ergänz ihn dort, statt ihn neu zu melden."
+
+msgid "Continue on GitHub"
+msgstr "Weiter zu GitHub"
+
+msgid "open"
+msgstr "offen"
+
+msgid "closed"
+msgstr "geschlossen"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "Checks first whether it's already known"
+msgstr "Prüft vorher, ob es den Fehler schon gibt"

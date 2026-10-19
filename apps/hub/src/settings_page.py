@@ -1,5 +1,6 @@
 from gi.repository import Adw, Gtk
 
+from .bug_report import BugReportDialog
 from .updates import Updates, version
 
 # State -> (description, button label or None); see Updates
@@ -15,8 +16,8 @@ UPDATE_STATES = {
 
 
 class SettingsPage(Adw.PreferencesPage):
-    """System updates (checked here, installed only when the user says so)
-    and the version."""
+    """System updates (checked here, installed only when the user says so),
+    bug reports and the version."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -34,6 +35,13 @@ class SettingsPage(Adw.PreferencesPage):
         group.add(self.update_row)
         self.add(group)
 
+        help_group = Adw.PreferencesGroup(title=_('Help'))
+        report = Adw.ActionRow(title=_('Report a bug'), activatable=True,
+                               subtitle=_('Checks first whether it\'s already known'))
+        report.add_suffix(Gtk.Image(icon_name='go-next-symbolic'))
+        report.connect('activated', lambda _row: BugReportDialog().present(self))
+        help_group.add(report)
+        self.add(help_group)
 
         self.footer = Adw.PreferencesGroup()
         label = Gtk.Label(label=f'SoftglowOS {version()}'.strip())
