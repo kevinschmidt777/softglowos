@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Hub app icon: the glow dot on a teal GNOME-style tile -->
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#36AABD"/>
+      <stop offset="1" stop-color="#1F8799"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="16" width="104" height="100" rx="18" fill="#156574"/>
+  <rect x="12" y="12" width="104" height="96" rx="18" fill="url(#face)"/>
+  <circle cx="64" cy="60" r="40" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="2"/>
+  <circle cx="64" cy="60" r="31" fill="#FFFFFF" opacity="0.16"/>
+  <circle cx="64" cy="60" r="21" fill="#FFFFFF" opacity="0.34"/>
+  <circle cx="64" cy="60" r="11" fill="#FFFFFF"/>
+</svg>

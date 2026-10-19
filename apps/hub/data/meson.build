@@ -6,3 +6,8 @@ i18n.merge_file(
   install: true,
   install_dir: get_option('datadir') / 'applications',
 )
+
+install_data(
+  'icons' / app_id + '.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+)
