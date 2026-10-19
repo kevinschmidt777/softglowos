@@ -53,6 +53,11 @@ class HubApplication(Adw.Application):
             preview = options.contains('setup-preview')
             if preview or not setup_done():
                 SetupWindow(application=self, preview=preview).present()
+            # Both start with the session; whichever comes second hands its
+            # command line to the first, which can time out while that one is
+            # still building its window. So the setup brings the icon along.
+            if options.contains('setup') and self.tray_enabled():
+                self._start_tray()
             return 0
         if options.contains('tray'):
             if self.tray_enabled():
