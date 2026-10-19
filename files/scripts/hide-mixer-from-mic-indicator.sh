@@ -25,7 +25,7 @@ gresource extract "$LIB" "$RES" | python3 -c '
 import sys
 code = sys.stdin.read()
 old = ".get_source_outputs().some("
-# Gvc keeps a source output's media.name as its description, its name is null
+# Gvc keeps the media.name of a source output as its description, its name is null
 new = (".get_source_outputs()"
        ".filter(o => ![o.get_name(), o.get_description()]"
        ".some(n => (n ?? \"\").startsWith(\"softglowos.\"))).some(")
