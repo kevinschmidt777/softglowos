@@ -6,6 +6,8 @@
 #   available        a new version is out
 #   staged           the new version is installed and waits for a restart
 #   unknown          can't tell (offline, not an image-based system, ...)
+# Before that, once the running image is known, a line "channel=stable" or
+# "channel=beta" (the :beta tag, see softglowos-switch-channel).
 # With --notify (the daily timer), a new version also gets a desktop
 # notification once; clicking it opens the Hub's settings.
 set -uo pipefail
@@ -18,6 +20,7 @@ if [ -z "$booted_ref" ] || [ -z "$booted_digest" ]; then
   echo unknown
   exit 0
 fi
+[[ ${booted_ref##*:} == beta ]] && echo channel=beta || echo channel=stable
 
 # "ostree-image-signed:docker://ghcr.io/..." or
 # "ostree-unverified-registry:ghcr.io/..." -> "docker://ghcr.io/..."

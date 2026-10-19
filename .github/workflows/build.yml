@@ -40,3 +40,18 @@ jobs:
 
           # enabled by default, disable if your image is small and you want faster builds
           maximize_build_space: true
+
+      # Beta channel: BlueBuild publishes the beta branch as br-beta-<fedora>.
+      # The Hub switches to the fixed name :beta, so it gets the same digest
+      # (copied as is, so the cosign signature stays valid).
+      - name: Tag the beta channel
+        if: github.ref == 'refs/heads/beta'
+        env:
+          RECIPE: ${{ matrix.recipe }}
+          TOKEN: ${{ github.token }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER}/${RECIPE%.yml}"
+          echo "$TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          tag=$(skopeo list-tags "docker://$image" | jq -r '.Tags[]' | grep -E '^br-beta-[0-9]+$' | sort -V | tail -n1)
+          [ -n "$tag" ] || { echo "No br-beta tag found for $image" >&2; exit 1; }
+          skopeo copy --all --preserve-digests "docker://$image:$tag" "docker://$image:beta"

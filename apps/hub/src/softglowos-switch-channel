@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Switches between the stable (:latest) and the beta (:beta) SoftglowOS
+# image, keeping the variant (AMD/Intel or NVIDIA). Active after the next
+# restart. Runs as root (the Hub starts it through pkexec).
+set -euo pipefail
+
+case "${1:-}" in
+  stable) tag=latest ;;
+  beta) tag=beta ;;
+  *) echo "Usage: $0 stable|beta" >&2; exit 2 ;;
+esac
+
+ref=$(rpm-ostree status --json | jq -r '.deployments[] | select(.booted) | ."container-image-reference" // empty')
+name=${ref##*/}
+name=${name%%[:@]*}
+case "$name" in
+  softglowos | softglowos-nvidia) ;;
+  *) echo "Not a SoftglowOS image: $ref" >&2; exit 1 ;;
+esac
+exec "$(dirname "$0")/softglowos-rebase" "${ref%/*}/$name:$tag"

@@ -7,12 +7,4 @@
 set -euo pipefail
 
 target=$("$(dirname "$0")/softglowos-gpu-check" --target) || { echo "Nothing to switch" >&2; exit 0; }
-[[ $target =~ /kevinschmidt777/softglowos(-nvidia)?:[A-Za-z0-9._-]+$ ]] || { echo "Unexpected target: $target" >&2; exit 1; }
-
-if bootc status --format=json 2>/dev/null | jq -e '.status.booted.image' >/dev/null; then
-  case "$target" in
-    ostree-image-signed:docker://*) exec bootc switch --enforce-container-sigpolicy "${target#*docker://}" ;;
-    ostree-unverified-registry:*) exec bootc switch "${target#*:}" ;;
-  esac
-fi
-exec rpm-ostree rebase "$target"
+exec "$(dirname "$0")/softglowos-rebase" "$target"

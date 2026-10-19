@@ -11,6 +11,7 @@ from gi.repository import Gio, GLib, GObject
 HELPERS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHECK = os.path.join(HELPERS, 'softglowos-update-check')
 INSTALL = os.path.join(HELPERS, 'softglowos-update')
+SWITCH_CHANNEL = os.path.join(HELPERS, 'softglowos-switch-channel')
 
 
 def version():
@@ -25,7 +26,8 @@ def version():
 
 
 class Updates(GObject.Object):
-    """State: checking, current, available, installing, staged, failed or unknown."""
+    """State: checking, current, available, installing, staged, failed or
+    unknown. channel is "stable", "beta" or None (not known yet)."""
 
     __gsignals__ = {
         'changed': (GObject.SignalFlags.RUN_FIRST, None, ()),
@@ -34,6 +36,7 @@ class Updates(GObject.Object):
     def __init__(self):
         super().__init__()
         self.state = 'unknown'
+        self.channel = None
 
     def check(self):
         self._set('checking')
@@ -43,10 +46,28 @@ class Updates(GObject.Object):
     def _on_checked(self, process, result):
         try:
             _ok, stdout, _stderr = process.communicate_utf8_finish(result)
-            state = (stdout or '').strip()
+            lines = (stdout or '').split()
         except GLib.Error:
-            state = 'unknown'
+            lines = []
+        for line in lines:
+            if line.startswith('channel='):
+                self.channel = line.split('=', 1)[1]
+        state = lines[-1] if lines else 'unknown'
         self._set(state if state in ('current', 'available', 'staged') else 'unknown')
+
+    def switch_channel(self, channel):
+        """Stages the stable or beta image (asks for the admin password)."""
+        self._set('installing')
+        process = Gio.Subprocess.new(['pkexec', SWITCH_CHANNEL, channel], Gio.SubprocessFlags.NONE)
+        process.wait_check_async(None, self._on_channel_switched, channel)
+
+    def _on_channel_switched(self, process, result, channel):
+        try:
+            process.wait_check_finish(result)
+            self.channel = channel
+            self._set('staged')
+        except GLib.Error:
+            self._set('failed')
 
     def install(self):
         self._set('installing')

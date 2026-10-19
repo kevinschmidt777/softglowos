@@ -564,3 +564,24 @@ msgstr "Mixer in der Leiste"
 
 msgid "An icon for quick access, starts with your login"
 msgstr "Ein Symbol für den schnellen Zugriff, startet mit deiner Anmeldung"
+
+msgid "Get beta versions"
+msgstr "Beta-Versionen erhalten"
+
+msgid "New features earlier, may contain bugs"
+msgstr "Neues früher bekommen, kann Fehler enthalten"
+
+msgid "Switch to beta versions?"
+msgstr "Zu Beta-Versionen wechseln?"
+
+msgid "Back to stable versions?"
+msgstr "Zurück zu stabilen Versionen?"
+
+msgid "Switch"
+msgstr "Wechseln"
+
+msgid "You get new features earlier, they may contain bugs. Settings, apps and files stay. Active after a restart."
+msgstr "Du bekommst Neues früher, es kann aber Fehler enthalten. Einstellungen, Apps und Dateien bleiben. Aktiv nach einem Neustart."
+
+msgid "The next stable version replaces the beta. Settings, apps and files stay. Active after a restart."
+msgstr "Die aktuelle stabile Version ersetzt die Beta. Einstellungen, Apps und Dateien bleiben. Aktiv nach einem Neustart."

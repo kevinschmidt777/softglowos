@@ -71,6 +71,11 @@ class SettingsPage(Adw.PreferencesPage):
         self.update_row.add_suffix(self.update_spinner)
         self.update_row.add_suffix(self.update_button)
         group.add(self.update_row)
+        self.beta_row = Adw.SwitchRow(title=_('Get beta versions'),
+                                      subtitle=_('New features earlier, may contain bugs'),
+                                      sensitive=False)
+        self._beta_handler = self.beta_row.connect('notify::active', self._on_beta_toggled)
+        group.add(self.beta_row)
         self.add(group)
 
         help_group = Adw.PreferencesGroup(title=_('Help'))
@@ -115,6 +120,10 @@ class SettingsPage(Adw.PreferencesPage):
 
     def _show_updates(self):
         state = self.updates.state
+        channel = self.updates.channel
+        with self.beta_row.handler_block(self._beta_handler):
+            self.beta_row.set_active(channel == 'beta')
+        self.beta_row.set_sensitive(channel is not None and state not in ('checking', 'installing'))
         text, button = UPDATE_STATES[state]
         self.update_row.set_subtitle(text)
         self.update_spinner.set_visible(state in ('checking', 'installing'))
@@ -125,6 +134,27 @@ class SettingsPage(Adw.PreferencesPage):
             self.update_button.add_css_class('suggested-action')
         else:
             self.update_button.remove_css_class('suggested-action')
+
+    def _on_beta_toggled(self, row, _param):
+        beta = row.get_active()
+        dialog = Adw.AlertDialog(
+            heading=_('Switch to beta versions?') if beta else _('Back to stable versions?'),
+            body=(_('You get new features earlier, they may contain bugs. Settings, apps and '
+                    'files stay. Active after a restart.') if beta else
+                  _('The next stable version replaces the beta. Settings, apps and files stay. '
+                    'Active after a restart.')))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('switch', _('Switch'))
+        dialog.set_response_appearance('switch', Adw.ResponseAppearance.SUGGESTED)
+
+        def on_response(_dialog, response):
+            if response == 'switch':
+                self.updates.switch_channel('beta' if beta else 'stable')
+            else:
+                self._show_updates()  # puts the switch back
+
+        dialog.connect('response', on_response)
+        dialog.present(self)
 
     def _on_update_button(self, _button):
         state = self.updates.state

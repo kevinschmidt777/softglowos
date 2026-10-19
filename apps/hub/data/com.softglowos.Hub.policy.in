@@ -17,6 +17,19 @@
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">@pkgdatadir@/softglowos-update</annotate>
   </action>
+  <action id="com.softglowos.Hub.switch-channel">
+    <description>Switch between stable and beta versions</description>
+    <description xml:lang="de">Zwischen stabilen und Beta-Versionen wechseln</description>
+    <message>Switching the update channel needs your password.</message>
+    <message xml:lang="de">Zum Wechseln des Update-Kanals wird dein Passwort benötigt.</message>
+    <icon_name>com.softglowos.Hub</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">@pkgdatadir@/softglowos-switch-channel</annotate>
+  </action>
   <!-- No password: it only ever switches between our two signed images -->
   <action id="com.softglowos.Hub.switch-gpu">
     <description>Set up the graphics driver</description>

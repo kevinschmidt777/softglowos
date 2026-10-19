@@ -63,6 +63,8 @@ install_data(
   'softglowos-update-check',
   'softglowos-gpu-check',
   'softglowos-switch-gpu',
+  'softglowos-switch-channel',
+  'softglowos-rebase',
   install_dir: pkgdatadir,
   install_mode: 'rwxr-xr-x',
 )
