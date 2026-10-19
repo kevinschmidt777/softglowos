@@ -1,9 +1,11 @@
 """Reporting a bug as a GitHub issue.
 
 While the user types a title, the dialog searches the existing issues, so a
-known bug gets found before it's reported twice. "Continue on GitHub" then
-opens a new issue with title, description and system details filled in;
-sending it needs a GitHub account."""
+known bug gets found before it's reported twice. "Send" posts title,
+description and the system details shown in the dialog to softglowos.com,
+which opens the issue with a bot account, so no GitHub account is needed.
+If that fails (offline, too many reports), the user can still open a
+prefilled issue on GitHub."""
 
 import json
 import os
@@ -19,6 +21,8 @@ from gi.repository import Adw, Gio, GLib, Gtk, Soup
 from .updates import version
 
 REPO = 'kevinschmidt777/softglowos'
+RELAY = os.environ.get('SOFTGLOWOS_BUG_URL', 'https://softglowos.com/api/bug')
+MIN_TITLE = 5  # the relay wants at least this many characters
 SEARCH_DELAY_MS = 600
 
 
@@ -47,7 +51,8 @@ class BugReportDialog(Adw.Dialog):
 
         page = Adw.PreferencesPage()
         form = Adw.PreferencesGroup(
-            description=_('Bugs are collected on GitHub, sending one needs a GitHub account.'))
+            description=_('Bugs are collected publicly on GitHub, no account needed. '
+                          'Please don\'t write anything personal.'))
         self.title_row = Adw.EntryRow(title=_('What went wrong, in one sentence'))
         self.title_row.connect('changed', self._on_title_changed)
         form.add(self.title_row)
@@ -61,13 +66,20 @@ class BugReportDialog(Adw.Dialog):
         frame = Gtk.Frame(child=self.text)
         frame.add_css_class('card')
         details.add(frame)
-        hint = Gtk.Label(label=_('What did you do, what happened, what did you expect? '
-                                 'Version and graphics card are added for you.'),
+        hint = Gtk.Label(label=_('What did you do, what happened, what did you expect?'),
                          xalign=0, wrap=True, margin_top=6)
         hint.add_css_class('caption')
         hint.add_css_class('dim-label')
         details.add(hint)
         page.add(details)
+
+        self.details = system_details()
+        sent = Adw.PreferencesGroup(title=_('Sent along'))
+        sent_label = Gtk.Label(label=self.details, xalign=0, wrap=True, selectable=True)
+        sent_label.add_css_class('caption')
+        sent_label.add_css_class('dim-label')
+        sent.add(sent_label)
+        page.add(sent)
 
         self.matches = Adw.PreferencesGroup(
             title=_('Already reported?'),
@@ -77,15 +89,17 @@ class BugReportDialog(Adw.Dialog):
         page.add(self.matches)
 
         toolbar.set_content(page)
-        self.send_button = Gtk.Button(label=_('Continue on GitHub'), sensitive=False,
+        self.send_button = Gtk.Button(label=_('Send'), sensitive=False,
                                       halign=Gtk.Align.CENTER, margin_top=6, margin_bottom=18)
         self.send_button.add_css_class('suggested-action')
         self.send_button.connect('clicked', self._on_send)
         toolbar.add_bottom_bar(self.send_button)
-        self.set_child(toolbar)
+        self.stack = Gtk.Stack()
+        self.stack.add_named(toolbar, 'form')
+        self.set_child(self.stack)
 
     def _on_title_changed(self, row):
-        self.send_button.set_sensitive(bool(row.get_text().strip()))
+        self.send_button.set_sensitive(len(row.get_text().strip()) >= MIN_TITLE)
         if self._search_source:
             GLib.source_remove(self._search_source)
         self._search_source = GLib.timeout_add(SEARCH_DELAY_MS, self._search)
@@ -129,12 +143,65 @@ class BugReportDialog(Adw.Dialog):
             self._match_rows.append(row)
         self.matches.set_visible(bool(issues))
 
-    def _on_send(self, _button):
+    def _texts(self):
         buffer = self.text.get_buffer()
-        text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False).strip()
-        body = f'{text}\n\n---\n{system_details()}'
-        query = urlencode({'title': self.title_row.get_text().strip(), 'body': body},
-                          quote_via=quote)
+        description = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False).strip()
+        return self.title_row.get_text().strip(), description
+
+    def _on_send(self, _button):
+        title, description = self._texts()
+        self.send_button.set_sensitive(False)
+        self.send_button.set_label(_('Sending …'))
+        message = Soup.Message.new('POST', RELAY)
+        body = json.dumps({'title': title, 'description': description[:5000],
+                           'details': self.details[:2000]}).encode()
+        message.set_request_body_from_bytes('application/json', GLib.Bytes.new(body))
+        self._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None,
+                                          self._on_sent, message)
+
+    def _on_sent(self, session, result, message):
+        try:
+            data = json.loads(session.send_and_read_finish(result).get_data())
+            ok = message.get_status() == 201
+        except (GLib.Error, ValueError):
+            data, ok = {}, False
+        if ok:
+            self._show_thanks(data.get('number'), data.get('url'))
+            return
+        self.send_button.set_label(_('Send'))
+        self.send_button.set_sensitive(True)
+        dialog = Adw.AlertDialog(
+            heading=_('Couldn\'t send the report'),
+            body=_('Maybe you\'re offline or sent several reports in a short time. '
+                   'You can try again later or report it on GitHub instead (needs an account).'))
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('github', _('Report on GitHub'))
+        dialog.connect('response', lambda _d, response: response == 'github' and self._open_on_github())
+        dialog.present(self)
+
+    def _show_thanks(self, number, url):
+        page = Adw.StatusPage(icon_name='object-select-symbolic', title=_('Thanks for reporting!'),
+                              description=_('Reported as #{number}. You can follow it on GitHub.')
+                              .format(number=number))
+        buttons = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
+        if url:
+            view = Gtk.Button(label=_('View on GitHub'))
+            view.connect('clicked', lambda _b: self._open(url))
+            buttons.append(view)
+        done = Gtk.Button(label=_('Done'))
+        done.add_css_class('suggested-action')
+        done.connect('clicked', lambda _b: self.close())
+        buttons.append(done)
+        page.set_child(buttons)
+        view = Adw.ToolbarView(content=page)
+        view.add_top_bar(Adw.HeaderBar())
+        self.stack.add_named(view, 'thanks')
+        self.stack.set_visible_child_name('thanks')
+
+    def _open_on_github(self):
+        title, description = self._texts()
+        body = f'{description}\n\n---\n{self.details}'
+        query = urlencode({'title': title, 'body': body}, quote_via=quote)
         self._open(f'https://github.com/{REPO}/issues/new?{query}')
         self.close()
 

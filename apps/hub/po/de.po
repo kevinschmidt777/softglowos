@@ -289,8 +289,6 @@ msgstr "Jetzt neu starten?"
 msgid "Report a bug"
 msgstr "Fehler melden"
 
-msgid "Bugs are collected on GitHub, sending one needs a GitHub account."
-msgstr "Fehler werden auf GitHub gesammelt, zum Abschicken brauchst du ein GitHub-Konto."
 
 msgid "What went wrong, in one sentence"
 msgstr "Was ist schiefgelaufen, in einem Satz"
@@ -298,8 +296,6 @@ msgstr "Was ist schiefgelaufen, in einem Satz"
 msgid "Details"
 msgstr "Details"
 
-msgid "What did you do, what happened, what did you expect? Version and graphics card are added for you."
-msgstr "Was hast du gemacht, was ist passiert, was hast du erwartet? Version und Grafikkarte werden automatisch ergänzt."
 
 msgid "Already reported?"
 msgstr "Schon gemeldet?"
@@ -307,8 +303,6 @@ msgstr "Schon gemeldet?"
 msgid "If your bug is in here, add to it instead of reporting it again."
 msgstr "Ist dein Fehler hier dabei, ergänz ihn dort, statt ihn neu zu melden."
 
-msgid "Continue on GitHub"
-msgstr "Weiter zu GitHub"
 
 msgid "open"
 msgstr "offen"
@@ -603,3 +597,39 @@ msgstr "Hilft, Fehler zu finden. Nichts Persönliches, nach einem Jahr gelöscht
 
 msgid "Privacy policy"
 msgstr "Datenschutzerklärung"
+
+msgid "Bugs are collected publicly on GitHub, no account needed. Please don't write anything personal."
+msgstr "Fehler werden öffentlich auf GitHub gesammelt, du brauchst kein Konto. Bitte schreib nichts Persönliches hinein."
+
+msgid "What did you do, what happened, what did you expect?"
+msgstr "Was hast du gemacht, was ist passiert, was hast du erwartet?"
+
+msgid "Sent along"
+msgstr "Wird mitgeschickt"
+
+msgid "Send"
+msgstr "Senden"
+
+msgid "Sending …"
+msgstr "Wird gesendet …"
+
+msgid "Couldn't send the report"
+msgstr "Der Bericht ließ sich nicht senden"
+
+msgid "Maybe you're offline or sent several reports in a short time. You can try again later or report it on GitHub instead (needs an account)."
+msgstr "Vielleicht bist du offline oder hast kurz hintereinander mehrere Berichte geschickt. Versuch es später noch mal oder melde den Fehler stattdessen auf GitHub (dafür brauchst du ein Konto)."
+
+msgid "Report on GitHub"
+msgstr "Auf GitHub melden"
+
+msgid "Thanks for reporting!"
+msgstr "Danke für deine Meldung!"
+
+msgid "Reported as #{number}. You can follow it on GitHub."
+msgstr "Gemeldet als #{number}. Auf GitHub kannst du verfolgen, wie es weitergeht."
+
+msgid "View on GitHub"
+msgstr "Auf GitHub ansehen"
+
+msgid "Done"
+msgstr "Fertig"
