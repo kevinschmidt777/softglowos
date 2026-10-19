@@ -80,6 +80,7 @@ modules:
     scripts:
       - install-from-terra.sh
       - enable-game-capture.sh
+      - preconfigure-obs.sh
       - install-rnnoise.sh
       - install-hub.sh
       - render-branding.sh

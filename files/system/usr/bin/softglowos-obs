@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Starts OBS (its app entry runs this instead of obs). On the very first
+start, when there are no OBS settings yet, it prepares them first:
+
+- the hardware encoder of the graphics card: NVENC with the NVIDIA driver,
+  VA-API on AMD and Intel, x264 as a fallback
+- the SoftglowOS mixer as global audio, so it plays in every scene:
+  track 1 = Stream-Mix (what goes into the stream), tracks 2-6 = mic, game,
+  chat, music and console alone for editing; recordings keep all six
+- no scenes beyond OBS's empty default one, and OBS's own auto-configuration
+  wizard still runs for resolution and bitrate
+
+Existing OBS settings are never touched."""
+import json
+import os
+import re
+import subprocess
+from pathlib import Path
+
+CONFIG = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'obs-studio'
+NAME = 'SoftglowOS'
+GERMAN = os.environ.get('LANG', '').startswith('de')
+
+# Global audio slot -> (source name, OBS source type, device, track)
+AUDIO = (
+    ('DesktopAudioDevice1', 'Stream-Mix', 'pulse_output_capture', 'softglowos.stream-mix.monitor', 1),
+    ('AuxAudioDevice1', 'Mikrofon' if GERMAN else 'Microphone', 'pulse_input_capture', 'softglowos.mic', 2),
+    ('AuxAudioDevice2', 'Game', 'pulse_input_capture', 'softglowos.game.stream.out', 3),
+    ('AuxAudioDevice3', 'Chat', 'pulse_input_capture', 'softglowos.chat.stream.out', 4),
+    ('AuxAudioDevice4', 'Musik' if GERMAN else 'Music', 'pulse_input_capture', 'softglowos.music.stream.out', 5),
+    ('DesktopAudioDevice2', 'Konsole' if GERMAN else 'Console', 'pulse_input_capture',
+     'softglowos.console.stream.out', 6),
+)
+
+
+def vaapi_h264():
+    """Whether the graphics card encodes H.264 through VA-API (a render node
+    alone isn't enough, VMs have one without an encoder)."""
+    try:
+        info = subprocess.run(['vainfo', '--display', 'drm'], capture_output=True,
+                              text=True, timeout=10).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return re.search(r'VAProfileH264\w*\s*:\s*VAEntrypointEncSlice', info) is not None
+
+
+def encoder():
+    if Path('/proc/driver/nvidia/version').exists():
+        return 'obs_nvenc_h264_tex'
+    if vaapi_h264():
+        return 'ffmpeg_vaapi_tex'
+    return 'obs_x264'
+
+
+def prepare():
+    scene = 'Szene' if GERMAN else 'Scene'
+    collection = {
+        'name': NAME,
+        'current_scene': scene,
+        'current_program_scene': scene,
+        'scene_order': [{'name': scene}],
+        'sources': [{
+            'id': 'scene', 'versioned_id': 'scene', 'name': scene,
+            'settings': {'items': [], 'id_counter': 0},
+        }],
+    }
+    for slot, name, kind, device, track in AUDIO:
+        collection[slot] = {
+            'id': kind, 'versioned_id': kind, 'name': name,
+            'settings': {'device_id': device},
+            'mixers': 1 << (track - 1),
+        }
+
+    profile = CONFIG / 'basic' / 'profiles' / NAME
+    scenes = CONFIG / 'basic' / 'scenes'
+    profile.mkdir(parents=True)
+    scenes.mkdir(parents=True)
+    (scenes / f'{NAME}.json').write_text(json.dumps(collection, indent=4))
+    (profile / 'basic.ini').write_text(
+        f'[General]\nName={NAME}\n\n'
+        '[Output]\nMode=Advanced\n\n'
+        # Stream track 1, record all six tracks (bit mask)
+        f'[AdvOut]\nEncoder={encoder()}\nTrackIndex=1\nRecTracks=63\n')
+    (CONFIG / 'user.ini').write_text(
+        f'[Basic]\nProfile={NAME}\nProfileDir={NAME}\n'
+        f'SceneCollection={NAME}\nSceneCollectionFile={NAME}\n')
+
+
+if __name__ == '__main__':
+    import sys
+    if not CONFIG.exists():
+        try:
+            prepare()
+        except OSError as error:
+            print(f'softglowos-obs: could not prepare OBS: {error}', file=sys.stderr)
+    os.execvp('obs', ['obs', *sys.argv[1:]])
