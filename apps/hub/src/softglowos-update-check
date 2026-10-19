@@ -26,7 +26,13 @@ if [[ $booted_ref == *docker://* ]]; then
 else
   image="docker://${booted_ref#*:}"
 fi
-latest=$(skopeo inspect --no-tags --format '{{.Digest}}' "$image" 2>/dev/null) || { echo unknown; exit 0; }
+raw=$(skopeo inspect --raw --no-tags "$image" 2>/dev/null) || { echo unknown; exit 0; }
+# Our tags point to an OCI index (the image plus a build attestation), while
+# rpm-ostree keeps the digest of the image manifest inside it
+latest=$(jq -r '.manifests[]? | select(.platform.os == "linux" and .platform.architecture == "amd64") | .digest' <<<"$raw" | head -n1)
+if [ -z "$latest" ]; then
+  latest=$(skopeo inspect --no-tags --format '{{.Digest}}' "$image" 2>/dev/null) || { echo unknown; exit 0; }
+fi
 
 if [ "$latest" = "$booted_digest" ]; then
   echo current
