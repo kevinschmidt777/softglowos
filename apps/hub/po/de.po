@@ -108,8 +108,8 @@ msgstr "Versatz verringern"
 msgid "Increase offset"
 msgstr "Versatz erhöhen"
 
-msgid "EQ …"
-msgstr "EQ …"
+msgid "Open EQ"
+msgstr "EQ öffnen"
 
 msgid "Microphone EQ"
 msgstr "Mikrofon-EQ"
