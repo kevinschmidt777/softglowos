@@ -60,10 +60,13 @@ def current_language():
     return (locale.getlocale()[0] or 'en_US') + '.UTF-8'
 
 
-def _step(title, subtitle, content):
-    """A page of the assistant: big title, a line below, the content."""
+def _step(title, subtitle, content=None, logo=False):
+    """A page of the assistant: big title, a line below, the content. The
+    welcome page has our logo above the title."""
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24,
                   valign=Gtk.Align.CENTER, margin_top=48, margin_bottom=24)
+    if logo:
+        box.append(Gtk.Image(icon_name='softglowos-logo', pixel_size=128))
     heading = Gtk.Label(label=title, wrap=True, justify=Gtk.Justification.CENTER)
     heading.add_css_class('title-1')
     box.append(heading)
@@ -71,7 +74,8 @@ def _step(title, subtitle, content):
         line = Gtk.Label(label=subtitle, wrap=True, justify=Gtk.Justification.CENTER)
         line.add_css_class('dim-label')
         box.append(line)
-    box.append(content)
+    if content:
+        box.append(content)
     scrolled = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True,
                                   child=Adw.Clamp(maximum_size=640, child=box,
                                                   margin_start=24, margin_end=24))
@@ -87,7 +91,9 @@ class SetupWindow(Adw.ApplicationWindow):
         self.nm = NM.Client.new(None)
         self.driver = GraphicsDriver()
 
-        self.steps = []
+        self.steps = [('welcome', _step(_('Welcome to SoftglowOS'),
+                                        _('Just a few quick steps. You can change everything '
+                                          'later, too.'), logo=True))]
         if self.nm.get_primary_connection() is None:
             self.steps.append(('wifi', self._wifi_step()))
         self.steps += [

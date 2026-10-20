@@ -388,6 +388,12 @@ msgstr "Automatisch"
 msgid "Accent color"
 msgstr "Akzentfarbe"
 
+msgid "Welcome to SoftglowOS"
+msgstr "Willkommen bei SoftglowOS"
+
+msgid "Just a few quick steps. You can change everything later, too."
+msgstr "Nur ein paar kurze Schritte. Du kannst alles später auch noch ändern."
+
 msgid "Choose your look"
 msgstr "Wähl deinen Look"
 
