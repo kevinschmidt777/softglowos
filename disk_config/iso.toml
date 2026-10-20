@@ -10,6 +10,7 @@ bootc switch --mutate-in-place --enforce-container-sigpolicy --transport registr
 
 [customizations.installer.modules]
 enable = [
+  "org.fedoraproject.Anaconda.Modules.Localization",
   "org.fedoraproject.Anaconda.Modules.Storage",
   "org.fedoraproject.Anaconda.Modules.Runtime",
   "org.fedoraproject.Anaconda.Modules.Users",

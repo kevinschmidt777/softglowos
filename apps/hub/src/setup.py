@@ -1,14 +1,13 @@
-"""The setup assistant on the first login: language and keyboard, Wi-Fi,
-look, software and devices, one full-screen step at a time. Once online it
-also switches to the image that fits the graphics card (see gpu.py), in the
-background and without asking, and it hides OpenRGB when OpenRGB finds no
-RGB lighting to control.
+"""The setup assistant on the first login: Wi-Fi, look, software and
+devices, one full-screen step at a time. Language and keyboard come from the
+installer. Once online it also switches to the image that fits the graphics
+card (see gpu.py), in the background and without asking, and it hides
+OpenRGB when OpenRGB finds no RGB lighting to control.
 
-It starts from autostart (softglowos-hub --setup) until it's finished. A
-language change only fully applies after logging in again, so the
-assistant logs out right after that step and continues where it left off
-(the step is kept in ~/.config/softglowos/setup.json). The preview mode
-(--setup-preview) always runs, keeps nothing and doesn't log out."""
+It starts from autostart (softglowos-hub --setup) until it's finished and
+continues where it left off (the step is kept in
+~/.config/softglowos/setup.json). The preview mode (--setup-preview) always
+runs and keeps nothing."""
 
 import json
 import locale
@@ -30,19 +29,6 @@ from .software_page import app_switches
 
 STATE_FILE = Path(GLib.get_user_config_dir()) / 'softglowos' / 'setup.json'
 
-LANGUAGES = (('de_DE.UTF-8', 'Deutsch', 'de'), ('en_US.UTF-8', 'English', 'us'))
-KEYBOARDS = (
-    ('de', _('German')),
-    ('ch', _('German (Switzerland)')),
-    ('at', _('German (Austria)')),
-    ('us', _('English (US)')),
-    ('gb', _('English (UK)')),
-    ('fr', _('French')),
-    ('es', _('Spanish')),
-    ('it', _('Italian')),
-    ('nl', _('Dutch')),
-    ('pl', _('Polish')),
-)
 ACCENTS = ('blue', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'slate')
 ACCENT_NAMES = {
     'blue': _('Blue'), 'teal': _('Teal'), 'green': _('Green'), 'yellow': _('Yellow'),
@@ -100,7 +86,7 @@ class SetupWindow(Adw.ApplicationWindow):
         self.nm = NM.Client.new(None)
         self.driver = GraphicsDriver()
 
-        self.steps = [('language', self._language_step())]
+        self.steps = []
         if self.nm.get_primary_connection() is None:
             self.steps.append(('wifi', self._wifi_step()))
         self.steps += [
@@ -124,7 +110,7 @@ class SetupWindow(Adw.ApplicationWindow):
         self.back.connect('clicked', lambda _b: self._go(-1))
         self.next = Gtk.Button(label=_('Continue'))
         self.next.add_css_class('suggested-action')
-        self.next.connect('clicked', self._on_next)
+        self.next.connect('clicked', lambda _b: self._go(1))
         bar = Gtk.CenterBox(margin_top=12, margin_bottom=24, margin_start=48, margin_end=48)
         bar.set_start_widget(self.back)
         bar.set_center_widget(self.dots)
@@ -136,7 +122,7 @@ class SetupWindow(Adw.ApplicationWindow):
         self.set_content(content)
         self.fullscreen()
 
-        # After the logout for a new language: continue where we were
+        # After a logout in the middle: continue where we were
         ids = [step_id for step_id, _page in self.steps]
         resume = self.state.get('step')
         self._show(ids.index(resume) if resume in ids else 0)
@@ -179,13 +165,6 @@ class SetupWindow(Adw.ApplicationWindow):
         step_id = self.steps[self._index()][0]
         self.back.set_visible(self._index() > 0 and step_id != 'done')
         self.next.set_visible(step_id != 'done')
-        self.next.set_sensitive(step_id != 'language' or self.language is not None)
-
-    def _on_next(self, _button):
-        if self.steps[self._index()][0] == 'language':
-            self._apply_language()
-        else:
-            self._go(1)
 
     def _finish(self, _button):
         if not self.preview:
@@ -230,9 +209,7 @@ class SetupWindow(Adw.ApplicationWindow):
     # Graphics driver
 
     def _maybe_switch_driver(self):
-        # Not before the language step: its logout would cut the download off
         if (self.preview or not self.driver.needs_switch
-                or self.steps[self.position][0] == 'language'
                 or self.nm.get_primary_connection() is None):
             return
         self.driver.switch()
@@ -283,74 +260,6 @@ class SetupWindow(Adw.ApplicationWindow):
             app.release()
 
         self.driver.connect('changed', on_changed)
-
-    # Language and keyboard
-
-    def _language_step(self):
-        self.language = None
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        buttons = Gtk.Box(spacing=12, homogeneous=True)
-        self.language_buttons = {}
-        group = None
-        for code, name, _layout in LANGUAGES:
-            button = Gtk.ToggleButton(label=name, group=group)
-            button.add_css_class('setup-choice')
-            button.connect('toggled', self._on_language_toggled, code)
-            buttons.append(button)
-            self.language_buttons[code] = button
-            group = group or button
-        box.append(buttons)
-
-        keyboards = Adw.PreferencesGroup()
-        self.keyboard_row = Adw.ComboRow(
-            title=_('Keyboard'),
-            model=Gtk.StringList.new([name for _layout, name in KEYBOARDS]))
-        keyboards.add(self.keyboard_row)
-        box.append(keyboards)
-        return _step(_('Welcome to SoftglowOS'),
-                     _('Pick your language. You can change everything later, too.'), box)
-
-    def _on_language_toggled(self, button, code):
-        if not button.get_active():
-            return
-        self.language = code
-        layout = next(layout for c, _name, layout in LANGUAGES if c == code)
-        self.keyboard_row.set_selected([k for k, _name in KEYBOARDS].index(layout))
-        self._update_buttons()
-
-    def _apply_language(self):
-        layout = KEYBOARDS[self.keyboard_row.get_selected()][0]
-        Gio.Settings(schema_id='org.gnome.desktop.input-sources').set_value(
-            'sources', GLib.Variant('a(ss)', [('xkb', layout)]))
-        if self.language.split('.')[0] == current_language().split('.')[0]:
-            self._go(1)
-            return
-        if self.preview:
-            self._go(1)
-            return
-        self._set_language(self.language)
-        self._go(1)  # remembers the next step for after the logout
-        dialog = Adw.AlertDialog(
-            heading=_('One quick restart of your session'),
-            body=_('SoftglowOS logs you out once so everything shows up in your '
-                   'language. After logging in again, the setup continues here.'))
-        dialog.add_response('logout', _('Log out'))
-        dialog.set_response_appearance('logout', Adw.ResponseAppearance.SUGGESTED)
-        dialog.connect('response', lambda *_args: Gio.Subprocess.new(
-            ['gnome-session-quit', '--logout', '--no-prompt'], Gio.SubprocessFlags.NONE))
-        dialog.present(self)
-
-    def _set_language(self, code):
-        """The user's language in AccountsService (what GDM and the session read)."""
-        bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
-        path = bus.call_sync(
-            'org.freedesktop.Accounts', '/org/freedesktop/Accounts',
-            'org.freedesktop.Accounts', 'FindUserByName',
-            GLib.Variant('(s)', (GLib.get_user_name(),)), GLib.VariantType('(o)'),
-            Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
-        bus.call_sync('org.freedesktop.Accounts', path, 'org.freedesktop.Accounts.User',
-                      'SetLanguage', GLib.Variant('(s)', (code,)), None,
-                      Gio.DBusCallFlags.NONE, -1, None)
 
     # Wi-Fi
 

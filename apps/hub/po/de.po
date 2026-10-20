@@ -316,36 +316,6 @@ msgstr "Hilfe"
 msgid "Checks first whether it's already known"
 msgstr "Prüft vorher, ob es den Fehler schon gibt"
 
-msgid "German"
-msgstr "Deutsch"
-
-msgid "German (Switzerland)"
-msgstr "Deutsch (Schweiz)"
-
-msgid "German (Austria)"
-msgstr "Deutsch (Österreich)"
-
-msgid "English (US)"
-msgstr "Englisch (US)"
-
-msgid "English (UK)"
-msgstr "Englisch (UK)"
-
-msgid "French"
-msgstr "Französisch"
-
-msgid "Spanish"
-msgstr "Spanisch"
-
-msgid "Italian"
-msgstr "Italienisch"
-
-msgid "Dutch"
-msgstr "Niederländisch"
-
-msgid "Polish"
-msgstr "Polnisch"
-
 msgid "Blue"
 msgstr "Blau"
 
@@ -381,24 +351,6 @@ msgstr "Zurück"
 
 msgid "Continue"
 msgstr "Weiter"
-
-msgid "Keyboard"
-msgstr "Tastatur"
-
-msgid "Welcome to SoftglowOS"
-msgstr "Willkommen bei SoftglowOS"
-
-msgid "Pick your language. You can change everything later, too."
-msgstr "Wähl deine Sprache. Du kannst alles später auch noch ändern."
-
-msgid "One quick restart of your session"
-msgstr "Einmal kurz neu anmelden"
-
-msgid "SoftglowOS logs you out once so everything shows up in your language. After logging in again, the setup continues here."
-msgstr "SoftglowOS meldet dich einmal ab, damit alles in deiner Sprache erscheint. Nach dem Anmelden geht die Einrichtung hier weiter."
-
-msgid "Log out"
-msgstr "Abmelden"
 
 msgid "Get online"
 msgstr "Ab ins Internet"
