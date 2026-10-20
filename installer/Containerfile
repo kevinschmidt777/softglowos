@@ -1,14 +1,15 @@
 # The live ISO: SoftglowOS (the AMD/Intel image) as a live desktop that
-# opens the installer, with the image to install in its container storage.
+# opens the installer, with both images to install in its container storage.
 # Built by the "Build disk images" workflow and turned into an ISO with
 # Titanoboa. Locally (needs podman, x86_64):
 #   podman build --cap-add sys_admin --security-opt label=disable \
-#     --build-arg PAYLOAD=ghcr.io/kevinschmidt777/softglowos-nvidia:latest \
 #     -t localhost/softglowos-live installer/
 
-ARG BASE_IMAGE=ghcr.io/kevinschmidt777/softglowos:latest
+ARG REGISTRY=ghcr.io/kevinschmidt777
+ARG TAG=latest
 
-FROM ${BASE_IMAGE}
-ARG PAYLOAD=ghcr.io/kevinschmidt777/softglowos:latest
+FROM ${REGISTRY}/softglowos:${TAG}
+ARG REGISTRY
+ARG TAG
 RUN --mount=type=bind,source=.,target=/src \
-    PAYLOAD="$PAYLOAD" /src/build.sh
+    REGISTRY="$REGISTRY" TAG="$TAG" /src/build.sh

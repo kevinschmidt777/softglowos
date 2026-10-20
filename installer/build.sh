@@ -1,12 +1,13 @@
 #!/usr/bin/bash
 # Turns the SoftglowOS image into the live system of the ISO (see
 # Containerfile): a signed kernel and a live initramfs, Anaconda with our
-# branding that opens on its own, and $PAYLOAD (the image to install) in the
-# container storage. Follows Bazzite's live ISO (github.com/ublue-os/bazzite,
+# branding that opens on its own, and both images to install in the container
+# storage (softglowos-live-payload picks one by the graphics card). Follows Bazzite's live ISO (github.com/ublue-os/bazzite,
 # installer/), which builds on the same base.
 set -exo pipefail
 
-PAYLOAD=${PAYLOAD:?}
+REGISTRY=${REGISTRY:?}
+TAG=${TAG:?}
 SRC=/src
 BRANDING=/usr/share/softglowos/branding
 
@@ -31,10 +32,11 @@ DRACUT_NO_XATTR=1 dracut -v --force --zstd --reproducible --no-hostonly \
   --add "dmsquash-live dmsquash-live-autooverlay" \
   "/usr/lib/modules/$kernel/initramfs.img" "$kernel"
 
-### The image to install ###
+### The images to install ###
 
 mkdir -p "$(realpath /root)"
-podman pull "$PAYLOAD"
+podman pull "$REGISTRY/softglowos:$TAG" "$REGISTRY/softglowos-nvidia:$TAG"
+printf 'REGISTRY=%s\nTAG=%s\n' "$REGISTRY" "$TAG" >/usr/share/softglowos/live-images
 
 ### Live session ###
 
@@ -66,13 +68,8 @@ dnf -qy install anaconda-live anaconda-webui firefox libblockdev-{btrfs,lvm,dm}
 mkdir -p /var/lib/rpm-state  # Anaconda's web UI needs it
 
 cat >>/usr/share/anaconda/interactive-defaults.ks <<EOF
-ostreecontainer --url=$PAYLOAD --transport=containers-storage --no-signature-verification
-
-# Updates come straight from the registry and must carry our signature
-# (the policy and public key ship in the image)
-%post --erroronfail
-bootc switch --mutate-in-place --enforce-container-sigpolicy --transport registry $PAYLOAD
-%end
+# The image for this graphics card, written on boot by softglowos-live-payload
+%include /run/softglowos/install.ks
 
 # Secure Boot: the kernel is signed with Universal Blue's key. Enrolling it
 # is confirmed on the next start (MOK manager, password universalblue).
@@ -101,6 +98,7 @@ sed -i 's/^\[Desktop Entry\]/[Desktop Entry]\nHidden=true/' \
 ### Branding ###
 
 cp -a "$SRC/system_files/." /
+systemctl enable softglowos-live-payload.service
 dnf -qy install librsvg2-tools
 rsvg-convert -h 160 "$BRANDING/wordmark-dark.svg" -o /usr/share/cockpit/branding/fedora/logo.png
 for size in 48x48 scalable; do

@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+# Picks the image the installer puts on disk, by the same rule as
+# softglowos-gpu-check on an installed system: softglowos-nvidia for NVIDIA
+# cards the open driver supports (RTX 20 / GTX 16 series and newer, device
+# IDs from 0x1e00), softglowos for everything else. Both images are in the
+# live system's container storage; the kickstart includes the result.
+set -euo pipefail
+
+source /usr/share/softglowos/live-images  # REGISTRY and TAG, from build.sh
+
+image=softglowos
+for device in /sys/bus/pci/devices/*; do
+  [[ $(cat "$device/class" 2>/dev/null) == 0x03* ]] || continue
+  [ "$(cat "$device/vendor" 2>/dev/null)" = 0x10de ] || continue
+  (($(cat "$device/device") >= 0x1e00)) && image=softglowos-nvidia
+done
+payload="$REGISTRY/$image:$TAG"
+
+mkdir -p /run/softglowos
+cat >/run/softglowos/install.ks <<KS
+ostreecontainer --url=$payload --transport=containers-storage --no-signature-verification
+
+# Updates come straight from the registry and must carry our signature
+# (the policy and public key ship in the image)
+%post --erroronfail
+bootc switch --mutate-in-place --enforce-container-sigpolicy --transport registry $payload
+%end
+KS
+echo "Installing $payload"

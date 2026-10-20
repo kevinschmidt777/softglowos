@@ -1,6 +1,6 @@
 name: Build disk images
 
-# Builds the two live installer ISOs (AMD/Intel and NVIDIA) and a
+# Builds the live installer ISO (for every graphics card) and a
 # ready-to-boot qcow2 VM disk from the published images. Triggered manually
 # because each run takes a while.
 on:
@@ -23,12 +23,8 @@ concurrency:
 
 jobs:
   live-iso:
-    name: Build ${{ matrix.image }} live ISO
+    name: Build live ISO
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        image: ["softglowos", "softglowos-nvidia"]
     permissions:
       contents: read
       packages: read
@@ -39,8 +35,7 @@ jobs:
         with:
           remove-codeql: true
 
-      # The live system and the image to install both land in podman's
-      # storage; a compressed btrfs loopback keeps that within the runner's disk
+      # The live system and both images to install land in podman's storage; a compressed btrfs loopback keeps that within the runner's disk
       - name: Mount container storage
         run: |
           sudo truncate -s 110G /mnt/podman-storage.img
@@ -55,14 +50,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # The live desktop always runs the AMD/Intel image (nouveau on NVIDIA
-      # cards); only the image it installs differs
+      # The live desktop runs the AMD/Intel image (nouveau on NVIDIA cards)
+      # and installs the image that fits the graphics card
       - name: Build the live system
         run: |
           sudo env TMPDIR=/mnt/podman-storage/tmp podman build \
             --cap-add sys_admin --security-opt label=disable \
-            --build-arg BASE_IMAGE="$IMAGE_REGISTRY/softglowos:${{ inputs.tag }}" \
-            --build-arg PAYLOAD="$IMAGE_REGISTRY/${{ matrix.image }}:${{ inputs.tag }}" \
+            --build-arg REGISTRY="$IMAGE_REGISTRY" \
+            --build-arg TAG="${{ inputs.tag }}" \
             -t localhost/softglowos-live:latest installer/
 
       - name: Build the ISO
@@ -70,16 +65,16 @@ jobs:
         uses: ublue-os/titanoboa@5c457c3d0518bd17e754be0fd98a60d29d26abb4
         with:
           image-ref: localhost/softglowos-live:latest
-          iso-dest: ${{ github.workspace }}/upload/${{ matrix.image }}-live.iso
+          iso-dest: ${{ github.workspace }}/upload/softglowos-live.iso
 
       - name: Checksum
         working-directory: upload
-        run: sha256sum ${{ matrix.image }}-live.iso | tee ${{ matrix.image }}-live.iso-CHECKSUM
+        run: sha256sum softglowos-live.iso | tee softglowos-live.iso-CHECKSUM
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.image }}-live-iso
+          name: softglowos-live-iso
           path: upload
           if-no-files-found: error
           retention-days: 7

@@ -10,7 +10,7 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 ## What's in the prototype (v0)
 
 - Two images on top of Bazzite GNOME: `softglowos` for AMD and Intel graphics (`bazzite-gnome`) and `softglowos-nvidia` for NVIDIA RTX 20 / GTX 16 series and newer (`bazzite-gnome-nvidia-open`).
-- **A live ISO per graphics card:** it boots SoftglowOS as a live desktop (the Hub works there too) and opens the installer right away, in our colors and with our logo. The NVIDIA ISO installs `softglowos-nvidia` directly. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files. While nouveau drives an NVIDIA card, GTK falls back to its GL renderer so apps still open.
+- **One live ISO for every graphics card:** it boots SoftglowOS as a live desktop (the Hub works there too) and opens the installer right away, in our colors and with our logo. It carries both images and installs the one that fits the graphics card, so NVIDIA PCs get `softglowos-nvidia` directly. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files. While nouveau drives an NVIDIA card, GTK falls back to its GL renderer so apps still open.
 - **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam, the x264 encoder, and Move Transition and Source Record (built from source, as there are no packages). Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
 - **OBS ready on first start:** the hardware encoder of the graphics card (NVENC, VA-API or x264) and the mixer as global audio: track 1 is the Stream-Mix, tracks 2–6 mic, game, chat, music and console for editing. Resolution and bitrate come from OBS's own wizard; existing OBS settings are never touched.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
@@ -51,8 +51,7 @@ Every push to `main` builds both images and publishes them to
 `ghcr.io/kevinschmidt777/softglowos` and `ghcr.io/kevinschmidt777/softglowos-nvidia`,
 signed with cosign.
 
-The two live ISOs (`softglowos-live.iso` for AMD/Intel, `softglowos-nvidia-live.iso`)
-and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
+The live ISO (`softglowos-live.iso`) and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
 started manually:
 
 ```bash

@@ -1,0 +1,10 @@
+[Unit]
+Description=Pick the SoftglowOS image to install for this graphics card
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/softglowos-live-payload
+
+[Install]
+WantedBy=multi-user.target
