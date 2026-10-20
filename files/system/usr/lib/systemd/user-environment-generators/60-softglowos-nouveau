@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+# GTK 4 apps (the Hub and its setup assistant among them) may not open on
+# NVIDIA cards that run on the free nouveau driver, which is what the
+# AMD/Intel image does until it switches to the NVIDIA one. Its older GL
+# renderer works there, so the session gets it while nouveau is loaded.
+[ -d /sys/module/nouveau ] && echo GSK_RENDERER=gl
+exit 0
