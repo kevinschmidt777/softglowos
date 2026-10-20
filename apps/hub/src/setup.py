@@ -36,6 +36,7 @@ ACCENT_NAMES = {
     'slate': _('Slate'),
 }
 NIGHT_THEME_SWITCHER = 'nightthemeswitcher@romainvigier.fr'
+NIGHT_THEME_SWITCHER_TIME = 'org.gnome.shell.extensions.nightthemeswitcher.time'
 WALLPAPERS = '/usr/share/backgrounds/softglowos/softglowos-{}.jpg'
 
 
@@ -359,6 +360,20 @@ class SetupWindow(Adw.ApplicationWindow):
             group = group or button
         box.append(modes)
 
+        # Automatic runs on a fixed schedule (7:00/19:00) unless the location is allowed
+        self.location_row = None
+        if Gio.SettingsSchemaSource.get_default().lookup(NIGHT_THEME_SWITCHER_TIME, True):
+            self.night_settings = Gio.Settings(schema_id=NIGHT_THEME_SWITCHER_TIME)
+            self.location_row = Adw.SwitchRow(
+                title=_('Use my location'),
+                subtitle=_('Switches at sunrise and sunset instead of 7 am and 7 pm.'),
+                active=not self.night_settings.get_boolean('manual-schedule'),
+                visible=current == 'auto')
+            self.location_row.connect('notify::active', self._on_location)
+            location = Adw.PreferencesGroup()
+            location.add(self.location_row)
+            box.append(location)
+
         accents = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
         current_accent = self.settings.get_string('accent-color')
         group = None
@@ -389,8 +404,16 @@ class SetupWindow(Adw.ApplicationWindow):
         if not button.get_active():
             return
         self._shell_extension('EnableExtension' if mode == 'auto' else 'DisableExtension')
+        if self.location_row:
+            self.location_row.set_visible(mode == 'auto')
         if mode != 'auto':
             self.settings.set_string('color-scheme', f'prefer-{mode}')
+
+    def _on_location(self, row, _param):
+        use = row.get_active()
+        if use:
+            Gio.Settings(schema_id='org.gnome.system.location').set_boolean('enabled', True)
+        self.night_settings.set_boolean('manual-schedule', not use)
 
     def _shell_extension(self, method):
         Gio.bus_get_sync(Gio.BusType.SESSION, None).call(

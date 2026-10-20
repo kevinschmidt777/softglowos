@@ -9,6 +9,13 @@ favorite-apps=['org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'com.obspr
 # Logo Menu shows our logo, configured in /etc/dconf/db/distro.d/20-softglowos-logomenu.
 enabled-extensions=['logomenu@aryan_k', 'just-perfection-desktop@just-perfection', 'dash2dock-lite@icedman.github.com', 'nightthemeswitcher@romainvigier.fr', 'appindicatorsupport@rgcjonas.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'gsconnect@andyholmes.github.io', 'blur-my-shell@aunetx', 'hotedge@jonathan.jdoda.ca', 'caffeine@patapon.info', 'add-to-steam@pupper.space', 'restartto@tiagoporsch.github.io', 'bazaar-integration@kolunmi.github.io']
 
+# Light and dark on a fixed schedule; the setup assistant offers sunrise
+# and sunset from the location instead
+[org.gnome.shell.extensions.nightthemeswitcher.time]
+manual-schedule=true
+sunrise=7.0
+sunset=19.0
+
 # Mac-style dock: bottom, always visible, small icons (~32 px) that
 # magnify under the pointer to ~80 px
 [org.gnome.shell.extensions.dash2dock-lite]

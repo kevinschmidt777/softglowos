@@ -394,6 +394,12 @@ msgstr "Wähl deinen Look"
 msgid "Automatic switches between light and dark with the time of day."
 msgstr "Automatisch wechselt je nach Tageszeit zwischen hell und dunkel."
 
+msgid "Use my location"
+msgstr "Meinen Standort nutzen"
+
+msgid "Switches at sunrise and sunset instead of 7 am and 7 pm."
+msgstr "Wechselt bei Sonnenauf- und -untergang statt um 7 und 19 Uhr."
+
 msgid "Your apps"
 msgstr "Deine Apps"
 
