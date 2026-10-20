@@ -65,16 +65,21 @@ jobs:
         uses: ublue-os/titanoboa@5c457c3d0518bd17e754be0fd98a60d29d26abb4
         with:
           image-ref: localhost/softglowos-live:latest
-          iso-dest: ${{ github.workspace }}/upload/softglowos-live.iso
+          # Titanoboa resolves this path before moving the ISO there, so its
+          # folder has to exist already
+          iso-dest: ${{ github.workspace }}/softglowos.iso
 
       - name: Checksum
-        working-directory: upload
-        run: sha256sum softglowos-live.iso | tee softglowos-live.iso-CHECKSUM
+        run: |
+          mkdir upload
+          mv softglowos.iso upload/
+          cd upload
+          sha256sum softglowos.iso | tee softglowos.iso-CHECKSUM
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: softglowos-live-iso
+          name: softglowos-iso
           path: upload
           if-no-files-found: error
           retention-days: 7

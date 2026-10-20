@@ -51,7 +51,7 @@ Every push to `main` builds both images and publishes them to
 `ghcr.io/kevinschmidt777/softglowos` and `ghcr.io/kevinschmidt777/softglowos-nvidia`,
 signed with cosign.
 
-The live ISO (`softglowos-live.iso`) and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
+The live ISO (`softglowos.iso`) and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
 started manually:
 
 ```bash
