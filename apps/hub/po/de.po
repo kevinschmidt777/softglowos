@@ -633,3 +633,54 @@ msgstr "Auf GitHub ansehen"
 
 msgid "Done"
 msgstr "Fertig"
+
+msgid "Lighting"
+msgstr "Beleuchtung"
+
+msgid "Looking for lighting …"
+msgstr "Suche Beleuchtung …"
+
+msgid "No RGB lighting found"
+msgstr "Keine RGB-Beleuchtung gefunden"
+
+msgid "OpenRGB found nothing it can control."
+msgstr "OpenRGB hat nichts gefunden, das es steuern kann."
+
+msgid "Search again"
+msgstr "Erneut suchen"
+
+msgid "Open OpenRGB"
+msgstr "OpenRGB öffnen"
+
+msgid "OpenRGB isn't answering"
+msgstr "OpenRGB antwortet nicht"
+
+msgid "Effect"
+msgstr "Effekt"
+
+msgid "Color"
+msgstr "Farbe"
+
+msgid "Brightness"
+msgstr "Helligkeit"
+
+msgid "Advanced settings"
+msgstr "Erweiterte Einstellungen"
+
+msgid "Single devices, zones and effects"
+msgstr "Einzelne Geräte, Zonen und Effekte"
+
+msgid "One device"
+msgstr "Ein Gerät"
+
+msgid "{count} devices"
+msgstr "{count} Geräte"
+
+msgid "Static"
+msgstr "Statisch"
+
+msgid "Breathing"
+msgstr "Atmen"
+
+msgid "Rainbow"
+msgstr "Regenbogen"

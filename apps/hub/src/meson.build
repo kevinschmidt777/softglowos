@@ -55,6 +55,8 @@ install_data(
   'mini_mixer.py',
   'mixer_actions.py',
   'crash_reports.py',
+  'lighting.py',
+  'lighting_page.py',
   install_dir: pkgdatadir / 'hub',
 )
 
@@ -67,6 +69,7 @@ install_data(
   'softglowos-switch-gpu',
   'softglowos-switch-channel',
   'softglowos-rebase',
+  'softglowos-lighting-save',
   install_dir: pkgdatadir,
   install_mode: 'rwxr-xr-x',
 )

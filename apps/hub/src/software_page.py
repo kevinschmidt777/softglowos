@@ -111,7 +111,7 @@ class SoftwarePage(Adw.PreferencesPage):
         super().__init__(**kwargs)
 
         apps = Adw.PreferencesGroup(title=_('Ready for creators'))
-        app_switches(apps)
+        self.rows = app_switches(apps)
 
         apps.add(OnDemandRow(software.RESOLVE, Resolve(), {
             'missing': _('Video editing, downloads the official installer from Blackmagic'),

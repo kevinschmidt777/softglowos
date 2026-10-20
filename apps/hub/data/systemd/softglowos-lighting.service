@@ -1,0 +1,14 @@
+[Unit]
+Description=RGB lighting (OpenRGB server, reachable from this computer only)
+After=graphical-session.target
+
+[Service]
+# Started by the Hub's Lighting page, enabled with its first change. The
+# profile holds the last state, from the Hub or the OpenRGB app.
+ExecStart=/usr/bin/openrgb --server --server-host 127.0.0.1 --noautoconnect --profile SoftglowOS
+ExecStop=@pkgdatadir@/softglowos-lighting-save
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

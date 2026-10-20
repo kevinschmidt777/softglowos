@@ -1,6 +1,7 @@
 from gi.repository import Adw, Gtk
 
 from .devices_page import DevicesPage
+from .lighting_page import LightingPage
 from .mixer_page import MixerPage
 from .settings_page import SettingsPage
 from .software_page import SoftwarePage
@@ -20,13 +21,16 @@ class HubWindow(Adw.ApplicationWindow):
 
         mixer = self.get_application().mixer
         self.mixer_page = MixerPage(mixer)
+        software_page = SoftwarePage()
         pages = (
             ('mixer', _('Mixer'), 'multimedia-volume-control-symbolic',
              self.mixer_page),
             ('devices', _('Devices'), 'preferences-system-devices-symbolic',
              DevicesPage(mixer, self._open_in_mixer)),
             ('software', _('Software'), 'preferences-desktop-apps-symbolic',
-             SoftwarePage()),
+             software_page),
+            ('lighting', _('Lighting'), 'display-brightness-symbolic',
+             LightingPage()),
             ('settings', _('Settings'), 'emblem-system-symbolic',
              SettingsPage()),
         )
@@ -40,14 +44,26 @@ class HubWindow(Adw.ApplicationWindow):
             self.stack.add_named(widget, page_id)
             self._titles[page_id] = title
 
+        # Lighting only with OpenRGB: the setup assistant switches it off
+        # when there's no RGB hardware, and the Software page brings it back
+        openrgb = software_page.rows.get('openrgb')
+        self._row('lighting').set_visible(openrgb is not None and openrgb.get_active())
+        if openrgb:
+            openrgb.connect('notify::active', lambda switch, _param:
+                            self._row('lighting').set_visible(switch.get_active()))
+
         self.sidebar_list.select_row(self.sidebar_list.get_row_at_index(0))
 
     def show_page(self, page_id):
+        row = self._row(page_id)
+        if row and row.get_visible():
+            self.sidebar_list.select_row(row)
+
+    def _row(self, page_id):
         row = self.sidebar_list.get_first_child()
         while row and row.get_name() != page_id:
             row = row.get_next_sibling()
-        if row:
-            self.sidebar_list.select_row(row)
+        return row
 
     def _open_in_mixer(self, picker=None):
         """Shows the mixer, with one of its device pickers opened."""

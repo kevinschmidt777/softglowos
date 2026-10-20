@@ -40,6 +40,14 @@ configure_file(
   install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
 )
 
+# OpenRGB server for the Lighting page (enabled per user by the Hub)
+configure_file(
+  input: 'systemd' / 'softglowos-lighting.service',
+  output: 'softglowos-lighting.service',
+  configuration: unit_conf,
+  install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
+)
+
 # Readable password prompt for installing updates, none for the driver switch
 configure_file(
   input: app_id + '.policy.in',

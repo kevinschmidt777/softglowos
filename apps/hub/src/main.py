@@ -29,7 +29,7 @@ class HubApplication(Adw.Application):
             resource_base_path='/com/softglowos/Hub',
         )
         self.add_main_option('page', 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
-                             'Page to open: mixer, devices, software or settings', 'PAGE')
+                             'Page to open: mixer, devices, software, lighting or settings', 'PAGE')
         self.add_main_option('setup', 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              'Run the setup assistant unless it was finished (autostart)', None)
         self.add_main_option('setup-preview', 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,

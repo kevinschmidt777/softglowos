@@ -94,6 +94,7 @@ modules:
       - install-streamcontroller-plugins.sh
       - install-rnnoise.sh
       - install-hub.sh
+      - install-openrgb-python.sh
       - render-branding.sh
       - hide-gnome-donate.sh
       - hide-mixer-from-mic-indicator.sh
