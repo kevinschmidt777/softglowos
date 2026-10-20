@@ -65,14 +65,14 @@ jobs:
         uses: ublue-os/titanoboa@5c457c3d0518bd17e754be0fd98a60d29d26abb4
         with:
           image-ref: localhost/softglowos-live:latest
-          # Titanoboa resolves this path before moving the ISO there, so its
-          # folder has to exist already
-          iso-dest: ${{ github.workspace }}/softglowos.iso
 
+      # Titanoboa reports where it put the ISO
       - name: Checksum
+        env:
+          ISO: ${{ steps.build.outputs.iso-dest }}
         run: |
           mkdir upload
-          mv softglowos.iso upload/
+          mv "$ISO" upload/softglowos.iso
           cd upload
           sha256sum softglowos.iso | tee softglowos.iso-CHECKSUM
 
