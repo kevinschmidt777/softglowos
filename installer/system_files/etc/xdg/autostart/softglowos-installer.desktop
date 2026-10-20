@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Install SoftglowOS
+Exec=liveinst
+Icon=org.fedoraproject.AnacondaInstaller
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

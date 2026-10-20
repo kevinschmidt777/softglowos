@@ -1,0 +1,6 @@
+# Live session only, on top of zz1-softglowos: the installer first in the
+# dock (livesys turns liveinst.desktop into anaconda.desktop), then what's
+# worth trying before installing.
+
+[org.gnome.shell]
+favorite-apps=['anaconda.desktop', 'com.softglowos.Hub.desktop', 'org.gnome.Nautilus.desktop', 'google-chrome.desktop', 'org.gnome.Settings.desktop']

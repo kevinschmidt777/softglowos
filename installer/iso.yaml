@@ -1,0 +1,10 @@
+label: "SoftglowOS-Live"
+grub2:
+  timeout: 3
+  entries:
+    - name: "Install SoftglowOS"
+      linux: "/images/pxeboot/vmlinuz quiet rhgb root=live:CDLABEL=SoftglowOS-Live enforcing=0 rd.live.image"
+      initrd: "/images/pxeboot/initrd.img"
+    - name: "Install SoftglowOS (Basic Graphics Mode)"
+      linux: "/images/pxeboot/vmlinuz quiet rhgb root=live:CDLABEL=SoftglowOS-Live enforcing=0 rd.live.image nomodeset"
+      initrd: "/images/pxeboot/initrd.img"

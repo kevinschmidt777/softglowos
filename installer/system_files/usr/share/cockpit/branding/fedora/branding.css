@@ -1,0 +1,28 @@
+/* The installer (Anaconda's web UI) in SoftglowOS colors with our logo.
+   build.sh renders logo.png next to this file. */
+#badge {
+    inline-size: 225px;
+    block-size: 80px;
+    background-image: url("logo.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.anaconda {
+    /* GNOME's teal, our accent (see DESIGN.md) */
+    --brand-default-light: #5cc6d6;
+    --brand-default: #2190a4;
+    --brand-default-dark: #1f8799;
+
+    .logo {
+        background-image: url("logo.png");
+        filter: unset;
+    }
+
+    /* No root account: the user from the installer gets admin rights.
+       Same selector Bazzite uses until Anaconda can hide it itself
+       (https://bugzilla.redhat.com/show_bug.cgi?id=2464088). */
+    .pf-v6-c-form__section:has(#anaconda-screen-accounts-root-account-enable-root-account) {
+        display: none;
+    }
+}

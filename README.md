@@ -10,14 +10,14 @@ It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
 ## What's in the prototype (v0)
 
 - Two images on top of Bazzite GNOME: `softglowos` for AMD and Intel graphics (`bazzite-gnome`) and `softglowos-nvidia` for NVIDIA RTX 20 / GTX 16 series and newer (`bazzite-gnome-nvidia-open`).
-- **One download for every graphics card:** the ISO installs `softglowos`; with a supported NVIDIA card the setup assistant switches to `softglowos-nvidia` in the background. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files.
+- **A live ISO per graphics card:** it boots SoftglowOS as a live desktop (the Hub works there too) and opens the installer right away, in our colors and with our logo. The NVIDIA ISO installs `softglowos-nvidia` directly. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files. While nouveau drives an NVIDIA card, GTK falls back to its GL renderer so apps still open.
 - **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam, the x264 encoder, and Move Transition and Source Record (built from source, as there are no packages). Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
 - **OBS ready on first start:** the hardware encoder of the graphics card (NVENC, VA-API or x264) and the mixer as global audio: track 1 is the Stream-Mix, tracks 2–6 mic, game, chat, music and console for editing. Resolution and bitrate come from OBS's own wizard; existing OBS settings are never touched.
 - **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
 - **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
 - **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package), with our mixer plugin (mute and volume per channel and the mic, also with a GoXLR) and its OBS plugin already connected to OBS.
 - **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant hides it when it finds no RGB lighting to control; the Hub can bring it back. Hub → Lighting sets one color, effect and brightness for everything (OpenRGB's server runs on localhost only, the last state comes back with every login).
-- Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, Discord, Steam and the terminal; window buttons on the right.
+- Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, the Hub, Discord, Steam, the terminal and Settings; window buttons on the right.
 - macOS-style **top bar**: logo menu on the left, clock and status icons on the right.
 - **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
 - **Automatic light/dark theme** by time of day (Night Theme Switcher).
@@ -38,7 +38,8 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 | `files/system/` | Files copied 1:1 into the image root |
 | `files/gschema-overrides/` | GNOME default settings |
 | `files/scripts/` | Build-time scripts |
-| `disk_config/` | Settings for the ISO and the qcow2 VM disk |
+| `installer/` | The live ISO: turns the image into a live system with the installer (built with [Titanoboa](https://github.com/ublue-os/titanoboa), following Bazzite's live ISO) |
+| `disk_config/` | Settings for the qcow2 VM disk |
 | `apps/hub/` | The Hub app (Python, GTK4/libadwaita, Meson): mixer for PipeWire and GoXLR; `run-in-vm.sh` builds and starts it in the Fedora dev VM |
 | `tools/` | Generators for the wallpapers, the Bazaar banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into the dev VM |
 | `.github/workflows/` | Image build (on push and daily) and disk image build (manual) |
@@ -50,8 +51,9 @@ Every push to `main` builds both images and publishes them to
 `ghcr.io/kevinschmidt777/softglowos` and `ghcr.io/kevinschmidt777/softglowos-nvidia`,
 signed with cosign.
 
-The ISO and a ready-to-boot qcow2 VM disk are built by the **Build disk images**
-workflow, started manually:
+The two live ISOs (`softglowos-live.iso` for AMD/Intel, `softglowos-nvidia-live.iso`)
+and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
+started manually:
 
 ```bash
 gh workflow run build-disk.yml
