@@ -71,6 +71,10 @@ cat >>/usr/share/anaconda/interactive-defaults.ks <<EOF
 # The image for this graphics card, written on boot by softglowos-live-payload
 %include /run/softglowos/install.ks
 
+# A fixed name: without one, NetworkManager takes whatever the router still
+# knows for this address, which is the live system's localhost-live
+network --hostname=softglowos
+
 # Secure Boot: the kernel is signed with Universal Blue's key. Enrolling it
 # is confirmed on the next start (MOK manager, password universalblue).
 %post --nochroot
