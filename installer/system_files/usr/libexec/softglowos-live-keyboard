@@ -17,6 +17,13 @@ variant=$(sed -n 's/.*(\(.*\))/\1/p' <<<"$keyboard")
 [ -n "$layout" ] && [ "$layout" != us ] || exit 0
 
 localectl set-x11-keymap "$layout" "" "$variant"
+# Anaconda needs a console keymap to go with it; layouts without one (like
+# "au") would block the installer, so those stay "us"
+if ! localectl status | grep -q 'VC Keymap: [a-z]'; then
+  localectl set-x11-keymap us
+  echo "No console keymap for $keyboard, keeping us"
+  exit 0
+fi
 
 source="$layout${variant:++$variant}"
 if systemctl is-active --quiet user@"$(id -u liveuser)".service; then
