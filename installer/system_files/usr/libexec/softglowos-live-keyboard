@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+# Sets the keyboard layout by location, the way Anaconda preselects language
+# and time zone: country from Fedora's GeoIP service, its usual layout from
+# langtable. Anaconda leaves the keyboard to GNOME on a live desktop, so
+# without this it stays "us". Sets the system layout (taken over by the
+# installed system) and the live user's session. Offline it stays "us".
+set -euo pipefail
+
+country=$(curl -fsS --max-time 15 --retry 3 https://geoip.fedoraproject.org/city |
+  python3 -c 'import json, sys; print(json.load(sys.stdin).get("country_code") or "")')
+[ -n "$country" ] || exit 0
+
+# "de(nodeadkeys)" -> layout de, variant nodeadkeys
+keyboard=$(python3 -c 'import langtable, sys; print((langtable.list_keyboards(territoryId=sys.argv[1]) or [""])[0])' "$country")
+layout=${keyboard%%(*}
+variant=$(sed -n 's/.*(\(.*\))/\1/p' <<<"$keyboard")
+[ -n "$layout" ] && [ "$layout" != us ] || exit 0
+
+localectl set-x11-keymap "$layout" "" "$variant"
+
+source="$layout${variant:++$variant}"
+if systemctl is-active --quiet user@"$(id -u liveuser)".service; then
+  systemd-run --quiet --wait --user --machine=liveuser@ \
+    gsettings set org.gnome.desktop.input-sources sources "[('xkb', '$source')]"
+fi
+echo "Keyboard layout for $country: $source"

@@ -1,0 +1,11 @@
+[Unit]
+Description=Set the keyboard layout of the SoftglowOS live system by location
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/softglowos-live-keyboard
+
+[Install]
+WantedBy=multi-user.target
