@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=SoftglowOS Close Overview
+Exec=/usr/libexec/softglowos-close-overview
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

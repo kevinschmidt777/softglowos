@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Lands every login on the desktop. Just Perfection hides the overview GNOME
+# shows after logging in, but only when it is loaded before GNOME's startup
+# animation, and GNOME loads extensions asynchronously. When the overview
+# still opens, this closes it, once. The window is short so an overview the
+# user opens on purpose stays open.
+set -uo pipefail
+
+shell=(gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell
+  --method org.freedesktop.DBus.Properties)
+
+for _ in $(seq 80); do
+  if [ "$("${shell[@]}".Get org.gnome.Shell OverviewActive 2>/dev/null)" = "(<true>,)" ]; then
+    "${shell[@]}".Set org.gnome.Shell OverviewActive '<false>' >/dev/null
+    exit 0
+  fi
+  sleep 0.25
+done
