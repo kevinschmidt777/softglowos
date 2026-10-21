@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+# Starts the installer and restarts into the installed system once it closes
+# after installing (its finish button reads "Restart system"). The kickstart
+# leaves /run/softglowos/installed when the installation went through, so
+# quitting the installer before that keeps the live system running.
+liveinst "$@"
+[ -e /run/softglowos/installed ] && systemctl reboot

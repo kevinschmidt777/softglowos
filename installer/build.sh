@@ -80,6 +80,11 @@ printf 'universalblue\nuniversalblue\n' | mokutil --import /usr/share/softglowos
 LC_ALL=C mokutil --sb-state | grep -q 'SecureBoot enabled' || exit 0
 run0 --user=liveuser zenity --info --title='Secure Boot' --width=480 --text="\$(cat /usr/share/softglowos/secure-boot.txt)" || :
 %end
+
+# Installed: closing the installer restarts the computer (softglowos-installer)
+%post --nochroot
+touch /run/softglowos/installed
+%end
 EOF
 curl -fsSL --retry 3 -o /usr/share/softglowos/secure-boot.der \
   https://github.com/ublue-os/akmods/raw/main/certs/public_key.der
@@ -95,10 +100,16 @@ EOF
 sed -i 's/^\[Desktop Entry\]/[Desktop Entry]\nHidden=true/' \
   /usr/share/anaconda/gnome/org.fedoraproject.welcome-screen.desktop || :
 
+# "Restart system" as the finish button, "du" in German (patch-webui.py)
+python3 "$SRC/patch-webui.py" "$SRC/webui-de-du.json"
+
 ### Branding ###
 
 cp -a "$SRC/system_files/." /
 systemctl enable softglowos-live-payload.service
+# The dock's installer icon restarts after installing as well
+sed -i 's|^Exec=\(/usr/bin/\)\?liveinst|Exec=/usr/libexec/softglowos-installer|' \
+  /usr/share/applications/*.desktop
 dnf -qy install librsvg2-tools
 # Anaconda shows the logo as a 2rem square on the teal header: our symbol in white
 sed 's/#2e3436/#ffffff/g' "$BRANDING/logo-symbolic.svg" |
