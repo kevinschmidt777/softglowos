@@ -100,7 +100,9 @@ sed -i 's/^\[Desktop Entry\]/[Desktop Entry]\nHidden=true/' \
 cp -a "$SRC/system_files/." /
 systemctl enable softglowos-live-payload.service
 dnf -qy install librsvg2-tools
-rsvg-convert -h 160 "$BRANDING/wordmark-dark.svg" -o /usr/share/cockpit/branding/fedora/logo.png
+# Anaconda shows the logo as a 2rem square on the teal header: our symbol in white
+sed 's/#2e3436/#ffffff/g' "$BRANDING/logo-symbolic.svg" |
+  rsvg-convert -h 96 -o /usr/share/cockpit/branding/fedora/logo.png
 for size in 48x48 scalable; do
   mkdir -p "/usr/share/icons/hicolor/$size/apps"
 done

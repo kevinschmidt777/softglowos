@@ -1,11 +1,15 @@
 /* The installer (Anaconda's web UI) in SoftglowOS colors with our logo.
    build.sh renders logo.png next to this file. */
-#badge {
-    inline-size: 225px;
-    block-size: 80px;
-    background-image: url("logo.png");
-    background-size: contain;
-    background-repeat: no-repeat;
+
+/* Buttons, checkboxes and radios in teal like GNOME's own; links a shade
+   darker so they stay readable on white. On :root, since dialogs render
+   outside .anaconda. html:root outweighs PatternFly's own :root tokens. */
+html:root {
+    --pf-t--global--color--brand--default: #2190a4;
+    --pf-t--global--color--brand--hover: #1f8799;
+    --pf-t--global--color--brand--clicked: #1f8799;
+    --pf-t--global--text--color--link--default: #1b7a8b;
+    --pf-t--global--text--color--link--hover: #187080;
 }
 
 .anaconda {
@@ -14,15 +18,23 @@
     --brand-default: #2190a4;
     --brand-default-dark: #1f8799;
 
+    /* Our logo in white on the teal header */
     .logo {
         background-image: url("logo.png");
         filter: unset;
+        mix-blend-mode: normal;
     }
 
     /* No root account: the user from the installer gets admin rights.
        Same selector Bazzite uses until Anaconda can hide it itself
        (https://bugzilla.redhat.com/show_bug.cgi?id=2464088). */
     .pf-v6-c-form__section:has(#anaconda-screen-accounts-root-account-enable-root-account) {
+        display: none;
+    }
+
+    /* No feedback form for Fedora's forum after installing; bug reports go
+       through the Hub */
+    .feedback-section {
         display: none;
     }
 }
