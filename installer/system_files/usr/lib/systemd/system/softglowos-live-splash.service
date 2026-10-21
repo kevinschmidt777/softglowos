@@ -1,0 +1,16 @@
+[Unit]
+Description=End the boot splash of the SoftglowOS live system before GDM starts
+# GDM logs the live user in on tty2 and leaves the splash running. When it
+# quits later, the console falls back to tty1 and GDM takes that for a user
+# switch and puts its login screen over the session (GNOME/gdm#1106).
+# --retain-splash keeps the logo on screen until the desktop is there.
+After=plymouth-start.service systemd-user-sessions.service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=-/usr/bin/plymouth quit --retain-splash
+ExecStart=-/usr/bin/plymouth --wait
+
+[Install]
+WantedBy=multi-user.target

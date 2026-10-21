@@ -110,7 +110,8 @@ python3 "$SRC/patch-webui.py" "$SRC/webui-de-du.json"
 ### Branding ###
 
 cp -a "$SRC/system_files/." /
-systemctl enable softglowos-live-payload.service softglowos-live-keyboard.service
+systemctl enable softglowos-live-payload.service softglowos-live-keyboard.service \
+  softglowos-live-splash.service
 # The dock's installer icon restarts after installing as well
 sed -i 's|^Exec=\(/usr/bin/\)\?liveinst|Exec=/usr/libexec/softglowos-installer|' \
   /usr/share/applications/*.desktop
