@@ -12,6 +12,17 @@ html:root {
     --pf-t--global--text--color--link--hover: #187080;
 }
 
+/* Warning buttons ("Reclaim space" when the disk holds a system) in teal
+   too instead of yellow; the dialog itself says what gets deleted */
+html:root .pf-v6-c-button.pf-m-warning {
+    --pf-v6-c-button--m-warning--BackgroundColor: #2190a4;
+    --pf-v6-c-button--m-warning--Color: #ffffff;
+    --pf-v6-c-button--m-warning--hover--BackgroundColor: #1f8799;
+    --pf-v6-c-button--m-warning--hover--Color: #ffffff;
+    --pf-v6-c-button--m-warning--m-clicked--BackgroundColor: #1f8799;
+    --pf-v6-c-button--m-warning--m-clicked--Color: #ffffff;
+}
+
 .anaconda {
     /* GNOME's teal, our accent (see DESIGN.md) */
     --brand-default-light: #5cc6d6;
