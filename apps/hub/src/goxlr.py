@@ -12,7 +12,8 @@ How our mixer maps onto the GoXLR:
 - per-mix mute: the GoXLR's routing (channel -> headphones / stream mix)
 - browser and console: our own software faders; their sound reaches the
   GoXLR through its Sample channel, which we take out of the GoXLR's stream
-  mix (the WirePlumber script adds them to ours instead)
+  mix (the WirePlumber script adds them to ours instead) and out of its Chat
+  Mic, so Discord doesn't hear them
 - microphone: level, gate, compressor and EQ in hardware; RNNoise and the
   mic offset run in software, so either takes the raw mic out of the
   GoXLR's stream mix
@@ -196,8 +197,10 @@ class Mixer(PipeWireMixer):
             self.goxlr.command('SetSubMixOutputMix', 'BroadcastMix', 'B')
             for name in CHANNELS.values():
                 self.goxlr.command('SetSubMixLinked', name, True)
-        # Browser and console arrive on Sample and go to the stream through ours
+        # Browser and console arrive on Sample and go to the stream through ours,
+        # never to the Chat Mic that Discord records
         self.goxlr.command('SetRouter', 'Samples', 'BroadcastMix', False)
+        self.goxlr.command('SetRouter', 'Samples', 'ChatMic', False)
         self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
                            not self._mic_in_software())
 
