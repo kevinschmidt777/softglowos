@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+# Runs once the lighting service started at login: the profile brought back
+# the known devices, devices built in since get the Hub's settings, and
+# empty zones their full size (lighting.connect() does that).
+
+import os
+import sys
+
+sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)))
+
+from hub import lighting
+
+try:
+    client = lighting.connect()
+except OSError as error:
+    sys.exit(f'Lighting not checked: {error}')
+settings = lighting.load_settings()
+if lighting.apply_to_new(client, settings):
+    lighting.save_profile(client, settings)
+    lighting.save_settings(settings)

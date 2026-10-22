@@ -4,8 +4,10 @@ After=graphical-session.target
 
 [Service]
 # Started by the Hub's Lighting page, enabled with its first change. The
-# profile holds the last state, from the Hub or the OpenRGB app.
+# profile holds the last state, from the Hub or the OpenRGB app; new devices
+# get the Hub's settings right after.
 ExecStart=/usr/bin/openrgb --server --server-host 127.0.0.1 --noautoconnect --profile SoftglowOS
+ExecStartPost=@pkgdatadir@/softglowos-lighting-login
 ExecStop=@pkgdatadir@/softglowos-lighting-save
 Restart=on-failure
 RestartSec=5

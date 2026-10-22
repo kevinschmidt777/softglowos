@@ -71,6 +71,7 @@ install_data(
   'softglowos-switch-channel',
   'softglowos-rebase',
   'softglowos-lighting-save',
+  'softglowos-lighting-login',
   install_dir: pkgdatadir,
   install_mode: 'rwxr-xr-x',
 )

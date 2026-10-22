@@ -1,20 +1,25 @@
-"""RGB lighting through OpenRGB (no GTK here, softglowos-lighting-save uses
-it too).
+"""RGB lighting through OpenRGB (no GTK here, softglowos-lighting-save and
+-login use it too).
 
 The user service softglowos-lighting runs the OpenRGB server, reachable
 from this computer only. It starts once the Hub's Lighting page is opened
 and with every login after the first change there. The current state is
 kept as the OpenRGB profile "SoftglowOS": saved after every change in the
 Hub and when the service stops (so changes made in the OpenRGB app stay
-too), loaded when it starts. Before anyone touches the lighting, it stays
-as the hardware has it."""
+too), loaded when it starts. Devices the profile doesn't know yet (built in
+since) get the Hub's settings after the login. Before anyone touches the
+lighting, it stays as the hardware has it.
+
+Zones like ARGB headers can't tell how many LEDs hang on them and start
+with none; they get their maximum, so one color reaches every LED without
+setting them up in OpenRGB (sizes set there stay)."""
 
 import json
 import subprocess
 import time
 from pathlib import Path
 
-from openrgb import OpenRGBClient
+from openrgb import OpenRGBClient, orgb
 from openrgb.utils import ModeColors, ModeFlags, RGBColor
 
 SERVICE = 'softglowos-lighting.service'
@@ -22,22 +27,37 @@ PROFILE = 'SoftglowOS'
 CLIENT_NAME = 'SoftglowOS Hub'
 SETTINGS_FILE = Path.home() / '.config' / 'softglowos' / 'lighting.json'
 
-DEFAULTS = {'on': True, 'effect': 'static', 'color': '#2190a4', 'brightness': 100}
+DEFAULTS = {'on': True, 'effect': 'static', 'color': '#2190a4', 'brightness': 100,
+            'devices': []}
 
 # Effect -> OpenRGB mode names, best first. Devices without the effect light
-# up statically in the chosen color.
+# up statically in the chosen color. Breathing is gone: every maker names it
+# differently and many devices can't do it.
 EFFECT_MODES = {
     'static': ('static', 'direct'),
-    'breathing': ('breathing',),
     'rainbow': ('rainbow wave', 'spectrum cycle', 'rainbow'),
 }
+
+# openrgb-python drops a zone's size limits; keep them for _fill_empty_zones()
+_zone_update = orgb.Zone._update
+
+
+def _keep_size_limits(zone, data):
+    _zone_update(zone, data)
+    zone.leds_max = data.leds_max
+
+
+orgb.Zone._update = _keep_size_limits
 
 
 def load_settings():
     try:
-        return {**DEFAULTS, **json.loads(SETTINGS_FILE.read_text())}
+        settings = {**DEFAULTS, **json.loads(SETTINGS_FILE.read_text())}
     except (OSError, ValueError):
         return dict(DEFAULTS)
+    if settings['effect'] not in EFFECT_MODES:
+        settings['effect'] = 'static'  # was breathing
+    return settings
 
 
 def save_settings(settings):
@@ -46,7 +66,8 @@ def save_settings(settings):
 
 
 def start_service():
-    subprocess.run(['systemctl', '--user', 'start', SERVICE], check=False)
+    # connect() waits for the server, so no need to wait for the start here
+    subprocess.run(['systemctl', '--user', 'start', '--no-block', SERVICE], check=False)
 
 
 def enable_service():
@@ -80,7 +101,19 @@ def connect(timeout=20):
                 (counts[-1] > 0 or time.monotonic() - started > 8):
             break
         time.sleep(1)
+    _fill_empty_zones(client)
     return client
+
+
+def _fill_empty_zones(client):
+    filled = False
+    for device in client.devices:
+        for zone in device.zones:
+            if not zone.leds and getattr(zone, 'leds_max', 0) > 0:
+                zone.resize(zone.leds_max)  # the server keeps the size
+                filled = True
+    if filled:
+        client.update()
 
 
 def effects(client):
@@ -89,16 +122,36 @@ def effects(client):
             if effect == 'static' or any(_mode(device, effect) for device in client.devices)]
 
 
-def apply(client, settings):
-    for device in client.devices:
+def apply(client, settings, devices=None):
+    """Applies the settings to all devices, or only to the given ones."""
+    for device in devices if devices is not None else client.devices:
         try:
             _apply_device(client, device, settings)
         except Exception as error:  # one odd device mustn't stop the others
             print(f'Lighting: {device.name}: {error}')
 
 
-def save_profile(client):
+def save_profile(client, settings=None):
+    """Saves the profile and notes which devices it holds."""
     client.save_profile(PROFILE)
+    if settings is not None:
+        settings['devices'] = [_device_id(device) for device in client.devices]
+
+
+def apply_to_new(client, settings):
+    """Gives devices the profile doesn't hold yet the Hub's settings.
+    True if there were any. Nothing before the first change in the Hub."""
+    known = set(settings['devices'])
+    if not known:
+        return False
+    new = [device for device in client.devices if _device_id(device) not in known]
+    if new:
+        apply(client, settings, new)
+    return bool(new)
+
+
+def _device_id(device):
+    return f'{device.name}|{device.metadata.location}'
 
 
 def _mode(device, effect):
@@ -137,3 +190,4 @@ def _apply_device(client, device, settings):
     device.set_mode(mode)
     if mode.color_mode == ModeColors.PER_LED:
         device.set_color(color, fast=True)
+

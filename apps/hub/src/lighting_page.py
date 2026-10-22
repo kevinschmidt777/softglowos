@@ -73,7 +73,8 @@ class Lighting(GObject.Object):
         if settings is None or self._client is None:
             return  # a newer change already went through
         lighting.apply(self._client, settings)
-        lighting.save_profile(self._client)
+        lighting.save_profile(self._client, settings)
+        GLib.idle_add(self._saved, settings['devices'])
         lighting.enable_service()
 
     # Back in the main loop
@@ -82,6 +83,10 @@ class Lighting(GObject.Object):
         self.device_count = count
         self.effects = effects
         self._set('ready' if count else 'none')
+
+    def _saved(self, devices):
+        self.settings['devices'] = devices
+        lighting.save_settings(self.settings)
 
     def _set(self, state):
         self.state = state
@@ -96,6 +101,7 @@ def open_openrgb(_button=None):
         info.launch([], None)
     else:
         Gio.Subprocess.new(['openrgb'], Gio.SubprocessFlags.NONE)
+
 
 
 def _status_button(label, callback, suggested=False):
@@ -194,7 +200,7 @@ class LightingPage(Gtk.Stack):
         count = self.lighting.device_count
         self.on_row.set_subtitle(_('One device') if count == 1
                                  else _('{count} devices').format(count=count))
-        labels = {'static': _('Static'), 'breathing': _('Breathing'), 'rainbow': _('Rainbow')}
+        labels = {'static': _('Static'), 'rainbow': _('Rainbow')}
         self._updating = True
         self.effect_row.set_model(Gtk.StringList.new([labels[e] for e in self.lighting.effects]))
         effect = self.lighting.settings['effect']

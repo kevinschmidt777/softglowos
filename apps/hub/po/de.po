@@ -643,8 +643,6 @@ msgstr "{count} Geräte"
 msgid "Static"
 msgstr "Statisch"
 
-msgid "Breathing"
-msgstr "Atmen"
 
 msgid "Rainbow"
 msgstr "Regenbogen"
@@ -711,3 +709,4 @@ msgstr "Wähle eine .goxlr- oder .goxlrMicProfile-Datei."
 
 msgid "OK"
 msgstr "OK"
+
