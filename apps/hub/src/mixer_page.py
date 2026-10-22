@@ -1,6 +1,7 @@
 from gi.repository import Adw, GLib, Gtk
 
 from .mic_setup import MicSetupDialog
+from .routing_dialog import RoutingDialog
 from .strips import ChannelStrip, MicStrip
 from .widgets import DevicePicker, EqDialog
 
@@ -29,6 +30,7 @@ class MixerPage(Adw.Bin):
     stack = Gtk.Template.Child()
     output_box = Gtk.Template.Child()
     stream_label = Gtk.Template.Child()
+    routing_button = Gtk.Template.Child()
     strips = Gtk.Template.Child()
 
     def __init__(self, mixer, **kwargs):
@@ -40,6 +42,7 @@ class MixerPage(Adw.Bin):
         self.output_box.append(self.output_picker)
         self.stream_label.set_markup(_('Stream goes to <b>{target}</b>').format(
             target='OBS'))
+        self.routing_button.connect('clicked', self._on_routing_clicked)
 
         self.mic_picker = DevicePicker(mixer.microphones, mixer.set_microphone,
                                        empty_label=_('No microphone'), small=True)
@@ -94,9 +97,12 @@ class MixerPage(Adw.Bin):
         self.mic.set_badge(self._badge('mic'))
         self.mic.set_filters(self.mixer.filters())
         apps = self.mixer.apps()
+        routes = self.mixer.routes()
         for channel_id, strip in self.channels.items():
             for mix, fader in strip.faders.items():
                 fader.set_state(*self.mixer.fader(channel_id, mix))
+                # Switched off in the audio routing: nothing goes there
+                fader.set_sensitive(routes[channel_id][mix])
             strip.set_apps(apps.get(channel_id, []))
             strip.set_badge(self._badge(channel_id))
 
@@ -150,6 +156,11 @@ class MixerPage(Adw.Bin):
         for channel_id, strip in self.channels.items():
             for fader in strip.faders.values():
                 fader.set_level(levels.get(channel_id, 0))
+
+    def _on_routing_clicked(self, _button):
+        dialog = RoutingDialog(self.mixer, {'mic': _('Microphone'), **CHANNEL_NAMES})
+        dialog.connect('closed', lambda _dialog: self.refresh())
+        dialog.present(self)
 
     def _on_eq_requested(self, _strip):
         filters = self.mixer.filters()

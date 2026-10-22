@@ -29,6 +29,7 @@ import gi
 
 gi.require_version('Soup', '3.0')
 
+import pulsectl
 from gi.repository import GLib, GObject, Soup
 
 from .audio import PipeWireMixer
@@ -40,6 +41,11 @@ CHANNELS = {'game': 'Game', 'chat': 'Chat', 'music': 'Music', 'system': 'System'
             'mic': 'Mic'}
 INPUTS = {'game': 'Game', 'chat': 'Chat', 'music': 'Music', 'system': 'System',
           'mic': 'Microphone'}
+GOXLR_CHANNELS = ('game', 'chat', 'music', 'system')
+SAMPLE_CHANNELS = ('browser', 'console')
+# Where PulseAudio names the device of an output, to tell the GoXLR apart
+GOXLR_DEVICE_KEYS = ('alsa.card_name', 'api.alsa.card.name', 'device.product.name')
+MIC_MONITOR_VOLUME = 128  # half, when listening to yourself is switched on at 0
 FADERS = ('A', 'B', 'C', 'D')
 FADER_CHOICES = ('mic', 'game', 'chat', 'music', 'system')
 
@@ -186,7 +192,10 @@ class Mixer(PipeWireMixer):
         self.goxlr = GoXLRClient()
         self._prepared = None
         self._mic_offset_ms = None
+        self._goxlr_mutes = None
+        self._speakers = None
         self.goxlr.connect('changed', self._on_goxlr_changed)
+        self.connect('changed', lambda _mixer: self._follow_output())
 
     @property
     def goxlr_active(self):
@@ -221,8 +230,8 @@ class Mixer(PipeWireMixer):
         # never to the Chat Mic that Discord records
         self.goxlr.command('SetRouter', 'Samples', 'BroadcastMix', False)
         self.goxlr.command('SetRouter', 'Samples', 'ChatMic', False)
-        self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
-                           not self._mic_in_software())
+        self._route_mic()
+        self._apply_routes()
 
     def _mic_in_software(self):
         """RNNoise and a mic offset only work in software: the GoXLR's own
@@ -239,6 +248,89 @@ class Mixer(PipeWireMixer):
 
     def _routed(self, channel, output):
         return self.goxlr.mixer['router'][INPUTS[channel]][output]
+
+    def _set_router(self, channel, output, on):
+        if self._routed(channel, output) != on:
+            self.goxlr.command('SetRouter', INPUTS[channel], output, on)
+
+    # Routing matrix: the GoXLR mixes "me" and the stream of its own channels
+    # in hardware, so those ways are its routing. Channels without a desk
+    # fader are muted there too, which the Hub remembers as "goxlr-mutes".
+
+    def _muted_in_routing(self):
+        if self._goxlr_mutes is None:
+            self._goxlr_mutes = set(self._metadata('goxlr-mutes') or [])
+        return self._goxlr_mutes
+
+    def _set_muted_in_routing(self, channel, mix, muted):
+        key = f'{channel}:{mix}'
+        mutes = self._muted_in_routing()
+        if muted:
+            mutes.add(key)
+        else:
+            mutes.discard(key)
+        self._set_metadata('goxlr-mutes', sorted(mutes))
+
+    def _apply_routes(self):
+        """Puts the matrix, the mutes and the speakers into the GoXLR's routing."""
+        routes = self.routes()
+        speakers = self._on_speakers()
+        for channel in GOXLR_CHANNELS:
+            on_fader = self.fader_of(channel) is not None
+            for mix, output in (('stream', 'BroadcastMix'), ('monitor', 'Headphones')):
+                muted = not on_fader and f'{channel}:{mix}' in self._muted_in_routing()
+                self._set_router(channel, output, routes[channel][mix] and not muted and
+                                 not (mix == 'monitor' and speakers))
+        # Listening to yourself, never on the speakers
+        self._set_router('mic', 'Headphones', routes['mic']['monitor'] and not speakers)
+
+    def _on_speakers(self):
+        """The default output is another device than the GoXLR (e.g. speakers):
+        the headphones go quiet and the speakers get a copy of what they'd play."""
+        try:
+            sink = self._pulse.get_sink_by_name(self._pulse.server_info().default_sink_name)
+        except pulsectl.PulseError:
+            return False
+        texts = [sink.description] + [sink.proplist.get(key) for key in GOXLR_DEVICE_KEYS]
+        return not any('goxlr' in (text or '').lower() for text in texts)
+
+    def _follow_output(self):
+        if not self.goxlr_active or not self.available():
+            self._speakers = None
+            return
+        speakers = self._on_speakers()
+        if speakers != self._speakers:
+            self._speakers = speakers
+            self._apply_routes()
+        if speakers:
+            # The speakers play at the volumes of the headphone mix (desk faders)
+            for channel in GOXLR_CHANNELS:
+                value, muted = self.fader(channel, 'monitor')
+                if super().fader(channel, 'speakers') != (value, muted):
+                    super().set_fader(channel, 'speakers', value)
+                    super().set_fader_muted(channel, 'speakers', muted)
+
+    def linked_routes(self, source):
+        # Browser and console share the GoXLR's Sample channel
+        if self.goxlr_active and source in SAMPLE_CHANNELS:
+            return SAMPLE_CHANNELS
+        return (source,)
+
+    def set_route(self, source, target, on):
+        super().set_route(source, target, on)
+        if not self.goxlr_active:
+            return
+        if source == 'mic' and target == 'monitor' and on and \
+                self.goxlr.mixer['levels']['volumes'].get('MicMonitor') == 0:
+            self.goxlr.command('SetVolume', 'MicMonitor', MIC_MONITOR_VOLUME)
+        self._route_mic()
+        self._apply_routes()
+
+    def reset_routes(self):
+        super().reset_routes()
+        if self.goxlr_active:
+            self._route_mic()
+            self._apply_routes()
 
     def _button_mutes(self, name):
         """(stream, headphones) muted by the mute button of this channel's desk fader."""
@@ -269,9 +361,9 @@ class Mixer(PipeWireMixer):
         submix = self._submix()
         if mix == 'stream' and submix is not None:
             volume = submix['inputs'][name]['volume']
-        output = 'BroadcastMix' if mix == 'stream' else 'Headphones'
         stream, monitor = self._button_mutes(name)
-        muted = not self._routed(channel, output) or (stream if mix == 'stream' else monitor)
+        muted = (stream if mix == 'stream' else monitor) or (
+            self.fader_of(channel) is None and f'{channel}:{mix}' in self._muted_in_routing())
         return _from_goxlr(volume), muted
 
     def set_fader(self, channel, mix, value):
@@ -289,14 +381,13 @@ class Mixer(PipeWireMixer):
             return
         letter = self.fader_of(channel)
         if letter is None:
-            output = 'BroadcastMix' if mix == 'stream' else 'Headphones'
-            self.goxlr.command('SetRouter', INPUTS[channel], output, not muted)
+            self._set_muted_in_routing(channel, mix, muted)
+            self._apply_routes()
             return
         mutes = {other: self.fader(channel, other)[1] for other in ('stream', 'monitor')}
         mutes[mix] = muted
         # The button takes over, so a mute left in the routing must go
-        for output in ('BroadcastMix', 'Headphones'):
-            self.goxlr.command('SetRouter', INPUTS[channel], output, True)
+        self._apply_routes()
         self._set_button_mutes(letter, mutes['stream'], mutes['monitor'])
 
     def mic(self):
@@ -319,13 +410,12 @@ class Mixer(PipeWireMixer):
         letter = self.fader_of('mic')
         if letter is not None:
             self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', True)
-            self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
-                               not self._mic_in_software())
+            self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix', self._mic_to_stream())
             self._set_button_mutes(letter, muted, muted)
             return
         self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', not muted)
-        stream = not muted and not self._mic_in_software()
-        self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix', stream)
+        self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
+                           not muted and self._mic_to_stream())
 
     # Mic setup: type (Condenser = 48 V phantom power) and gain per type
 
@@ -409,10 +499,14 @@ class Mixer(PipeWireMixer):
             if self.goxlr_active:
                 self._route_mic()
 
+    def _mic_to_stream(self):
+        """The GoXLR's own stream mix carries the mic (else ours adds it, or nobody)."""
+        return self.routes()['mic']['stream'] and not self._mic_in_software()
+
     def _route_mic(self):
         muted = self.mic()[1]
         self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
-                           not muted and not self._mic_in_software())
+                           not muted and self._mic_to_stream())
 
     def _eq(self):
         mic = self.goxlr.mixer['mic_status']

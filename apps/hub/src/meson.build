@@ -40,6 +40,7 @@ install_data(
   'strips.py',
   'widgets.py',
   'mic_setup.py',
+  'routing_dialog.py',
   'audio.py',
   'goxlr.py',
   'software.py',

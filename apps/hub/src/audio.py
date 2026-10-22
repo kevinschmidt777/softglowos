@@ -8,9 +8,12 @@ keeps working while the Hub is closed. The Hub only reads and changes it:
 - filter settings (RNNoise, gate, compressor, EQ) and offsets are controls
   of filter-chain nodes (pw-cli)
 - level meters record the channel sinks with GStreamer
+- the routing matrix sits in the PipeWire metadata "softglowos-routing"
+  (pw-metadata), which the WirePlumber script follows and remembers
 """
 import json
 import math
+import re
 import subprocess
 import threading
 import time
@@ -35,13 +38,22 @@ GOXLR_CHANNELS = ('game', 'chat', 'music', 'system')
 # after the capture card, the mic's only on its way into the stream mix.
 OFFSET_NODES = {
     channel: tuple(f'{PREFIX}{channel}.{path}.in' for path in
-                   (('stream', 'monitor', 'goxlr') if channel in GOXLR_CHANNELS
+                   (('stream', 'monitor', 'goxlr', 'speakers') if channel in GOXLR_CHANNELS
                     else ('stream', 'monitor')))
     for channel in CHANNELS if channel != 'console'
 }
 OFFSET_NODES['console'] = (CONSOLE_FILTER,)
 OFFSET_NODES['mic'] = (PREFIX + 'mic.mix.in',)
 OFFSET_CONTROL = 'offset:Delay (s)'
+
+# The routing matrix: which source goes to me ("monitor"), the stream and the
+# chat mic. Defaults as in audio.lua; chat can't go into the chat mic.
+ROUTING_METADATA = 'softglowos-routing'
+ROUTE_SOURCES = ('mic',) + CHANNELS
+ROUTE_TARGETS = ('monitor', 'stream', 'chat')
+DEFAULT_ROUTES = {source: {'monitor': source != 'mic', 'stream': True, 'chat': source == 'mic'}
+                  for source in ROUTE_SOURCES}
+LOCKED_ROUTES = (('chat', 'chat'),)
 
 # Same bands as the full-size GoXLR, see tools/make-audio-config.py.
 EQ_BANDS = (31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000)
@@ -91,6 +103,7 @@ class PipeWireMixer(GObject.Object):
         self._levels = {}
         self._levels_timer = None
         self._filters = None
+        self._routes = None
 
         Gst.init(None)
         threading.Thread(target=self._listen, daemon=True).start()
@@ -258,6 +271,57 @@ class PipeWireMixer(GObject.Object):
     def set_offset_ms(self, target, ms):
         for name in OFFSET_NODES[target]:
             self._set_controls(name, {OFFSET_CONTROL: ms / 1000})
+
+    # Routing matrix
+
+    def _metadata(self, key):
+        """A JSON value of the routing metadata, None when it isn't there."""
+        try:
+            output = subprocess.run(['pw-metadata', '-n', ROUTING_METADATA, '0', key],
+                                    capture_output=True, text=True, timeout=5).stdout
+        except subprocess.SubprocessError:
+            return None
+        match = re.search(r"value:'(.*)' type:", output)
+        try:
+            return json.loads(match.group(1)) if match else None
+        except json.JSONDecodeError:
+            return None
+
+    def _set_metadata(self, key, value):
+        subprocess.run(['pw-metadata', '-n', ROUTING_METADATA, '0', key,
+                        json.dumps(value), 'Spa:String:JSON'],
+                       capture_output=True, timeout=5)
+
+    def routes(self):
+        """{source: {target: bool}}, e.g. routes()['music']['chat']. Read from
+        PipeWire once; afterwards only the Hub changes it."""
+        if self._routes is None:
+            stored = self._metadata('routes') or {}
+            self._routes = {source: {target: stored.get(source, {}).get(target, default)
+                                     for target, default in ways.items()}
+                            for source, ways in DEFAULT_ROUTES.items()}
+            for source, target in LOCKED_ROUTES:
+                self._routes[source][target] = False
+        return {source: dict(ways) for source, ways in self._routes.items()}
+
+    def routing_locked(self, source, target):
+        return (source, target) in LOCKED_ROUTES
+
+    def linked_routes(self, source):
+        """Sources that only switch together with this one (with a GoXLR)."""
+        return (source,)
+
+    def set_route(self, source, target, on):
+        self.routes()
+        if self.routing_locked(source, target):
+            return
+        for linked in self.linked_routes(source):
+            self._routes[linked][target] = on
+        self._set_metadata('routes', self._routes)
+
+    def reset_routes(self):
+        self._routes = {source: dict(ways) for source, ways in DEFAULT_ROUTES.items()}
+        self._set_metadata('routes', self._routes)
 
     # Devices
 

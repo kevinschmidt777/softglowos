@@ -43,6 +43,16 @@ template $MixerPage: Adw.Bin {
                 use-markup: true;
               }
             }
+
+            Button routing_button {
+              hexpand: true;
+              halign: end;
+              label: _("Audio routing");
+
+              styles [
+                "pill",
+              ]
+            }
           }
 
           Box strips {

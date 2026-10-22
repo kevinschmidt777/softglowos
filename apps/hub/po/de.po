@@ -721,3 +721,26 @@ msgstr "GoXLR Utility"
 
 msgid "Your location couldn't be found, so the fixed times stay. Try again once you're online."
 msgstr "Dein Standort ließ sich nicht ermitteln, deshalb bleiben die festen Zeiten. Versuch es nochmal, sobald du online bist."
+
+msgid "Audio routing"
+msgstr "Audio-Routing"
+
+msgid "Chat-Mic"
+msgstr "Chat-Mic"
+
+msgid ""
+"Where each sound goes. \"Me\" is what you hear, \"Chat-Mic\" what Discord "
+"hears. The mute buttons in the mixer work on top."
+msgstr ""
+"Wohin welcher Ton geht. „Ich“ ist, was du hörst, „Chat-Mic“, was Discord "
+"hört. Die Stumm-Knöpfe im Mixer wirken zusätzlich."
+
+msgid "Discord would hear itself (echo)"
+msgstr "Discord würde sich selbst hören (Echo)"
+
+msgid ""
+"With the GoXLR, browser and console share one channel (Sample), so they "
+"switch together."
+msgstr ""
+"Beim GoXLR teilen sich Browser und Konsole einen Kanal (Sample), deshalb "
+"schalten sie zusammen."
