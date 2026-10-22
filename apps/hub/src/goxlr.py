@@ -9,7 +9,10 @@ How our mixer maps onto the GoXLR:
 - game, chat, music, system: the GoXLR channel of the same name. Mix A (the
   hardware fader) feeds the headphones ("Me"), mix B the stream; both are
   linked, so a fader on the desk moves both and keeps their ratio.
-- per-mix mute: the GoXLR's routing (channel -> headphones / stream mix)
+- per-mix mute: the mute button of the desk fader the channel sits on, so
+  its light shows it (its mute function follows which mixes are muted);
+  channels without a desk fader mute through the GoXLR's routing
+  (channel -> headphones / stream mix)
 - browser and console: our own software faders; their sound reaches the
   GoXLR through its Sample channel, which we take out of the GoXLR's stream
   mix (the WirePlumber script adds them to ours instead) and out of its Chat
@@ -44,6 +47,13 @@ EQ_RANGE_DB = 9
 
 COMPRESSOR_OFF = 'Ratio1_0'
 COMPRESSOR_ON = 'Ratio3_2'
+
+# Mute function of a desk fader's button for (stream muted, headphones muted)
+MUTE_FUNCTIONS = {(True, True): 'All', (True, False): 'ToStream', (False, True): 'ToPhones'}
+# What a pressed mute button mutes of our two mixes, by its mute function
+MUTED_MIXES = {'All': (True, True), 'ToStream': (True, False), 'ToStreams': (True, False),
+               'ToPhones': (False, True)}
+
 
 
 def _to_goxlr(value):
@@ -220,11 +230,24 @@ class Mixer(PipeWireMixer):
     def _routed(self, channel, output):
         return self.goxlr.mixer['router'][INPUTS[channel]][output]
 
-    def _fader_muted(self, name):
+    def _button_mutes(self, name):
+        """(stream, headphones) muted by the mute button of this channel's desk fader."""
         for status in self.goxlr.mixer['fader_status'].values():
-            if status['channel'] == name and status['mute_state'] != 'Unmuted':
-                return True
-        return False
+            if status['channel'] != name or status['mute_state'] == 'Unmuted':
+                continue
+            if status['mute_state'] == 'MutedToAll':
+                return True, True
+            return MUTED_MIXES.get(status['mute_type'], (False, False))
+        return False, False
+
+    def _set_button_mutes(self, letter, stream, monitor):
+        if stream or monitor:
+            self.goxlr.command('SetFaderMuteFunction', letter, MUTE_FUNCTIONS[(stream, monitor)])
+            self.goxlr.command('SetFaderMuteState', letter, 'MutedToX')
+        else:
+            self.goxlr.command('SetFaderMuteState', letter, 'Unmuted')
+            # A press on the desk mutes everything again
+            self.goxlr.command('SetFaderMuteFunction', letter, 'All')
 
     # Faders
 
@@ -237,7 +260,8 @@ class Mixer(PipeWireMixer):
         if mix == 'stream' and submix is not None:
             volume = submix['inputs'][name]['volume']
         output = 'BroadcastMix' if mix == 'stream' else 'Headphones'
-        muted = not self._routed(channel, output) or self._fader_muted(name)
+        stream, monitor = self._button_mutes(name)
+        muted = not self._routed(channel, output) or (stream if mix == 'stream' else monitor)
         return _from_goxlr(volume), muted
 
     def set_fader(self, channel, mix, value):
@@ -253,14 +277,23 @@ class Mixer(PipeWireMixer):
         if self._hardware(channel) is None:
             super().set_fader_muted(channel, mix, muted)
             return
-        output = 'BroadcastMix' if mix == 'stream' else 'Headphones'
-        self.goxlr.command('SetRouter', INPUTS[channel], output, not muted)
+        letter = self.fader_of(channel)
+        if letter is None:
+            output = 'BroadcastMix' if mix == 'stream' else 'Headphones'
+            self.goxlr.command('SetRouter', INPUTS[channel], output, not muted)
+            return
+        mutes = {other: self.fader(channel, other)[1] for other in ('stream', 'monitor')}
+        mutes[mix] = muted
+        # The button takes over, so a mute left in the routing must go
+        for output in ('BroadcastMix', 'Headphones'):
+            self.goxlr.command('SetRouter', INPUTS[channel], output, True)
+        self._set_button_mutes(letter, mutes['stream'], mutes['monitor'])
 
     def mic(self):
         if not self.goxlr_active:
             return super().mic()
         volume = self.goxlr.mixer['levels']['volumes']['Mic']
-        muted = not self._routed('mic', 'ChatMic') or self._fader_muted('Mic')
+        muted = not self._routed('mic', 'ChatMic') or any(self._button_mutes('Mic'))
         return _from_goxlr(volume), muted
 
     def set_mic(self, value):
@@ -272,6 +305,13 @@ class Mixer(PipeWireMixer):
     def set_mic_muted(self, muted):
         if not self.goxlr_active:
             super().set_mic_muted(muted)
+            return
+        letter = self.fader_of('mic')
+        if letter is not None:
+            self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', True)
+            self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix',
+                               not self._mic_in_software())
+            self._set_button_mutes(letter, muted, muted)
             return
         self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', not muted)
         stream = not muted and not self._mic_in_software()
