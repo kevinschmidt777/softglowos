@@ -13,11 +13,25 @@ system go 1:1 into the GoXLR channel of the same name (its faders are the
 volume), browser and console go into its Sample channel, which the Hub takes
 out of the GoXLR's own stream mix, and the GoXLR's "Stream Mix 1" is fed into
 our stream mix. So OBS always records "SoftglowOS Stream-Mix". The WirePlumber
-script switches between both ways when a GoXLR comes or goes.
+script switches between both ways when a GoXLR comes or goes. When the default
+output isn't the GoXLR (e.g. speakers on the mainboard), the GoXLR channels
+also go to that output through "speakers" loopbacks, which the Hub keeps at
+the volumes of the GoXLR's headphone mix.
+
+The chat mic is what Discord hears: the mic plus the channels routed to it
+(from their single tracks, so after the stream fader) meet in the sink
+"softglowos.chat-mix", whose source "softglowos.chat-mic.out" is the default
+input. Chat itself has no way in (Discord would hear itself).
+
+The routing matrix of the Hub (which channel goes to me, the stream and the
+chat mic) lives in the PipeWire metadata "softglowos-routing". The
+WirePlumber script remembers it and mutes the loopback of a way switched off,
+so it works with the Hub closed.
 
 The microphone runs through a filter chain (RNNoise, gate, 10-band EQ,
-compressor) into the source "softglowos.mic", which is also the default input,
-so Discord and OBS get the same filtered mic. The capture card runs through a
+compressor) into the source "softglowos.mic", which OBS records and the chat
+mic (the default input) is built from, so Discord gets the same filtered mic.
+The capture card runs through a
 delay filter (the "offset", 0 ms by default) into the console channel.
 
 Every other channel has an offset too: its stream and headphone faders (and
@@ -49,6 +63,9 @@ CHANNELS = [
 
 # Channels the GoXLR mixes itself (it has a channel of the same name).
 GOXLR_CHANNELS = ["game", "chat", "music", "system"]
+
+# Channels that can go into the chat mic (chat can't, Discord would hear itself)
+CHAT_MIC_CHANNELS = [ch for ch, _label in CHANNELS if ch != "chat"]
 
 # LSP "Bypass" = 1 switches a filter off. Defaults as in the Hub mockup:
 # RNNoise and compressor on, gate off, EQ flat.
@@ -168,6 +185,27 @@ def channel_modules(ch, label):
     ]
 
 
+def chat_mic_modules():
+    modules = [
+        # What Discord records
+        loopback("softglowos.chat-mic", "SoftglowOS Chat-Mic",
+                 {"target.object": '"softglowos.chat-mix"', "stream.capture.sink": "true"},
+                 {"media.class": "Audio/Source",
+                  "node.description": '"SoftglowOS Chat-Mic"',
+                  # Above the mic, so it's the default input
+                  "priority.session": "2600"}),
+        loopback("softglowos.mic.chat", "SoftglowOS Microphone to Chat-Mic",
+                 {"target.object": '"softglowos.mic"'},
+                 {"target.object": '"softglowos.chat-mix"'}),
+    ]
+    for ch, label in CHANNELS:
+        if ch in CHAT_MIC_CHANNELS:
+            modules.append(loopback(f"softglowos.{ch}.chat", f"SoftglowOS {label} to Chat-Mic",
+                                    {"target.object": f'"softglowos.{ch}.stream.out"'},
+                                    {"target.object": '"softglowos.chat-mix"'}))
+    return modules
+
+
 def mic_chain():
     eq_nodes = "\n".join(
         f'          {{ type = builtin name = eq{i} label = bq_peaking '
@@ -277,6 +315,7 @@ def not_on_login_screen(entry):
 def main():
     sinks = [null_sink(f"softglowos.{ch}", f"SoftglowOS {label}") for ch, label in CHANNELS]
     sinks.append(null_sink("softglowos.stream-mix", "SoftglowOS Stream-Mix"))
+    sinks.append(null_sink("softglowos.chat-mix", "SoftglowOS Chat-Mic Mix"))
 
     modules = []
     for ch, label in CHANNELS:
@@ -285,11 +324,21 @@ def main():
     modules.append(delayed_loopback("softglowos.mic.mix", "SoftglowOS Microphone to Stream-Mix",
                             {"target.object": '"softglowos.mic"'},
                             {"target.object": '"softglowos.stream-mix"'}))
+    # Listening to yourself (without a GoXLR, which does it in hardware)
+    modules.append(loopback("softglowos.mic.monitor", "SoftglowOS Microphone (Me)",
+                            {"target.object": '"softglowos.mic"'}, {}))
+    modules += chat_mic_modules()
     modules.append(console_delay())
     for ch, label in CHANNELS:
         if ch in GOXLR_CHANNELS:
             # Only linked with a GoXLR: channel -> GoXLR channel at full volume
             modules.append(delayed_loopback(f"softglowos.{ch}.goxlr", f"SoftglowOS {label} to GoXLR",
+                                    {"target.object": f'"softglowos.{ch}"',
+                                     "stream.capture.sink": "true"},
+                                    {}))
+            # Only linked with a GoXLR while the default output is another device
+            modules.append(delayed_loopback(f"softglowos.{ch}.speakers",
+                                    f"SoftglowOS {label} to Speakers",
                                     {"target.object": f'"softglowos.{ch}"',
                                      "stream.capture.sink": "true"},
                                     {}))

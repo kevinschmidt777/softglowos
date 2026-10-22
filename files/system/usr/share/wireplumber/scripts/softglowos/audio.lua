@@ -10,6 +10,9 @@
 --    "Chat Mic"), the console channel the capture card. Neither falls back
 --    to anything else, and a device picked in the Hub wins.
 -- 4. Filter settings (EQ, gate, ...) and the offsets are remembered.
+-- 5. The routing matrix of the Hub (metadata "softglowos-routing") is
+--    remembered. A way switched off there stays linked but muted: relinking
+--    from a metadata change isn't reliable, muting is.
 
 lutils = require ("linking-utils")
 cutils = require ("common-utils")
@@ -146,6 +149,67 @@ local function default_output (om, si_props)
   return best_device (om, si_props, "Audio/Sink", function () return true end)
 end
 
+-- With a GoXLR: the default output is another device (e.g. speakers), so
+-- what goes to the headphones goes there instead.
+local function on_speakers (om, si_props, goxlr)
+  if not goxlr then
+    return false
+  end
+  local output = default_output (om, si_props)
+  return output ~= nil and not is_goxlr (output.properties)
+end
+
+-- The routing matrix: which source goes to me ("monitor"), the stream and the
+-- chat mic. Defaults as before the matrix existed (same in the Hub's audio.py).
+local ROUTE_SOURCES = { "mic", "game", "chat", "music", "system", "browser", "console" }
+local ROUTE_TARGETS = { "monitor", "stream", "chat" }
+local DEFAULT_ROUTES = {
+  mic = { monitor = false, stream = true, chat = true },
+}
+for _, source in ipairs (ROUTE_SOURCES) do
+  DEFAULT_ROUTES [source] = DEFAULT_ROUTES [source] or { monitor = true, stream = true, chat = false }
+end
+
+local routes = DEFAULT_ROUTES
+
+local function routed (source, target)
+  if source == "chat" and target == "chat" then
+    return false  -- Discord would hear itself
+  end
+  local ways = routes [source]
+  return ways == nil or ways [target] ~= false
+end
+
+-- Merges the matrix sent by the Hub over the defaults.
+local function parse_routes (value)
+  local parsed = value and Json.Raw (value):parse ()
+  if type (parsed) ~= "table" then
+    parsed = {}
+  end
+  local result = {}
+  for _, source in ipairs (ROUTE_SOURCES) do
+    result [source] = {}
+    local ways = type (parsed [source]) == "table" and parsed [source] or {}
+    for _, target in ipairs (ROUTE_TARGETS) do
+      local given = ways [target]
+      if type (given) == "boolean" then
+        result [source] [target] = given
+      else
+        result [source] [target] = DEFAULT_ROUTES [source] [target]
+      end
+    end
+  end
+  return result
+end
+
+local function routes_json (matrix)
+  local sources = {}
+  for source, ways in pairs (matrix) do
+    sources [source] = Json.Object (ways)
+  end
+  return Json.Object (sources):to_string ()
+end
+
 -- RNNoise state of the mic chain and whether the mic has an offset, kept up
 -- to date by the filter code below.
 local rnnoise_on = true
@@ -176,13 +240,11 @@ local function own_target (om, si_props, si_flags)
   elseif name == PREFIX .. "goxlr-stream.in" then
     return goxlr and goxlr_node (om, "Audio/Source", GOXLR_STREAM_MIX) or nil
   elseif name == PREFIX .. "mic.mix.out" then
-    -- With a GoXLR the mic is already in its hardware stream mix, unless
-    -- RNNoise or an offset is on: then the Hub takes it out there and we add
-    -- it here.
-    if goxlr and not rnnoise_on and not mic_offset_on then
-      return nil
-    end
+    -- Muted while the GoXLR's own stream mix carries the mic (see out_muted)
     return find_by_name (om, PREFIX .. "stream-mix")
+  elseif name == PREFIX .. "mic.monitor.out" then
+    -- A GoXLR does it in hardware (and never on the speakers)
+    return (not goxlr) and default_output (om, si_props) or nil
   end
 
   local channel, role = name:match ("^softglowos%.([%w]+)%.([%w]+)%.out$")
@@ -196,12 +258,17 @@ local function own_target (om, si_props, si_flags)
   elseif role == "monitor" then
     if hardware then
       return nil
-    elseif goxlr then
+    elseif goxlr and not on_speakers (om, si_props, goxlr) then
       return goxlr_node (om, "Audio/Sink", GOXLR_SAMPLE)
     end
     return default_output (om, si_props)
   elseif role == "goxlr" then
     return hardware and goxlr_node (om, "Audio/Sink", hardware) or nil
+  elseif role == "speakers" then
+    return (hardware and on_speakers (om, si_props, goxlr)) and
+        default_output (om, si_props) or nil
+  elseif role == "chat" then
+    return find_by_name (om, PREFIX .. "chat-mix")
   end
   return "keep"
 end
@@ -274,10 +341,62 @@ SimpleEventHook {
   end
 }:register ()
 
-local function rescan ()
-  local source = Plugin.find ("standard-event-source")
-  if source then
-    source:call ("schedule-rescan", "linking")
+-- Ways switched off in the routing matrix: the playback side of their
+-- loopback stays muted. Returns nil for loopbacks the matrix doesn't cover.
+local OUT_TARGETS = { monitor = "monitor", speakers = "monitor", mix = "stream", chat = "chat" }
+
+local function out_muted (name, goxlr)
+  if name == PREFIX .. "mic.mix.out" then
+    -- With a GoXLR the mic is already in its hardware stream mix, unless
+    -- RNNoise or an offset is on: then the Hub takes it out there and we add
+    -- it here.
+    return not routed ("mic", "stream") or (goxlr and not rnnoise_on and not mic_offset_on)
+  end
+  local source, way = name:match ("^softglowos%.([%w]+)%.([%w]+)%.out$")
+  local target = OUT_TARGETS [way]
+  if target == nil or routes [source] == nil then
+    return nil
+  end
+  return not routed (source, target)
+end
+
+outs_om = ObjectManager {
+  Interest {
+    type = "node",
+    Constraint { "node.name", "#", PREFIX .. "*.out" },
+  }
+}
+
+sinks_om = ObjectManager {
+  Interest {
+    type = "node",
+    Constraint { "media.class", "=", "Audio/Sink" },
+  }
+}
+
+local function goxlr_present ()
+  for node in sinks_om:iterate () do
+    if is_goxlr (node.properties) then
+      return true
+    end
+  end
+  return false
+end
+
+local function apply_mute (node, goxlr)
+  local muted = out_muted (node.properties ["node.name"], goxlr)
+  if muted ~= nil then
+    node:set_param ("Props", Pod.Object {
+      "Spa:Pod:Object:Param:Props", "Props",
+      mute = muted,
+    })
+  end
+end
+
+local function apply_routes ()
+  local goxlr = goxlr_present ()
+  for node in outs_om:iterate () do
+    apply_mute (node, goxlr)
   end
 end
 
@@ -333,13 +452,13 @@ local function save_params (node)
   local gain = values ["rnnoise_mix:Gain 1"]
   if gain ~= nil and (gain > 0.5) ~= rnnoise_on then
     rnnoise_on = gain > 0.5
-    rescan ()
+    apply_routes ()
   end
   if node.properties ["node.name"] == MIC_OFFSET then
     local on = (values ["offset:Delay (s)"] or 0) > 0
     if on ~= mic_offset_on then
       mic_offset_on = on
-      rescan ()
+      apply_routes ()
     end
   end
 end
@@ -363,6 +482,7 @@ local function restore_params (node)
   if node.properties ["node.name"] == MIC_OFFSET then
     mic_offset_on = (values ["offset:Delay (s)"] or 0) > 0
   end
+  apply_routes ()
   if #params > 0 then
     node:set_param ("Props", Pod.Object {
       "Spa:Pod:Object:Param:Props", "Props",
@@ -374,8 +494,8 @@ end
 -- The mic chain and every delay filter behind an offset.
 local FILTER_NODES = { PREFIX .. "mic.in", PREFIX .. "console-offset.in", MIC_OFFSET }
 for _, channel in ipairs ({ "game", "chat", "music", "system", "browser" }) do
-  for _, path in ipairs ({ "stream", "monitor", "goxlr" }) do
-    if path ~= "goxlr" or GOXLR_SINKS [channel] then
+  for _, path in ipairs ({ "stream", "monitor", "goxlr", "speakers" }) do
+    if (path ~= "goxlr" and path ~= "speakers") or GOXLR_SINKS [channel] then
       table.insert (FILTER_NODES, PREFIX .. channel .. "." .. path .. ".in")
     end
   end
@@ -398,3 +518,58 @@ filters_om:connect ("object-added", function (_, node)
 end)
 
 filters_om:activate ()
+
+-- The routing matrix. The Hub writes "routes" (and, with a GoXLR, "goxlr-mutes":
+-- channels it muted through the GoXLR's routing) into the metadata; both are
+-- remembered here and put back after a restart.
+
+local ROUTING_KEYS = { "routes", "goxlr-mutes" }
+
+local function publish_routing (m)
+  for _, key in ipairs (ROUTING_KEYS) do
+    local value = saved ["routing:" .. key]
+    if key == "routes" then
+      value = routes_json (routes)
+    end
+    if value then
+      m:set (0, key, "Spa:String:JSON", value)
+    end
+  end
+end
+
+routes = parse_routes (saved ["routing:routes"])
+
+local function on_routing_changed (key, value)
+  if key == "routes" then
+    routes = parse_routes (value)
+    value = routes_json (routes)
+    apply_routes ()
+  elseif key ~= "goxlr-mutes" then
+    return
+  end
+  saved ["routing:" .. key] = value
+  state:save_after_timeout (saved)
+end
+
+routing_metadata = ImplMetadata ("softglowos-routing")
+routing_metadata:activate (Features.ALL, function (m, e)
+  if e then
+    log:warning ("failed to activate the routing metadata: " .. tostring (e))
+    return
+  end
+  publish_routing (m)
+  m:connect ("changed", function (_m, subject, key, _type, value)
+    if subject == 0 then
+      on_routing_changed (key, value)
+    end
+  end)
+end)
+
+outs_om:connect ("object-added", function (_, node)
+  apply_mute (node, goxlr_present ())
+end)
+-- A GoXLR coming or going changes what the mic's way into the stream mix does
+sinks_om:connect ("object-added", apply_routes)
+sinks_om:connect ("object-removed", apply_routes)
+outs_om:activate ()
+sinks_om:activate ()
