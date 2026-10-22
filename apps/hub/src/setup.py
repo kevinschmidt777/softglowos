@@ -18,8 +18,9 @@ from pathlib import Path
 import gi
 
 gi.require_version('NM', '1.0')
+gi.require_version('Soup', '3.0')
 
-from gi.repository import Adw, Gio, GLib, Gtk, NM
+from gi.repository import Adw, Gio, GLib, Gtk, NM, Soup
 
 from . import crash_reports
 from .devices_page import DevicesPage
@@ -37,6 +38,7 @@ ACCENT_NAMES = {
 }
 NIGHT_THEME_SWITCHER = 'nightthemeswitcher@romainvigier.fr'
 NIGHT_THEME_SWITCHER_TIME = 'org.gnome.shell.extensions.nightthemeswitcher.time'
+GEOIP_URL = 'https://geoip.fedoraproject.org/city'
 WALLPAPERS = '/usr/share/backgrounds/softglowos/softglowos-{}.jpg'
 
 
@@ -375,7 +377,8 @@ class SetupWindow(Adw.ApplicationWindow):
                 subtitle=_('Switches at sunrise and sunset instead of 7 am and 7 pm.'),
                 active=not self.night_settings.get_boolean('manual-schedule'),
                 visible=current == 'auto')
-            self.location_row.connect('notify::active', self._on_location)
+            self._location_handler = self.location_row.connect('notify::active',
+                                                               self._on_location)
             location = Adw.PreferencesGroup()
             location.add(self.location_row)
             box.append(location)
@@ -416,10 +419,32 @@ class SetupWindow(Adw.ApplicationWindow):
             self.settings.set_string('color-scheme', f'prefer-{mode}')
 
     def _on_location(self, row, _param):
-        use = row.get_active()
-        if use:
-            Gio.Settings(schema_id='org.gnome.system.location').set_boolean('enabled', True)
-        self.night_settings.set_boolean('manual-schedule', not use)
+        if not row.get_active():
+            self.night_settings.set_boolean('manual-schedule', True)
+            return
+        # If GeoClue fails before Night Theme Switcher ever had a location,
+        # it says "Unknown Location" and switches to the fixed times for
+        # good; with a rough first location (as the keyboard uses) it falls
+        # back on that silently
+        row.set_sensitive(False)
+        session = Soup.Session(timeout=10)
+        session.send_and_read_async(Soup.Message.new('GET', GEOIP_URL), GLib.PRIORITY_DEFAULT,
+                                    None, self._on_geoip, row)
+
+    def _on_geoip(self, session, result, row):
+        row.set_sensitive(True)
+        try:
+            data = json.loads(session.send_and_read_finish(result).get_data())
+            location = GLib.Variant('(dd)', (float(data['latitude']), float(data['longitude'])))
+        except (GLib.Error, ValueError, KeyError, TypeError):
+            with row.handler_block(self._location_handler):
+                row.set_active(False)
+            row.set_subtitle(_('Your location couldn\'t be found, so the fixed times stay. '
+                               'Try again once you\'re online.'))
+            return
+        self.night_settings.set_value('location', location)
+        Gio.Settings(schema_id='org.gnome.system.location').set_boolean('enabled', True)
+        self.night_settings.set_boolean('manual-schedule', False)
 
     def _shell_extension(self, method):
         Gio.bus_get_sync(Gio.BusType.SESSION, None).call(

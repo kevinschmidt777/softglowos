@@ -718,3 +718,6 @@ msgstr "Fader, Tasten und Animationen im Detail"
 
 msgid "GoXLR Utility"
 msgstr "GoXLR Utility"
+
+msgid "Your location couldn't be found, so the fixed times stay. Try again once you're online."
+msgstr "Dein Standort ließ sich nicht ermitteln, deshalb bleiben die festen Zeiten. Versuch es nochmal, sobald du online bist."
