@@ -1,5 +1,5 @@
-"""RGB lighting through OpenRGB (no GTK here, softglowos-lighting-save and
--login use it too).
+"""RGB lighting through OpenRGB, plus the GoXLR through its own daemon (no
+GTK here, softglowos-lighting-save and -login use it too).
 
 The user service softglowos-lighting runs the OpenRGB server, reachable
 from this computer only. It starts once the Hub's Lighting page is opened
@@ -14,9 +14,11 @@ Zones like ARGB headers can't tell how many LEDs hang on them and start
 with none; they get their maximum, so one color reaches every LED without
 setting them up in OpenRGB (sizes set there stay)."""
 
+import colorsys
 import json
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 
 from openrgb import OpenRGBClient, orgb
@@ -37,6 +39,11 @@ EFFECT_MODES = {
     'static': ('static', 'direct'),
     'rainbow': ('rainbow wave', 'spectrum cycle', 'rainbow'),
 }
+
+GOXLR_API = 'http://localhost:14564/api/'
+GOXLR_UTILITY_URL = 'http://localhost:14564/'
+GOXLR_MUTE_BUTTONS = ('Fader1Mute', 'Fader2Mute', 'Fader3Mute', 'Fader4Mute')
+GOXLR_FADERS = ('A', 'B', 'C', 'D')
 
 # openrgb-python drops a zone's size limits; keep them for _fill_empty_zones()
 _zone_update = orgb.Zone._update
@@ -119,7 +126,8 @@ def _fill_empty_zones(client):
 def effects(client):
     """The effects at least one device can do, in menu order."""
     return [effect for effect in EFFECT_MODES
-            if effect == 'static' or any(_mode(device, effect) for device in client.devices)]
+            if effect == 'static' or goxlr_count()
+            or any(_mode(device, effect) for device in client.devices)]
 
 
 def apply(client, settings, devices=None):
@@ -191,3 +199,60 @@ def _apply_device(client, device, settings):
     if mode.color_mode == ModeColors.PER_LED:
         device.set_color(color, fast=True)
 
+
+# The GoXLR's lighting, through the GoXLR Utility daemon's HTTP API
+
+def _goxlr_request(path, data=None):
+    request = urllib.request.Request(
+        GOXLR_API + path, data=json.dumps(data).encode() if data is not None else None,
+        headers={'Content-Type': 'application/json'})
+    with urllib.request.urlopen(request, timeout=3) as response:
+        return json.loads(response.read() or 'null')
+
+
+def _goxlr_mixers():
+    try:
+        return _goxlr_request('get-devices').get('mixers') or {}
+    except (OSError, ValueError):
+        return {}  # no daemon, no GoXLR
+
+
+def goxlr_count():
+    return len(_goxlr_mixers())
+
+
+def apply_goxlr(settings):
+    """Static: everything in the color. Rainbow: the GoXLR's own rainbow
+    animation where its firmware has one, else a rainbow across the faders
+    that stands still. Off: everything dark. Kept in the GoXLR profile."""
+    for serial, mixer in _goxlr_mixers().items():
+        def command(name, *args):
+            _goxlr_request('command', {'Command': [serial, {name: args[0] if len(args) == 1
+                                                            else list(args)}]})
+        try:
+            animated = mixer['lighting']['animation']['supported']
+            rainbow = settings['on'] and settings['effect'] == 'rainbow'
+            if animated:
+                command('SetAnimationMode', 'RainbowBright' if rainbow else 'None')
+            if not settings['on']:
+                command('SetGlobalColour', '000000')
+            elif not rainbow:
+                command('SetGlobalColour', _hex(settings['color'], settings['brightness']))
+            elif not animated:
+                for index, (fader, button) in enumerate(zip(GOXLR_FADERS, GOXLR_MUTE_BUTTONS)):
+                    hue = index / len(GOXLR_FADERS)
+                    color = _hex('#{:02x}{:02x}{:02x}'.format(
+                        *(round(v * 255) for v in colorsys.hsv_to_rgb(hue, 1, 1))),
+                        settings['brightness'])
+                    command('SetFaderColours', fader, color, color)
+                    command('SetButtonColours', button, color, None)
+            command('SaveProfile')
+        except (OSError, ValueError, KeyError) as error:
+            print(f'Lighting: GoXLR {serial}: {error}')
+
+
+def _hex(color, brightness):
+    """'#2190a4' at 50 % -> '104852', the way the GoXLR wants it."""
+    color = RGBColor.fromHEX(color)
+    return '{:02X}{:02X}{:02X}'.format(
+        *(round(value * brightness / 100) for value in (color.red, color.green, color.blue)))

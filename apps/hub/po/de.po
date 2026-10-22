@@ -710,3 +710,11 @@ msgstr "Wähle eine .goxlr- oder .goxlrMicProfile-Datei."
 msgid "OK"
 msgstr "OK"
 
+msgid "GoXLR lighting"
+msgstr "GoXLR-Beleuchtung"
+
+msgid "Faders, buttons and animations in detail"
+msgstr "Fader, Tasten und Animationen im Detail"
+
+msgid "GoXLR Utility"
+msgstr "GoXLR Utility"

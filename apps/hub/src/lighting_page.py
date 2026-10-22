@@ -25,6 +25,7 @@ class Lighting(GObject.Object):
         self.state = 'idle'
         self.settings = lighting.load_settings()
         self.device_count = 0
+        self.goxlr = False
         self.effects = ['static']
         self._client = None
         self._pending = None
@@ -66,21 +67,25 @@ class Lighting(GObject.Object):
     def _connect(self):
         lighting.start_service()
         self._client = lighting.connect()
-        GLib.idle_add(self._connected, len(self._client.devices), lighting.effects(self._client))
+        goxlrs = lighting.goxlr_count()
+        GLib.idle_add(self._connected, len(self._client.devices) + goxlrs, goxlrs > 0,
+                      lighting.effects(self._client))
 
     def _apply(self):
         settings, self._pending = self._pending, None
         if settings is None or self._client is None:
             return  # a newer change already went through
         lighting.apply(self._client, settings)
+        lighting.apply_goxlr(settings)
         lighting.save_profile(self._client, settings)
         GLib.idle_add(self._saved, settings['devices'])
         lighting.enable_service()
 
     # Back in the main loop
 
-    def _connected(self, count, effects):
+    def _connected(self, count, goxlr, effects):
         self.device_count = count
+        self.goxlr = goxlr
         self.effects = effects
         self._set('ready' if count else 'none')
 
@@ -102,6 +107,10 @@ def open_openrgb(_button=None):
     else:
         Gio.Subprocess.new(['openrgb'], Gio.SubprocessFlags.NONE)
 
+
+def open_goxlr_utility(_button=None):
+    """The GoXLR Utility's own interface, for the GoXLR's lighting in detail."""
+    Gio.AppInfo.launch_default_for_uri(lighting.GOXLR_UTILITY_URL, None)
 
 
 def _status_button(label, callback, suggested=False):
@@ -189,6 +198,12 @@ class LightingPage(Gtk.Stack):
         openrgb_button.connect('clicked', open_openrgb)
         openrgb_row.add_suffix(openrgb_button)
         more.add(openrgb_row)
+        self.goxlr_row = Adw.ActionRow(title=_('GoXLR lighting'),
+                                       subtitle=_('Faders, buttons and animations in detail'))
+        goxlr_button = Gtk.Button(label=_('GoXLR Utility'), valign=Gtk.Align.CENTER)
+        goxlr_button.connect('clicked', open_goxlr_utility)
+        self.goxlr_row.add_suffix(goxlr_button)
+        more.add(self.goxlr_row)
         page.add(more)
         return page
 
@@ -200,6 +215,7 @@ class LightingPage(Gtk.Stack):
         count = self.lighting.device_count
         self.on_row.set_subtitle(_('One device') if count == 1
                                  else _('{count} devices').format(count=count))
+        self.goxlr_row.set_visible(self.lighting.goxlr)
         labels = {'static': _('Static'), 'rainbow': _('Rainbow')}
         self._updating = True
         self.effect_row.set_model(Gtk.StringList.new([labels[e] for e in self.lighting.effects]))
