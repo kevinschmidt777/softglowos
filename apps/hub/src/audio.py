@@ -89,6 +89,7 @@ class PipeWireMixer(GObject.Object):
         self._refresh_pending = False
         self._meters = []
         self._levels = {}
+        self._levels_timer = None
         self._filters = None
 
         Gst.init(None)
@@ -330,20 +331,30 @@ class PipeWireMixer(GObject.Object):
             bus.connect('message::element', self._on_level, key)
             pipeline.set_state(Gst.State.PLAYING)
             self._meters.append(pipeline)
+        self._levels_timer = GLib.timeout_add(METER_INTERVAL_NS // Gst.MSECOND,
+                                              self._emit_levels)
 
     def stop_meters(self):
         for pipeline in self._meters:
             pipeline.set_state(Gst.State.NULL)
         self._meters = []
+        if self._levels_timer:
+            GLib.source_remove(self._levels_timer)
+            self._levels_timer = None
 
     def _on_level(self, _bus, message, key):
+        # Only notes the value: redrawing the meters for each of the many
+        # messages made them fall further and further behind
         structure = message.get_structure()
         if structure is None or structure.get_name() != 'level':
             return
         peak = max(structure.get_value('peak'))
         level = 0.0 if math.isinf(peak) else max(0.0, 1 - peak / METER_FLOOR_DB)
         self._levels[key] = min(level, 1.0)
+
+    def _emit_levels(self):
         self.emit('levels', dict(self._levels))
+        return GLib.SOURCE_CONTINUE
 
     # Changes made elsewhere (GNOME settings, other apps, WirePlumber)
 
