@@ -1,0 +1,291 @@
+#!/usr/bin/python3
+# Pairs Bluetooth mice and keyboards before the installer opens, for
+# computers without a wired one (like the Mac's setup assistant does). With
+# a keyboard and a mouse (or touchpad) already there it exits right away;
+# otherwise a full-screen window asks to put them into pairing mode, pairs
+# whatever input device shows up and closes once both work. The kickstart
+# copies the pairings into the installed system, so they work at its login
+# screen too. --force shows the window anyway and keeps it (for testing).
+
+import random
+import sys
+from pathlib import Path
+
+import gi
+
+gi.require_version('Adw', '1')
+gi.require_version('Gtk', '4.0')
+gi.require_version('GUdev', '1.0')
+
+from gi.repository import Adw, Gio, GLib, GUdev, Gtk
+
+BLUEZ = 'org.bluez'
+AGENT_PATH = '/com/softglowos/LivePairing'
+INPUT_ICONS = ('input-keyboard', 'input-mouse', 'input-tablet', 'input-gaming')
+INPUT_UUIDS = ('00001124-0000-1000-8000-00805f9b34fb',  # HID
+               '00001812-0000-1000-8000-00805f9b34fb')  # HID over GATT
+CHECK_SECONDS = 2
+LOGO = '/usr/share/icons/hicolor/scalable/places/softglowos-logo.svg'
+
+AGENT_XML = '''
+<node>
+  <interface name="org.bluez.Agent1">
+    <method name="Release"/>
+    <method name="RequestPinCode"><arg type="o" direction="in"/><arg type="s" direction="out"/></method>
+    <method name="DisplayPinCode"><arg type="o" direction="in"/><arg type="s" direction="in"/></method>
+    <method name="RequestPasskey"><arg type="o" direction="in"/><arg type="u" direction="out"/></method>
+    <method name="DisplayPasskey"><arg type="o" direction="in"/><arg type="u" direction="in"/><arg type="q" direction="in"/></method>
+    <method name="RequestConfirmation"><arg type="o" direction="in"/><arg type="u" direction="in"/></method>
+    <method name="RequestAuthorization"><arg type="o" direction="in"/></method>
+    <method name="AuthorizeService"><arg type="o" direction="in"/><arg type="s" direction="in"/></method>
+    <method name="Cancel"/>
+  </interface>
+</node>'''
+
+# Shown in German and English: the installer asks for the language only later
+TEXTS = {
+    'title': ('Maus und Tastatur verbinden', 'Connect your mouse and keyboard'),
+    'body': ('Es ist keine Maus oder Tastatur angeschlossen. Schalte an deiner '
+             'Bluetooth-Maus und -Tastatur jetzt den Kopplungsmodus ein – meist eine '
+             'Taste gedrückt halten, bis ein Licht blinkt.',
+             'No mouse or keyboard is connected. Put your Bluetooth mouse and keyboard '
+             'into pairing mode now – usually by holding a button until a light blinks.'),
+    'searching': ('Suche läuft …', 'Searching …'),
+    'no_adapter': ('Kein Bluetooth gefunden. Schließ eine Maus und Tastatur per Kabel '
+                   'oder USB-Empfänger an.',
+                   'No Bluetooth found. Connect a mouse and keyboard by cable or USB '
+                   'receiver.'),
+    'pairing': ('Wird gekoppelt …', 'Pairing …'),
+    'connected': ('Verbunden ✓', 'Connected ✓'),
+    'failed': ('Hat nicht geklappt – Kopplungsmodus nochmal einschalten',
+               'Didn\'t work – turn pairing mode on again'),
+    'code': ('Tippe {code} auf der Tastatur und drück Enter',
+             'Type {code} on the keyboard and press Enter'),
+    'skip': ('Ohne weiter', 'Continue without'),
+}
+
+
+def text(key, **values):
+    german, english = TEXTS[key]
+    return f'{german.format(**values)}\n{english.format(**values)}'
+
+
+def has_keyboard_and_pointer():
+    keyboard = pointer = False
+    for device in GUdev.Client().query_by_subsystem('input'):
+        if not (device.get_device_file() or '').startswith('/dev/input/event'):
+            continue
+        keyboard |= device.get_property_as_boolean('ID_INPUT_KEYBOARD')
+        pointer |= any(device.get_property_as_boolean(f'ID_INPUT_{kind}')
+                       for kind in ('MOUSE', 'TOUCHPAD', 'TABLET'))
+    return keyboard and pointer
+
+
+class Pairing:
+    """BlueZ side: an agent that shows codes, discovery, and pairing every
+    input device that shows up."""
+
+    def __init__(self, on_status):
+        self._on_status = on_status  # (device path, name, status) -> None
+        self._bus = Gio.bus_get_sync(Gio.BusType.SYSTEM)
+        self._busy = set()
+        self._devices = {}  # path -> Device1 properties, kept up to date
+        self.adapter = self._find_adapter()
+        if self.adapter is None:
+            return
+        node = Gio.DBusNodeInfo.new_for_xml(AGENT_XML)
+        self._bus.register_object(AGENT_PATH, node.interfaces[0], self._on_agent_call)
+        self._call('/org/bluez', 'org.bluez.AgentManager1', 'RegisterAgent',
+                   GLib.Variant('(os)', (AGENT_PATH, 'KeyboardDisplay')))
+        self._call('/org/bluez', 'org.bluez.AgentManager1', 'RequestDefaultAgent',
+                   GLib.Variant('(o)', (AGENT_PATH,)))
+        self._set(self.adapter, 'org.bluez.Adapter1', 'Powered', GLib.Variant('b', True))
+        self._set(self.adapter, 'org.bluez.Adapter1', 'Pairable', GLib.Variant('b', True))
+        self._bus.signal_subscribe(BLUEZ, 'org.freedesktop.DBus.ObjectManager',
+                                   'InterfacesAdded', None, None, 0, self._on_added)
+        self._bus.signal_subscribe(BLUEZ, 'org.freedesktop.DBus.Properties',
+                                   'PropertiesChanged', None, None, 0, self._on_changed)
+        self._call(self.adapter, 'org.bluez.Adapter1', 'StartDiscovery', None)
+        for path, interfaces in self._objects().items():
+            self._consider(path, interfaces.get('org.bluez.Device1'))
+
+    def stop(self):
+        if self.adapter:
+            self._call(self.adapter, 'org.bluez.Adapter1', 'StopDiscovery', None)
+
+    # D-Bus helpers
+
+    def _call(self, path, interface, method, args, callback=None, timeout_ms=-1):
+        def done(bus, result):
+            try:
+                bus.call_finish(result)
+                ok = True
+            except GLib.Error as error:
+                print(f'{method} {path}: {error.message}')
+                ok = False
+            if callback:
+                callback(ok)
+        self._bus.call(BLUEZ, path, interface, method, args, None,
+                       Gio.DBusCallFlags.NONE, timeout_ms, None, done)
+
+    def _set(self, path, interface, name, value):
+        self._call(path, 'org.freedesktop.DBus.Properties', 'Set',
+                   GLib.Variant('(ssv)', (interface, name, value)))
+
+    def _objects(self):
+        reply = self._bus.call_sync(BLUEZ, '/', 'org.freedesktop.DBus.ObjectManager',
+                                    'GetManagedObjects', None, None,
+                                    Gio.DBusCallFlags.NONE, -1, None)
+        return reply.unpack()[0]
+
+    def _find_adapter(self):
+        try:
+            objects = self._objects()
+        except GLib.Error:
+            return None  # no bluetoothd
+        return next((path for path, interfaces in objects.items()
+                     if 'org.bluez.Adapter1' in interfaces), None)
+
+    # Devices
+
+    def _on_added(self, _bus, _sender, _path, _interface, _signal, params):
+        path, interfaces = params.unpack()
+        self._consider(path, interfaces.get('org.bluez.Device1'))
+
+    def _on_changed(self, _bus, _sender, path, _interface, _signal, params):
+        interface, changed, _invalidated = params.unpack()
+        if interface == 'org.bluez.Device1' and path in self._devices:
+            self._consider(path, changed)
+
+    def _consider(self, path, properties):
+        if not properties:
+            return
+        device = self._devices.setdefault(path, {})
+        device.update(properties)
+        if path in self._busy:
+            return
+        uuids = device.get('UUIDs', [])
+        if device.get('Icon') not in INPUT_ICONS and not any(u in uuids for u in INPUT_UUIDS):
+            return
+        name = device.get('Alias') or device.get('Name') or device.get('Address', '')
+        if device.get('Paired') and device.get('Connected'):
+            self._on_status(path, name, 'connected')
+            return
+        self._busy.add(path)
+        self._on_status(path, name, 'pairing')
+
+        def connected(ok):
+            self._busy.discard(path)
+            self._on_status(path, name, 'connected' if ok else 'failed')
+
+        def paired(ok):
+            if not ok:
+                connected(False)
+                return
+            self._set(path, 'org.bluez.Device1', 'Trusted', GLib.Variant('b', True))
+            self._call(path, 'org.bluez.Device1', 'Connect', None, connected, 30_000)
+
+        if device.get('Paired'):
+            paired(True)
+        else:
+            self._call(path, 'org.bluez.Device1', 'Pair', None, paired, 90_000)
+
+    # Agent: keyboards may want a code typed on them, everything else is accepted
+
+    def _on_agent_call(self, _bus, _sender, _path, _interface, method, params, invocation):
+        if method == 'RequestPinCode':
+            code = f'{random.randrange(1_000_000):06d}'
+            self._on_status(params.unpack()[0], None, 'code', code)
+            invocation.return_value(GLib.Variant('(s)', (code,)))
+        elif method == 'RequestPasskey':
+            code = random.randrange(1_000_000)
+            self._on_status(params.unpack()[0], None, 'code', f'{code:06d}')
+            invocation.return_value(GLib.Variant('(u)', (code,)))
+        elif method in ('DisplayPinCode', 'DisplayPasskey'):
+            device, code = params.unpack()[:2]
+            code = code if isinstance(code, str) else f'{code:06d}'
+            self._on_status(device, None, 'code', code)
+            invocation.return_value(None)
+        else:  # Release, RequestConfirmation, RequestAuthorization, AuthorizeService, Cancel
+            invocation.return_value(None)
+
+
+class PairingWindow(Adw.ApplicationWindow):
+    def __init__(self, force=False, **kwargs):
+        super().__init__(**kwargs)
+        self._rows = {}
+        self._code_device = None
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18,
+                      valign=Gtk.Align.CENTER)
+        if Path(LOGO).exists():
+            box.append(Gtk.Image(file=LOGO, pixel_size=96))
+        title = Gtk.Label(label=text('title'), justify=Gtk.Justification.CENTER)
+        title.add_css_class('title-1')
+        box.append(title)
+        self.body = Gtk.Label(label=text('body'), wrap=True, justify=Gtk.Justification.CENTER)
+        box.append(self.body)
+        self.code = Gtk.Label(wrap=True, justify=Gtk.Justification.CENTER, visible=False)
+        self.code.add_css_class('title-3')
+        box.append(self.code)
+        self.devices = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, visible=False)
+        self.devices.add_css_class('boxed-list')
+        box.append(self.devices)
+        searching = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
+        searching.append(Adw.Spinner())
+        self.searching = Gtk.Label(label=text('searching'), justify=Gtk.Justification.CENTER)
+        self.searching.add_css_class('dim-label')
+        searching.append(self.searching)
+        box.append(searching)
+        skip = Gtk.Button(child=Gtk.Label(label=text('skip'), justify=Gtk.Justification.CENTER),
+                          halign=Gtk.Align.CENTER)
+        skip.connect('clicked', lambda _button: self.close())
+        box.append(skip)
+        self.set_content(Adw.Clamp(child=box, maximum_size=560, margin_start=24,
+                                   margin_end=24))
+        self.fullscreen()
+
+        self.pairing = Pairing(self._on_status)
+        if self.pairing.adapter is None:
+            self.body.set_label(text('no_adapter'))
+            searching.set_visible(False)
+        self.connect('close-request', lambda _window: self.pairing.stop())
+        if not force:
+            GLib.timeout_add_seconds(CHECK_SECONDS, self._check)
+
+    def _check(self):
+        if has_keyboard_and_pointer():
+            self.close()
+            return GLib.SOURCE_REMOVE
+        return GLib.SOURCE_CONTINUE
+
+    def _on_status(self, path, name, status, code=None):
+        if status == 'code':
+            self._code_device = path
+            self.code.set_label(text('code', code=code))
+            self.code.set_visible(True)
+            return
+        row = self._rows.get(path)
+        if row is None:
+            row = Adw.ActionRow(title=GLib.markup_escape_text(name or ''))
+            row.status = Gtk.Label(justify=Gtk.Justification.RIGHT)
+            row.status.add_css_class('caption')
+            row.add_suffix(row.status)
+            self._rows[path] = row
+            self.devices.append(row)
+            self.devices.set_visible(True)
+        row.status.set_label(text(status))
+        if status != 'pairing' and path == self._code_device:
+            self.code.set_visible(False)
+
+
+def main():
+    force = '--force' in sys.argv
+    if not force and has_keyboard_and_pointer():
+        return 0
+    app = Adw.Application(application_id='com.softglowos.LivePairing')
+    app.connect('activate', lambda app: PairingWindow(force, application=app).present())
+    return app.run([])
+
+
+if __name__ == '__main__':
+    sys.exit(main())

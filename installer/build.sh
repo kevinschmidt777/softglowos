@@ -85,6 +85,14 @@ LC_ALL=C mokutil --sb-state | grep -q 'SecureBoot enabled' || exit 0
 run0 --user=liveuser zenity --info --title='Secure Boot' --width=480 --text="\$(cat /usr/share/softglowos/secure-boot.txt)" || :
 %end
 
+# Bluetooth mice and keyboards paired in the live system (softglowos-live-pairing)
+# work at the installed system's login screen too
+%post --nochroot
+[ -d /var/lib/bluetooth ] && [ -d "\$ANA_INSTALL_PATH/var" ] || exit 0
+mkdir -p "\$ANA_INSTALL_PATH/var/lib/bluetooth"
+cp -a /var/lib/bluetooth/. "\$ANA_INSTALL_PATH/var/lib/bluetooth/"
+%end
+
 # Installed: closing the installer restarts the computer (softglowos-installer)
 %post --nochroot
 touch /run/softglowos/installed

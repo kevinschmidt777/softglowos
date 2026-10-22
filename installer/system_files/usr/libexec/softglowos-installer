@@ -4,6 +4,9 @@
 # leaves /run/softglowos/installed when the installation went through, so
 # quitting the installer before that keeps the live system running.
 
+# Without a mouse or keyboard, pair Bluetooth ones first
+/usr/libexec/softglowos-live-pairing || :
+
 # Anaconda takes the keyboard layout from the GNOME session when it starts, so
 # wait for the layout by location (softglowos-live-keyboard, which may still
 # be waiting for the network) and switch the session to it, once per session
