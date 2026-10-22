@@ -3,5 +3,19 @@
 # after installing (its finish button reads "Restart system"). The kickstart
 # leaves /run/softglowos/installed when the installation went through, so
 # quitting the installer before that keeps the live system running.
+
+# Anaconda takes the keyboard layout from the GNOME session when it starts, so
+# wait for the layout by location (softglowos-live-keyboard, which may still
+# be waiting for the network) and switch the session to it, once per session
+for _ in {1..20}; do
+  case $(systemctl is-active softglowos-live-keyboard.service) in active | failed) break ;; esac
+  sleep 1
+done
+marker=$XDG_RUNTIME_DIR/softglowos-keyboard
+if [ -s /run/softglowos/keyboard ] && [ ! -e "$marker" ]; then
+  gsettings set org.gnome.desktop.input-sources sources "[('xkb', '$(cat /run/softglowos/keyboard)')]"
+  touch "$marker"
+fi
+
 liveinst "$@"
 [ -e /run/softglowos/installed ] && systemctl reboot

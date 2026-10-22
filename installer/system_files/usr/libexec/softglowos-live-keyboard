@@ -2,8 +2,10 @@
 # Sets the keyboard layout by location, the way Anaconda preselects language
 # and time zone: country from Fedora's GeoIP service, its usual layout from
 # langtable. Anaconda leaves the keyboard to GNOME on a live desktop, so
-# without this it stays "us". Sets the system layout (taken over by the
-# installed system) and the live user's session. Offline it stays "us".
+# without this it stays "us". Sets the system layout and leaves the session's
+# input source in /run/softglowos/keyboard, which softglowos-installer applies
+# before Anaconda starts (Anaconda takes the layout from the GNOME session).
+# Offline it stays "us".
 set -euo pipefail
 
 country=$(curl -fsS --max-time 15 --retry 3 https://geoip.fedoraproject.org/city |
@@ -26,8 +28,6 @@ if ! localectl status | grep -q 'VC Keymap: [a-z]'; then
 fi
 
 source="$layout${variant:++$variant}"
-if systemctl is-active --quiet user@"$(id -u liveuser)".service; then
-  systemd-run --quiet --wait --user --machine=liveuser@ \
-    gsettings set org.gnome.desktop.input-sources sources "[('xkb', '$source')]"
-fi
+mkdir -p /run/softglowos
+echo "$source" >/run/softglowos/keyboard
 echo "Keyboard layout for $country: $source"

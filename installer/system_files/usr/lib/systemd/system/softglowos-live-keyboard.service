@@ -5,6 +5,8 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+# "active" once done, which softglowos-installer waits for
+RemainAfterExit=yes
 ExecStart=/usr/libexec/softglowos-live-keyboard
 
 [Install]
