@@ -69,7 +69,7 @@ class DevicesPage(Adw.PreferencesPage):
                    stream_deck_connected())
         self._show('mic', _('Microphone'),
                    mic.description if mic else _('No microphone'), mic is not None)
-        self._show('headphones', _('Headphones'),
+        self._show('headphones', _('Audio output'),
                    output.description if output else _('No output'), output is not None)
 
     def _show(self, device_id, title, subtitle, connected):

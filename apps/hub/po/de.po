@@ -235,8 +235,8 @@ msgstr "Der Ton landet im Kanal „Konsole“"
 msgid "Set up in StreamController"
 msgstr "Einrichten in StreamController"
 
-msgid "Headphones"
-msgstr "Kopfhörer"
+msgid "Audio output"
+msgstr "Audioausgabe"
 
 msgid "No output"
 msgstr "Keine Ausgabe"
