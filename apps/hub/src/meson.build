@@ -39,6 +39,7 @@ install_data(
   'mixer_page.py',
   'strips.py',
   'widgets.py',
+  'mic_setup.py',
   'audio.py',
   'goxlr.py',
   'software.py',

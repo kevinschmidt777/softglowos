@@ -5,6 +5,7 @@ src/mixer-page.blp
 src/mixer_page.py
 src/strips.py
 src/widgets.py
+src/mic_setup.py
 src/goxlr.py
 src/software.py
 src/software_page.py

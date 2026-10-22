@@ -154,6 +154,25 @@ class PipeWireMixer(GObject.Object):
         if stream is not None:
             self._pulse.source_output_mute(stream.index, muted)
 
+    # Mic setup: without a GoXLR only the input level of the device itself
+
+    def mic_type(self):
+        """GoXLR mic type, None without a GoXLR."""
+        return None
+
+    def _mic_source(self):
+        device = self.current_microphone()
+        return self._pulse.get_source_by_name(device.name) if device else None
+
+    def mic_input_level(self):
+        source = self._mic_source()
+        return round(source.volume.value_flat * 100) if source else None
+
+    def set_mic_input_level(self, value):
+        source = self._mic_source()
+        if source is not None:
+            self._pulse.volume_set_all_chans(source, value / 100)
+
     # Filters
 
     def _node_id(self, name):

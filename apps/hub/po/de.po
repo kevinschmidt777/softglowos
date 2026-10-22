@@ -648,3 +648,66 @@ msgstr "Atmen"
 
 msgid "Rainbow"
 msgstr "Regenbogen"
+
+msgid "Mic setup"
+msgstr "Mic-Setup"
+
+msgid "Dynamic"
+msgstr "Dynamisch"
+
+msgid "Condenser (48 V phantom power)"
+msgstr "Kondensator (48 V Phantomspeisung)"
+
+msgid "Jack (3.5 mm)"
+msgstr "Klinke (3,5 mm)"
+
+msgid "How loud your microphone comes in. Turn it up if it is too quiet, down if it distorts."
+msgstr "Wie laut dein Mikrofon ankommt. Dreh hoch, wenn es zu leise ist, und runter, wenn es verzerrt."
+
+msgid "Input level"
+msgstr "Eingangspegel"
+
+msgid "Condenser turns on 48 V phantom power. Condenser microphones need it, and so do inline preamps like the FetHead."
+msgstr "„Kondensator“ schaltet 48 V Phantomspeisung ein. Die brauchen Kondensatormikrofone und Vorverstärker wie der FetHead."
+
+msgid "Microphone type"
+msgstr "Mikrofon-Typ"
+
+msgid "Gain"
+msgstr "Gain"
+
+msgid "Profiles"
+msgstr "Profile"
+
+msgid "The GoXLR keeps its settings in two profiles: one for the device, one for the microphone. Profiles from the GoXLR app on Windows or the GoXLR Utility can be imported."
+msgstr "Der GoXLR speichert seine Einstellungen in zwei Profilen: eins fürs Gerät, eins fürs Mikrofon. Profile aus der GoXLR-App unter Windows oder aus der GoXLR Utility kannst du importieren."
+
+msgid "Device profile"
+msgstr "Geräteprofil"
+
+msgid "Microphone profile"
+msgstr "Mikrofonprofil"
+
+msgid "Import…"
+msgstr "Importieren …"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Saved"
+msgstr "Gespeichert"
+
+msgid "GoXLR profiles"
+msgstr "GoXLR-Profile"
+
+msgid "Import GoXLR profile"
+msgstr "GoXLR-Profil importieren"
+
+msgid "Not a GoXLR profile"
+msgstr "Kein GoXLR-Profil"
+
+msgid "Choose a .goxlr or .goxlrMicProfile file."
+msgstr "Wähle eine .goxlr- oder .goxlrMicProfile-Datei."
+
+msgid "OK"
+msgstr "OK"

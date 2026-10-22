@@ -1,5 +1,6 @@
 from gi.repository import Adw, GLib, Gtk
 
+from .mic_setup import MicSetupDialog
 from .strips import ChannelStrip, MicStrip
 from .widgets import DevicePicker, EqDialog
 
@@ -47,6 +48,7 @@ class MixerPage(Adw.Bin):
         self.mic.connect('mute-changed', lambda _s, muted: mixer.set_mic_muted(muted))
         self.mic.connect('filter-changed', lambda _s, name, on: mixer.set_filter(name, on))
         self.mic.connect('eq-requested', self._on_eq_requested)
+        self.mic.connect('setup-requested', lambda _s: MicSetupDialog(mixer).present(self))
         self.mic.connect('offset-changed', lambda _s, ms: mixer.set_offset_ms('mic', ms))
         self.mic.badge.set_popover(self._fader_menu('mic'))
         self.strips.append(self.mic)

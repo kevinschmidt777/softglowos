@@ -172,6 +172,7 @@ class MicStrip(Gtk.Box):
         'mute-changed': (GObject.SignalFlags.RUN_FIRST, None, (bool,)),
         'filter-changed': (GObject.SignalFlags.RUN_FIRST, None, (str, bool)),
         'eq-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
+        'setup-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'offset-changed': (GObject.SignalFlags.RUN_FIRST, None, (int,)),
     }
 
@@ -210,9 +211,14 @@ class MicStrip(Gtk.Box):
             self._switches[filter_id] = (switch, handler)
             row.append(switch)
             filters.append(row)
-        eq_button = Gtk.Button(label=_('Open EQ'), halign=Gtk.Align.CENTER, margin_top=4)
+        buttons = Gtk.Box(spacing=6, halign=Gtk.Align.CENTER, margin_top=4)
+        eq_button = Gtk.Button(label=_('Open EQ'))
         eq_button.connect('clicked', lambda _button: self.emit('eq-requested'))
-        filters.append(eq_button)
+        buttons.append(eq_button)
+        setup_button = Gtk.Button(label=_('Mic setup'))
+        setup_button.connect('clicked', lambda _button: self.emit('setup-requested'))
+        buttons.append(setup_button)
+        filters.append(buttons)
         strip.append(filters)
 
         self.mute_button = Gtk.ToggleButton(label=_('Mute'), valign=Gtk.Align.END,

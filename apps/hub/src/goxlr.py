@@ -22,6 +22,8 @@ How our mixer maps onto the GoXLR:
   GoXLR's stream mix
 """
 import json
+import shutil
+from pathlib import Path
 
 import gi
 
@@ -54,6 +56,10 @@ MUTE_FUNCTIONS = {(True, True): 'All', (True, False): 'ToStream', (False, True):
 MUTED_MIXES = {'All': (True, True), 'ToStream': (True, False), 'ToStreams': (True, False),
                'ToPhones': (False, True)}
 
+MIC_TYPES = ('Dynamic', 'Condenser', 'Jack')
+MIC_GAIN_MAX_DB = 72
+PROFILE_SUFFIX = '.goxlr'
+MIC_PROFILE_SUFFIX = '.goxlrMicProfile'
 
 
 def _to_goxlr(value):
@@ -116,7 +122,8 @@ class GoXLRClient(GObject.Object):
     def command(self, name, *args):
         if self._socket is None or self.serial is None:
             return
-        value = list(args) if len(args) > 1 else (args[0] if args else None)
+        # One argument goes as is, none or several as a list ("SaveProfile()" -> [])
+        value = args[0] if len(args) == 1 else list(args)
         self._send({'Command': [self.serial, {name: value}]})
 
     def _send(self, data):
@@ -191,13 +198,16 @@ class Mixer(PipeWireMixer):
         return mixer['hardware']['device_type'] if mixer else None
 
     def _on_goxlr_changed(self, _client):
-        if self.goxlr_active and self._prepared != self.goxlr.serial:
-            self._prepared = self.goxlr.serial
+        # A loaded profile brings its own routing, so prepare again after one
+        prepared = (self.goxlr.serial, self.goxlr.mixer['profile_name']) \
+            if self.goxlr_active else None
+        if prepared and self._prepared != prepared:
+            self._prepared = prepared
             self._prepare()
         self.emit('changed')
 
     def _prepare(self):
-        """Sets the GoXLR up the way our mixer expects it (once per device)."""
+        """Sets the GoXLR up the way our mixer expects it (once per device and profile)."""
         mixer = self.goxlr.mixer
         levels = mixer['levels']
         if levels.get('submix_supported'):
@@ -316,6 +326,54 @@ class Mixer(PipeWireMixer):
         self.goxlr.command('SetRouter', 'Microphone', 'ChatMic', not muted)
         stream = not muted and not self._mic_in_software()
         self.goxlr.command('SetRouter', 'Microphone', 'BroadcastMix', stream)
+
+    # Mic setup: type (Condenser = 48 V phantom power) and gain per type
+
+    def mic_type(self):
+        if not self.goxlr_active:
+            return None
+        return self.goxlr.mixer['mic_status']['mic_type']
+
+    def set_mic_type(self, mic_type):
+        self.goxlr.command('SetMicrophoneType', mic_type)
+
+    def mic_gain_db(self):
+        mic = self.goxlr.mixer['mic_status']
+        return mic['mic_gains'][mic['mic_type']]
+
+    def set_mic_gain_db(self, gain_db):
+        self.goxlr.command('SetMicrophoneGain', self.mic_type(), round(gain_db))
+
+    # Profiles: the GoXLR Utility keeps the device settings and the mic
+    # settings (type, gain, gate, compressor, EQ) in two profile files
+
+    def profiles(self, mic=False):
+        files = (self.goxlr.status or {}).get('files') or {}
+        return sorted(files.get('mic_profiles' if mic else 'profiles') or [], key=str.lower)
+
+    def profile(self, mic=False):
+        return self.goxlr.mixer['mic_profile_name' if mic else 'profile_name']
+
+    def load_profile(self, name, mic=False):
+        self.goxlr.command('LoadMicProfile' if mic else 'LoadProfile', name, True)
+
+    def save_profiles(self):
+        self.goxlr.command('SaveProfile')
+        self.goxlr.command('SaveMicProfile')
+
+    def import_profile(self, path):
+        """Copies a profile file (from the GoXLR Utility or the Windows app)
+        into the profile folder and loads it. False if it's no profile."""
+        path = Path(path)
+        mic = path.suffix == MIC_PROFILE_SUFFIX
+        if not mic and path.suffix != PROFILE_SUFFIX:
+            return False
+        paths = self.goxlr.status['paths']
+        folder = Path(paths['mic_profile_directory' if mic else 'profile_directory'])
+        folder.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, folder / path.name)
+        self.load_profile(path.stem, mic)
+        return True
 
     # Filters
 
