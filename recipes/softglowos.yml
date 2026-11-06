@@ -6,7 +6,7 @@ description: A Linux desktop for gamers and Twitch streamers, built on Bazzite G
 # AMD and Intel graphics. Also what the ISO installs: SoftglowOS switches
 # itself to softglowos-nvidia when it finds a supported NVIDIA card.
 base-image: ghcr.io/ublue-os/bazzite-gnome
-image-version: stable
+image-version: stable-44
 
 modules:
   - from-file: common.yml
