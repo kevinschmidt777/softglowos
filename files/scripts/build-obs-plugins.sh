@@ -37,7 +37,7 @@ GLOW_VERSION=1.6.1
 GLOW_SHA256=30599db40834100988c3b89a1ac6ad823c13c3905b1af8e802fd1a18d1818b8f
 GLOW_URL=$FINITE_URL/obs-stroke-glow-shadow/releases/download/v$GLOW_VERSION/obs-stroke-glow-shadow-$GLOW_VERSION-source.tar.xz
 
-BUILD_DEPS=(cmake gcc gcc-c++ libcurl-devel obs-studio-devel)
+BUILD_DEPS=(cmake gcc gcc-c++ libcurl-devel obs-studio-devel qt6-qtbase-devel qt6-qtsvg-devel)
 
 missing=()
 for pkg in "${BUILD_DEPS[@]}"; do
@@ -58,18 +58,20 @@ fetch() {  # url sha256 dir
   tar -xf "$tmp/src.tar" -C "$3" --strip-components=1
 }
 
-build_standard() {  # url sha256 name: for plugins on OBS's plugin template
-  fetch "$1" "$2" "$tmp/$3"
-  cmake -S "$tmp/$3" -B "$tmp/$3/build" -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_COMPILE_WARNING_AS_ERROR=OFF
-  cmake --build "$tmp/$3/build" -j"$(nproc)"
-  cmake --install "$tmp/$3/build"
+build_standard() {  # url sha256 name [cmake flags]: for plugins on OBS's plugin template
+  local url=$1 sha256=$2 name=$3
+  shift 3
+  fetch "$url" "$sha256" "$tmp/$name"
+  cmake -S "$tmp/$name" -B "$tmp/$name/build" -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_COMPILE_WARNING_AS_ERROR=OFF "$@"
+  cmake --build "$tmp/$name/build" -j"$(nproc)"
+  cmake --install "$tmp/$name/build"
 }
 
 build_standard "$MOVE_URL" "$MOVE_SHA256" move
 build_standard "$CLONE_URL" "$CLONE_SHA256" clone
 build_standard "$BLUR_URL" "$BLUR_SHA256" blur
-build_standard "$MASKS_URL" "$MASKS_SHA256" masks
+build_standard "$MASKS_URL" "$MASKS_SHA256" masks -DENABLE_QT=ON -DENABLE_FRONTEND_API=ON
 build_standard "$GLOW_URL" "$GLOW_SHA256" glow
 
 fetch "$RECORD_URL" "$RECORD_SHA256" "$tmp/record"
