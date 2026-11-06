@@ -88,7 +88,8 @@ cp -r "$tmp/stage/usr/share/obs/obs-plugins/source-record/locale" /usr/share/obs
 # Same older build setup, so again only the plugin and its data
 fetch "$SHADER_URL" "$SHADER_SHA256" "$tmp/shader"
 cmake -S "$tmp/shader" -B "$tmp/shader/build" -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=/usr -DLIB_OUT_DIR=/lib64/obs-plugins
+  -DCMAKE_INSTALL_PREFIX=/usr -DLIB_OUT_DIR=/lib64/obs-plugins \
+  -DCMAKE_C_FLAGS=-Wno-error=discarded-qualifiers
 cmake --build "$tmp/shader/build" -j"$(nproc)"
 DESTDIR="$tmp/shader-stage" cmake --install "$tmp/shader/build"
 install -D -m 755 "$tmp/shader-stage/usr/lib64/obs-plugins/obs-shaderfilter.so" /usr/lib64/obs-plugins/obs-shaderfilter.so
