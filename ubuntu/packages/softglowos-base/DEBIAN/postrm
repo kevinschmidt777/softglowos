@@ -1,0 +1,24 @@
+#!/bin/sh
+# Hands wpctl and os-release back to Ubuntu and removes what
+# softglowos-refresh and postinst generated
+set -e
+
+if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+  rm -rf /usr/share/softglowos/overlays /var/lib/softglowos/overlays.stamp
+  rm -f /usr/lib/environment.d/60-softglowos-overlays.conf
+  find /usr/share/plymouth/themes/softglowos -type l -delete 2>/dev/null || true
+  rm -f /usr/share/plymouth/themes/softglowos/softglowos.plymouth
+
+  dpkg-divert --package softglowos-base --remove --rename \
+    --divert /usr/bin/wpctl.distrib /usr/bin/wpctl
+  dpkg-divert --package softglowos-base --remove --no-rename \
+    --divert /usr/lib/os-release.ubuntu /usr/lib/os-release
+  # Ubuntu's own version back in place, without a moment without one
+  if [ -e /usr/lib/os-release.ubuntu ]; then
+    mv -f /usr/lib/os-release.ubuntu /usr/lib/os-release
+  fi
+
+  if [ -x /usr/share/gdm/generate-config ]; then
+    /usr/share/gdm/generate-config || true
+  fi
+fi

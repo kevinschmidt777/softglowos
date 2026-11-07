@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+# Keeps the files SoftglowOS derives from other Ubuntu packages in step with
+# them. On Fedora the image build does this once (render-branding.sh,
+# hide-gnome-donate.sh, hide-mixer-from-mic-indicator.sh); here those packages
+# update on their own, so this runs from postinst and after every apt run
+# (/etc/apt/apt.conf.d/80-softglowos-refresh).
+#
+# - /usr/lib/os-release: Ubuntu's copy (diverted to os-release.ubuntu) with
+#   our name and links. ID stays "ubuntu", PPAs and installers check it.
+# - G_RESOURCE_OVERLAYS: hides the donate banner in Settings > About and
+#   teaches GNOME Shell's microphone indicator to skip our mixer's streams.
+#   Both are cut out of the installed binaries again whenever those change.
+#   When the code they patch is gone, that overlay is left out and the
+#   system keeps working, only without that tweak.
+#
+# Never fails: a broken refresh must not break apt.
+set -uo pipefail
+
+UBUNTU_OS_RELEASE=/usr/lib/os-release.ubuntu
+OS_RELEASE=/usr/lib/os-release
+OVERLAYS=/usr/share/softglowos/overlays
+ENV_FILE=/usr/lib/environment.d/60-softglowos-overlays.conf
+STAMP=/var/lib/softglowos/overlays.stamp
+
+log() { echo "softglowos-refresh: $*" >&2; }
+
+refresh_os_release() {
+  [ -f "$UBUNTU_OS_RELEASE" ] || return 0
+  local tmp
+  tmp=$(mktemp) || return 0
+  grep -vE '^(NAME|PRETTY_NAME|LOGO|ANSI_COLOR|DEFAULT_HOSTNAME|HOME_URL|DOCUMENTATION_URL|SUPPORT_URL|BUG_REPORT_URL|PRIVACY_POLICY_URL)=' \
+    "$UBUNTU_OS_RELEASE" > "$tmp"
+  # Same values as the os-release module in recipes/common.yml
+  cat >> "$tmp" <<'EOF'
+NAME="SoftglowOS"
+PRETTY_NAME="SoftglowOS"
+LOGO=softglowos-logo
+ANSI_COLOR="0;38;2;92;198;214"
+DEFAULT_HOSTNAME=softglowos
+HOME_URL="https://softglowos.com"
+DOCUMENTATION_URL="https://softglowos.com"
+SUPPORT_URL="https://github.com/kevinschmidt777/softglowos/issues"
+BUG_REPORT_URL="https://github.com/kevinschmidt777/softglowos/issues"
+EOF
+  if cmp -s "$tmp" "$OS_RELEASE"; then
+    rm -f "$tmp"
+  else
+    install -m 644 "$tmp" "$OS_RELEASE"
+    rm -f "$tmp"
+  fi
+}
+
+shell_library() {
+  ls /usr/lib/gnome-shell/libshell-*.so /usr/lib/*/gnome-shell/libshell-*.so 2>/dev/null | head -n1
+}
+
+# Settings > System > About without the "Support GNOME / Donate" banner
+patch_about_page() {
+  gresource extract /usr/bin/gnome-control-center "$1" | python3 -c '
+import sys, xml.etree.ElementTree as ET
+root = ET.fromstring(sys.stdin.buffer.read())
+parents = {c: p for p in root.iter() for c in p}
+signals = [s for s in root.iter("signal") if s.get("handler") == "on_donate_button_clicked_cb"]
+if not signals:
+    sys.exit("donate banner not found")
+node = signals[0]
+while not (node.tag == "object" and node.get("class") == "AdwPreferencesGroup"):
+    node = parents[node]
+child = parents[node]
+parents[child].remove(child)
+sys.stdout.buffer.write(ET.tostring(root, encoding="utf-8", xml_declaration=True))
+'
+}
+
+# The microphone indicator skips streams named softglowos.* (our mixer
+# records all the time), the way it already skips Settings and pavucontrol
+patch_volume_js() {
+  gresource extract "$(shell_library)" "$1" | python3 -c '
+import sys
+code = sys.stdin.read()
+old = ".get_source_outputs().some("
+new = (".get_source_outputs()"
+       ".filter(o => ![o.get_name(), o.get_description()]"
+       ".some(n => (n ?? \"\").startsWith(\"softglowos.\"))).some(")
+if code.count(old) != 1:
+    sys.exit("mic indicator code not found")
+sys.stdout.write(code.replace(old, new))
+'
+}
+
+refresh_overlays() {
+  command -v gresource >/dev/null || return 0
+  local lib sources stamp entries=() res out
+  lib=$(shell_library)
+  sources=$(ls -l --time-style=+%s /usr/bin/gnome-control-center "$lib" 2>/dev/null)
+  stamp=$(printf '%s' "$sources" | sha256sum | cut -d' ' -f1)
+  [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$stamp" ] && [ -f "$ENV_FILE" ] && return 0
+
+  mkdir -p "$OVERLAYS" "$(dirname "$STAMP")" "$(dirname "$ENV_FILE")"
+
+  res=/org/gnome/control-center/system/about/cc-about-page.ui
+  out=$OVERLAYS/cc-about-page.ui
+  if [ -x /usr/bin/gnome-control-center ] && patch_about_page "$res" > "$out.new"; then
+    mv "$out.new" "$out" && entries+=("$res=$out")
+  else
+    rm -f "$out.new" "$out"; log "left out the Settings > About overlay"
+  fi
+
+  res=/org/gnome/shell/ui/status/volume.js
+  out=$OVERLAYS/volume.js
+  if [ -n "$lib" ] && patch_volume_js "$res" > "$out.new"; then
+    mv "$out.new" "$out" && entries+=("$res=$out")
+  else
+    rm -f "$out.new" "$out"; log "left out the microphone indicator overlay"
+  fi
+
+  if [ ${#entries[@]} -gt 0 ]; then
+    (IFS=:; echo "G_RESOURCE_OVERLAYS=${entries[*]}") > "$ENV_FILE"
+  else
+    rm -f "$ENV_FILE"
+  fi
+  echo "$stamp" > "$STAMP"
+}
+
+refresh_os_release || log "os-release not updated"
+refresh_overlays || log "overlays not updated"
+exit 0

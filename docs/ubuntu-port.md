@@ -58,6 +58,20 @@ monitor mix follows it). It doesn't touch latency. We keep Ubuntu's
 WirePlumber and divert `wpctl` to a small wrapper in `softglowos-base` that
 blocks only that call.
 
+## Building
+
+`ubuntu/build.sh [package…]` builds the packages in an Ubuntu 26.04
+container into `ubuntu/out/`. Each package in `ubuntu/packages/` has a
+`DEBIAN/` folder, an optional `root/` with Ubuntu-only files and an optional
+`stage.sh` that takes the shared files from `files/` and `apps/`.
+
+`softglowos-base` swaps Ubuntu's session, Yaru and dock for plain GNOME with
+our extensions (pinned in `extensions.list`), Geist, wallpapers, boot splash,
+login logo, the GNOME defaults Bazzite gave us, and our PipeWire/WirePlumber
+config. `softglowos-refresh` rebuilds `os-release` and the GNOME overlays
+(donate banner, microphone indicator) after every apt run, because unlike the
+image those come from packages that update on their own.
+
 ## Testing
 
 1. Basics in the VM

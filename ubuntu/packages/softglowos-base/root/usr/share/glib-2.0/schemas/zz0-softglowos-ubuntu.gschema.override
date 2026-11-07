@@ -1,0 +1,90 @@
+# The defaults SoftglowOS gets from Bazzite's zz0-* overrides on Fedora,
+# which Ubuntu doesn't have. zz1-softglowos.gschema.override (shared with
+# the Bazzite image) goes on top.
+
+[org.gnome.desktop.wm.keybindings]
+switch-applications=['<Super>Tab']
+switch-applications-backward=['<Shift><Super>Tab']
+switch-windows=['<Alt>Tab']
+switch-windows-backward=['<Shift><Alt>Tab']
+
+[org.gnome.desktop.peripherals.keyboard]
+numlock-state=true
+
+[org.gtk.Settings.FileChooser]
+sort-directories-first=true
+
+[org.gtk.gtk4.Settings.FileChooser]
+sort-directories-first=true
+
+[org.gnome.nautilus.preferences]
+show-create-link=true
+
+[org.gnome.mutter]
+check-alive-timeout=uint32 20000
+center-new-windows=true
+
+# GNOME Software only opens downloaded .deb files, Bazaar is the store; apt
+# and the Hub handle updates
+[org.gnome.software]
+allow-updates=false
+download-updates=false
+download-updates-notify=false
+
+[org.gnome.Ptyxis]
+restore-session=false
+restore-window-size=false
+audible-bell=false
+
+[org.gnome.shell.extensions.appindicator]
+legacy-tray-enabled=false
+
+[org.gnome.desktop.thumbnailers]
+disable=['inode/directory']
+
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+enable-hot-corners=false
+gtk-theme='Adwaita'
+icon-theme='Adwaita'
+cursor-theme='Adwaita'
+
+[org.gnome.desktop.sound]
+theme-name='freedesktop'
+
+[org.gnome.shell.extensions.blur-my-shell.panel]
+blur=true
+static-blur=true
+unblur-in-overview=true
+
+[org.gnome.shell.extensions.blur-my-shell.overview]
+style-components=3
+
+[org.gnome.shell.extensions.blur-my-shell.appfolder]
+blur=false
+style-dialogs=0
+
+[org.gnome.shell.extensions.blur-my-shell.applications]
+blur=false
+opacity=255
+whitelist=['org.gnome.Ptyxis']
+
+[org.gnome.shell.extensions.blur-my-shell.screenshot]
+blur=true
+
+[org.gnome.shell.extensions.blur-my-shell.lockscreen]
+blur=true
+
+[org.gnome.shell.extensions.blur-my-shell.dash-to-dock]
+blur=true
+
+# On Fedora this lives in the distro dconf database
+# (files/system/etc/dconf/db/distro.d/20-softglowos-logomenu); here the
+# extension's schema is installed system-wide, so an override works
+[org.gnome.shell.extensions.logo-menu]
+use-custom-icon=true
+custom-icon-path='/usr/share/softglowos/branding/logo-symbolic.svg'
+symbolic-icon=true
+show-activities-button=false
+show-power-options=true
+show-gamemode=false

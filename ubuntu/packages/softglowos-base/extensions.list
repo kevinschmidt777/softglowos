@@ -1,0 +1,15 @@
+# GNOME Shell extensions from extensions.gnome.org (Ubuntu packages none of
+# them for GNOME 50), installed system-wide. The same set the Bazzite image
+# enables, minus the magic lamp effect (dropped there too) and Bazaar's own
+# integration, which comes with our Bazaar package.
+# uuid                                    version  version_tag  sha256
+dash2dock-lite@icedman.github.com          92  71180  14db6849ba6edcb63f25032007e182d2b7d842568e9c1386587d7a08c6c53abe
+just-perfection-desktop@just-perfection    37  74466  c54ccd627540d86e6baf06c699f624ba7d5229aedfc8b00b0dc7182c6538eda8
+nightthemeswitcher@romainvigier.fr         83  73047  cc6562cd951c221c0319d8d7bd37d1a7255d43d1557ef6fa7da2bcc25a177a1a
+logomenu@aryan_k                           45  75631  78e6507d9aa033a17e7e2997ac5a1190b327b97ba019a313f1a9285854753ed2
+appindicatorsupport@rgcjonas.gmail.com     66  75340  94fe0ef32b84f184fee0ce2bb0edca7020a99e48210c43bbfc0c884a5c4660de
+blur-my-shell@aunetx                       77  77413  3218766acf4b0feed700ba518a1db5616f59c7e1036758ffbd18bf4743e9b2db
+hotedge@jonathan.jdoda.ca                  32  74490  4b816de2c335b2518d368b557f604099d82698112acbb2b9ea838f7473c67352
+caffeine@patapon.info                      61  76057  3ec59c6d1a62c26ba5c45128b084b62ef4e112fa66008768b5094df940e6a164
+add-to-steam@pupper.space                   4  69857  e09e248920d73d662ddbc070db33cc8f7b5589aeec2d8e5fa25b8e415ba5519c
+restartto@tiagoporsch.github.io            17  73214  16edfd59e432f8bf1aed4e02e2d87a49512367537019d2c2acb1e8517fd410af

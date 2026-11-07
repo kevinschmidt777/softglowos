@@ -1,0 +1,3 @@
+// Re-derives os-release and the GNOME overlays after updates of the packages
+// they come from (see /usr/libexec/softglowos-refresh)
+DPkg::Post-Invoke { "[ ! -x /usr/libexec/softglowos-refresh ] || /usr/libexec/softglowos-refresh || true"; };

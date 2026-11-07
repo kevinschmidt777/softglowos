@@ -1,0 +1,17 @@
+Package: softglowos-base
+Version: @VERSION@
+Architecture: all
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://softglowos.com
+Section: misc
+Priority: optional
+Depends: gnome-shell (>= 50), gnome-session, gdm3, gnome-shell-extensions,
+ gnome-shell-extension-gsconnect, pipewire, wireplumber, plymouth,
+ plymouth-theme-spinner, dconf-cli, libglib2.0-bin, python3
+Recommends: fastfetch
+Conflicts: ubuntu-session, ubuntu-settings, gnome-shell-ubuntu-extensions,
+ yaru-theme-gnome-shell
+Description: SoftglowOS desktop, branding and audio configuration
+ The SoftglowOS look on plain GNOME instead of Ubuntu's (dock, top bar,
+ extensions, fonts, wallpapers, boot splash, login logo) and the PipeWire
+ and WirePlumber configuration behind the Hub's mixer.

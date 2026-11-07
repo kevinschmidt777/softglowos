@@ -1,0 +1,15 @@
+#!/bin/sh
+# Moves Ubuntu's wpctl and os-release aside before ours take their place
+# (see /usr/bin/wpctl and /usr/libexec/softglowos-refresh)
+set -e
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+  dpkg-divert --package softglowos-base --add --rename \
+    --divert /usr/bin/wpctl.distrib /usr/bin/wpctl
+  # base-files is Essential, so its os-release is never moved away (dpkg
+  # warns against --rename there): it stays in place until postinst writes
+  # ours, and a copy goes where base-files updates will write from now on
+  dpkg-divert --package softglowos-base --add --no-rename \
+    --divert /usr/lib/os-release.ubuntu /usr/lib/os-release
+  [ -e /usr/lib/os-release.ubuntu ] || cp -a /usr/lib/os-release /usr/lib/os-release.ubuntu
+fi

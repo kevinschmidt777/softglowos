@@ -1,0 +1,18 @@
+#!/bin/sh
+# Steam runs "wpctl clear-default", which drops the output device the user
+# picked; WirePlumber then falls back to another one, and our monitor mix
+# follows it. Bazzite patches WirePlumber to refuse that call from Steam
+# (OpenGamingCollective's block_steam_clear_default.patch). We keep Ubuntu's
+# WirePlumber and divert its wpctl to wpctl.distrib instead, so updates keep
+# working, and refuse the same call here.
+for arg in "$@"; do
+  [ "$arg" = clear-default ] || continue
+  grandparent=$(awk '/^PPid:/ { print $2 }' "/proc/$PPID/status" 2>/dev/null)
+  for pid in "$PPID" $grandparent; do
+    if [ "$(cat "/proc/$pid/comm" 2>/dev/null)" = steam ]; then
+      echo "Command 'wpctl clear-default' is disabled when run from Steam" >&2
+      exit 1
+    fi
+  done
+done
+exec /usr/bin/wpctl.distrib "$@"

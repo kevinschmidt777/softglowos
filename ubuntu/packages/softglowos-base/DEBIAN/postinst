@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+THEMES=/usr/share/plymouth/themes
+
+if [ "$1" = configure ]; then
+  # os-release and the GNOME overlays
+  /usr/libexec/softglowos-refresh
+
+  # Boot splash: Ubuntu's spinner theme (what Bazzite uses) with our
+  # wordmark. Built from spinner.plymouth so it follows its updates; the
+  # animation frames are linked from there.
+  for image in "$THEMES"/spinner/*.png; do
+    [ "$(basename "$image")" = watermark.png ] && continue
+    ln -sf "$image" "$THEMES/softglowos/"
+  done
+  sed -e 's/^Name=.*/Name=SoftglowOS/' -e '/^Name\[/d' \
+    -e "s|^ImageDir=.*|ImageDir=$THEMES/softglowos|" \
+    "$THEMES/spinner/spinner.plymouth" > "$THEMES/softglowos/softglowos.plymouth"
+  update-alternatives --install "$THEMES/default.plymouth" default.plymouth \
+    "$THEMES/softglowos/softglowos.plymouth" 150
+  if command -v update-initramfs >/dev/null; then
+    update-initramfs -u || true
+  fi
+
+  # Login screen logo
+  if [ -x /usr/share/gdm/generate-config ]; then
+    /usr/share/gdm/generate-config || true
+  fi
+
+  if command -v fc-cache >/dev/null; then
+    fc-cache -f /usr/share/fonts/truetype/geist || true
+  fi
+  if command -v gtk-update-icon-cache >/dev/null; then
+    gtk-update-icon-cache -qf /usr/share/icons/hicolor || true
+  fi
+fi
