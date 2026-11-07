@@ -17,6 +17,12 @@ SWITCH = os.path.join(HELPERS, 'softglowos-switch-gpu')
 CHECK_STATES = ('fits-amd', 'fits-nvidia', 'old-nvidia', 'nvidia', 'amd', 'staged')
 
 
+def available():
+    """False where one system covers every card (SoftglowOS on Ubuntu), which
+    ships without these helpers."""
+    return os.path.exists(CHECK)
+
+
 class GraphicsDriver(GObject.Object):
     """State: checking, fits-amd, fits-nvidia, old-nvidia, nvidia or amd
     (a switch is needed), switching, staged, failed or unknown."""
@@ -34,6 +40,8 @@ class GraphicsDriver(GObject.Object):
         return self.state in ('nvidia', 'amd')
 
     def check(self):
+        if not available():
+            return
         self._set('checking')
         process = Gio.Subprocess.new([CHECK], Gio.SubprocessFlags.STDOUT_PIPE)
         process.communicate_utf8_async(None, None, self._on_checked)

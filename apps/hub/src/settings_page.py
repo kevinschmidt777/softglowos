@@ -2,6 +2,7 @@ from gi.repository import Adw, Gio, Gtk
 
 from . import crash_reports
 from .bug_report import BugReportDialog
+from . import gpu, updates
 from .gpu import GraphicsDriver
 from .updates import Updates, version
 
@@ -50,7 +51,9 @@ class SettingsPage(Adw.PreferencesPage):
         self.driver_row.add_suffix(self.driver_spinner)
         self.driver_row.add_suffix(self.driver_button)
         driver_group.add(self.driver_row)
-        self.add(driver_group)
+        # Only where SoftglowOS switches images by card (not on Ubuntu)
+        if gpu.available():
+            self.add(driver_group)
 
         mixer_group = Adw.PreferencesGroup(title=_('Mixer'))
         tray = Adw.SwitchRow(title=_('Mixer in the top bar'),
@@ -77,7 +80,9 @@ class SettingsPage(Adw.PreferencesPage):
                                       sensitive=False)
         self._beta_handler = self.beta_row.connect('notify::active', self._on_beta_toggled)
         group.add(self.beta_row)
-        self.add(group)
+        # Only with image updates (on Ubuntu, apt brings them for now)
+        if updates.available():
+            self.add(group)
 
         help_group = Adw.PreferencesGroup(title=_('Help'))
         report = Adw.ActionRow(title=_('Report a bug'), activatable=True,

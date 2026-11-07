@@ -20,6 +20,11 @@ HELPER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
                       'softglowos-resolve')
 
 
+def available():
+    """False without davincibox (SoftglowOS on Ubuntu, for now)."""
+    return os.path.exists(HELPER)
+
+
 class Resolve(GObject.Object):
     """State of the Resolve row: missing, waiting (for the download),
     working (installing or removing), installed or failed."""

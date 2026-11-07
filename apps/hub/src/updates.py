@@ -26,6 +26,12 @@ def version():
     return read('version'), read('build-date')
 
 
+def available():
+    """False on systems without image updates (SoftglowOS on Ubuntu, which
+    ships without these helpers)."""
+    return os.path.exists(CHECK)
+
+
 class Updates(GObject.Object):
     """State: checking, current, available, installing, staged, failed or
     unknown. channel is "stable", "beta" or None (not known yet)."""
@@ -40,6 +46,8 @@ class Updates(GObject.Object):
         self.channel = None
 
     def check(self):
+        if not available():
+            return
         self._set('checking')
         process = Gio.Subprocess.new([CHECK], Gio.SubprocessFlags.STDOUT_PIPE)
         process.communicate_utf8_async(None, None, self._on_checked)

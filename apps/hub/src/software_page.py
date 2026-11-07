@@ -1,6 +1,6 @@
 from gi.repository import Adw, Gtk
 
-from . import software
+from . import resolve, software
 from .affinity import Affinity
 from .resolve import Resolve
 
@@ -113,18 +113,19 @@ class SoftwarePage(Adw.PreferencesPage):
         apps = Adw.PreferencesGroup(title=_('Ready for creators'))
         self.rows = app_switches(apps)
 
-        apps.add(OnDemandRow(software.RESOLVE, Resolve(), {
-            'missing': _('Video editing, downloads the official installer from Blackmagic'),
-            'waiting': _('Download DaVinci Resolve for Linux in your browser, '
-                         'the Hub takes over from there'),
-            'steps': {
-                'unpack': _('Unpacking the installer …'),
-                'container': _('Downloading the Resolve environment, this takes a while …'),
-                'install': _('Installing …'),
-                'remove': _('Removing …'),
-            },
-            'remove': _('Resolve and its environment are deleted. Your projects and media stay.'),
-        }))
+        if resolve.available():
+            apps.add(OnDemandRow(software.RESOLVE, Resolve(), {
+                'missing': _('Video editing, downloads the official installer from Blackmagic'),
+                'waiting': _('Download DaVinci Resolve for Linux in your browser, '
+                             'the Hub takes over from there'),
+                'steps': {
+                    'unpack': _('Unpacking the installer …'),
+                    'container': _('Downloading the Resolve environment, this takes a while …'),
+                    'install': _('Installing …'),
+                    'remove': _('Removing …'),
+                },
+                'remove': _('Resolve and its environment are deleted. Your projects and media stay.'),
+            }))
 
         self.affinity = Affinity()
         apps.add(OnDemandRow(software.AFFINITY, self.affinity, {
