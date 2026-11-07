@@ -4,3 +4,4 @@ cosign.private
 *.iso
 *.iso-CHECKSUM
 .DS_Store
+ubuntu/out/
