@@ -51,7 +51,7 @@ download() {  # url sha256 file
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# GNOME Shell extensions, system-wide. Their schemas also go to the global
+# GNOME Shell extensions, system-wide. Their schemas go to the global
 # schema directory, so our gschema overrides apply to them.
 extensions=$DEST/usr/share/gnome-shell/extensions
 schemas=$DEST/usr/share/glib-2.0/schemas
@@ -60,11 +60,11 @@ grep -vE '^\s*(#|$)' "$PACKAGE_DIR/extensions.list" | while read -r uuid _ tag s
   download "https://extensions.gnome.org/download-extension/$uuid.shell-extension.zip?version_tag=$tag" \
     "$sha256" "$tmp/$uuid.zip"
   unzip -q "$tmp/$uuid.zip" -d "$extensions/$uuid"
-  rm -f "$extensions/$uuid/schemas/gschemas.compiled"
+  # An extension prefers a schemas/ folder of its own, which would ignore our
+  # overrides, so its schemas only live in the global directory
   if [ -d "$extensions/$uuid/schemas" ]; then
     cp "$extensions/$uuid/schemas/"*.gschema.xml "$schemas/"
-    # The extensions read their compiled schemas next to them
-    glib-compile-schemas "$extensions/$uuid/schemas"
+    rm -rf "$extensions/$uuid/schemas"
   fi
   chmod -R u=rwX,go=rX "$extensions/$uuid"
 done
