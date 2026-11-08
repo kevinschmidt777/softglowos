@@ -30,6 +30,9 @@ animation-magnify=1.0
 edge-distance=0.4
 trash-icon=false
 mounted-icon=false
+# A short dash under running apps. The extension's own default
+# style ('default', 0) has no drawing function, so nothing would show.
+running-indicator-style=4
 
 # macOS-style top bar: logo menu on the left, clock next to the status icons
 [org.gnome.shell.extensions.just-perfection]
