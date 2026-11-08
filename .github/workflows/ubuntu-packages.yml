@@ -2,8 +2,10 @@ name: Ubuntu packages
 
 # The Ubuntu prototype (docs/ubuntu-port.md): builds the .deb packages on
 # x86_64 and checks that they install on a stock Ubuntu 26.04, that OBS
-# finds every plugin and that the drivers are in place. The packages are kept
-# as a workflow artifact.
+# finds every plugin and that the drivers and launchers are in place. On
+# ubuntu-base it then publishes them as our apt repository on GitHub Pages,
+# signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
+# Utility (ubuntu/fetch-mirrored.sh).
 on:
   push:
     branches:
@@ -31,6 +33,11 @@ jobs:
 
       - name: Build the packages
         run: ubuntu/build.sh
+
+      - name: Add Heroic and GoXLR Utility
+        run: ubuntu/fetch-mirrored.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install them on Ubuntu 26.04
         run: |
@@ -70,6 +77,14 @@ jobs:
             grep -q "steam.distrib" /usr/games/steam && [ -x /usr/games/steam.distrib ]
             ls /usr/lib/sysctl.d/*softglowos* /usr/lib/udev/rules.d/60-softglowos-schedulers.rules \
               /etc/systemd/zram-generator.conf
+            grep -E "^(Exec|PrefersNonDefaultGPU)=" /usr/share/applications/heroic.desktop
+            grep -q "^Exec=env OBS_VKCAPTURE=1 " /usr/share/applications/heroic.desktop
+            echo "### Apps"
+            flatpak remotes --system | grep flathub
+            ls /etc/systemd/user/graphical-session.target.wants/goxlr-daemon.service \
+              /etc/systemd/user/graphical-session.target.wants/softglowos-streamcontroller.service \
+              /usr/share/softglowos/streamcontroller/com_core447_OBSPlugin/main.py \
+              /usr/lib/systemd/system/softglowos-vendor-apps.timer
           '
 
       - uses: actions/upload-artifact@v4
@@ -77,3 +92,44 @@ jobs:
           name: softglowos-ubuntu-packages
           path: ubuntu/out/*.deb
           retention-days: 14
+
+  publish:
+    name: Publish the apt repository
+    needs: build
+    if: github.ref == 'refs/heads/ubuntu-base'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: softglowos-ubuntu-packages
+          path: repo
+
+      # A flat repository (Suites: ./), signed like Ubuntu's own
+      - name: Index and sign
+        working-directory: repo
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          apt-ftparchive packages . > Packages
+          gzip -k9 Packages
+          apt-ftparchive -o APT::FTPArchive::Release::Origin=SoftglowOS \
+            -o APT::FTPArchive::Release::Label=SoftglowOS release . > Release
+          export GNUPGHOME=$(mktemp -d)
+          gpg --batch --import <<<"$APT_SIGNING_KEY"
+          gpg --batch --yes --clearsign -o InRelease Release
+          gpg --batch --yes -abs -o Release.gpg Release
+          gpg --armor --export > softglowos-archive.asc
+          ls -l
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: repo
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

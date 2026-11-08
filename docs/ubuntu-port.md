@@ -13,8 +13,8 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Base | Ubuntu 26.04 LTS, GNOME on Wayland |
 | Kernel | Ubuntu's stock kernel (HWE later). No gaming kernel: Secure Boot and NVIDIA rebuilds aren't worth the small gain |
 | Build | Our parts as `.deb` packages, an apt repository, a live ISO |
-| Packages | `softglowos-base`, `softglowos-hub`, `softglowos-rnnoise`, `softglowos-obs`, `softglowos-drivers`, `softglowos-gaming` |
-| apt repository | GitHub Pages, signed, filled by GitHub Actions |
+| Packages | `softglowos-base`, `softglowos-hub`, `softglowos-rnnoise`, `softglowos-obs`, `softglowos-drivers`, `softglowos-gaming`, `softglowos-apps`, `softglowos-vendor-apps` |
+| apt repository | GitHub Pages (`kevinschmidt777.github.io/softglowos`), a flat repository signed with `APT_SIGNING_KEY`, published by GitHub Actions from `ubuntu-base` |
 | Updates | Plain apt. No atomic updates or rollback (the biggest loss compared to Bazzite) |
 | Installer | Calamares with our branding, German with "du" |
 | NVIDIA | Picked per card by `ubuntu-drivers`: open modules for RTX 20 and newer, the proprietary driver for older cards. Installed from the ISO during installation, offline |
@@ -22,7 +22,8 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Audio | Ubuntu's PipeWire and Mesa plus our PipeWire/WirePlumber config. Newer versions from PPAs only if the hardware test shows problems |
 | Snap | Removed and pinned so apt can't bring it back |
 | App store | Bazaar (Flathub), built by us as "Softglow Store" (own name, icon and texts; Bazaar's authors stay credited in the About dialog) with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
-| Discord, Heroic | Official `.deb`s, mirrored into our apt repository daily so they update with the system |
+| Heroic, GoXLR Utility | Official `.deb`s (open source), mirrored into our apt repository on every build |
+| Chrome, Discord | Their licenses don't allow redistribution, so neither is in the ISO or our repository. `softglowos-vendor-apps` fetches the official `.deb` once the computer is online: once per app (a removed app stays removed). Chrome then updates through Google's repository, Discord through our timer while it isn't running |
 | Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
 | Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
 | Hub | Updates, channels, rollback and GPU image switching are hidden. GPU switching isn't needed on Ubuntu, one system covers every card |
@@ -101,6 +102,19 @@ NVIDIA settings from Bazzite. The NVIDIA driver itself is installed by the
 ISO with `ubuntu-drivers`, which takes Ubuntu's signed prebuilt modules. The
 OBS virtual camera's v4l2loopback module comes signed with Ubuntu's kernel
 (`linux-image-generic` depends on it), so OBS doesn't need DKMS.
+
+`softglowos-gaming` takes Steam from Ubuntu (`steam-installer`), Lutris,
+Gamemode, MangoHud, vkBasalt, Gamescope, Protontricks and Winetricks from
+the archive and Bazzite's system values. Steam puts its own app entry into
+the home folder on the first start, so the Game Capture variable
+(`OBS_VKCAPTURE=1`) sits in a wrapper diverted over `/usr/games/steam`;
+Lutris and Heroic get it in their app entries. The 32-bit parts (Steam's
+libraries, MangoHud, vkBasalt, Gamemode and NVIDIA's GL library for the
+installed driver) come with the ISO, which enables i386.
+
+`softglowos-apps` sets up StreamController (Flatpak from Flathub, installed
+by the ISO) with our mixer plugin and its OBS plugin, the GoXLR Utility
+daemon, OpenRGB and Flathub.
 
 The packages target x86_64. On Apple Silicon, Ubuntu 26.04's tar doesn't
 work under Rosetta at all, and under QEMU only packing fails, so the x86_64

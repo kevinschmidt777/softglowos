@@ -1,0 +1,6 @@
+# SoftglowOS's own packages, and Heroic and GoXLR Utility, which have no
+# repository of their own (built by .github/workflows/ubuntu-packages.yml)
+Types: deb
+URIs: https://kevinschmidt777.github.io/softglowos/
+Suites: ./
+Signed-By: /usr/share/keyrings/softglowos-archive.asc
