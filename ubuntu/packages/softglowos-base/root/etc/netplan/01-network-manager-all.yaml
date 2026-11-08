@@ -1,0 +1,5 @@
+# NetworkManager handles every network device, LAN included (Ubuntu leaves
+# devices without this unmanaged)
+network:
+  version: 2
+  renderer: NetworkManager

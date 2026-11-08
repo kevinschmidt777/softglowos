@@ -1,0 +1,5 @@
+# The live system mounts no disks on its own: the installer only offers to
+# erase a disk that has nothing mounted
+[org.gnome.desktop.media-handling]
+automount=false
+automount-open=false

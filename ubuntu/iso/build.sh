@@ -35,7 +35,7 @@ PACKAGES=(
   gnome-calculator gnome-calendar gnome-characters gnome-contacts gnome-clocks
   gnome-weather gnome-logs gnome-font-viewer gnome-firmware baobab
   gnome-system-monitor gnome-disk-utility gnome-shell-extension-manager flatseal
-  distrobox podman fonts-noto-core fonts-noto-color-emoji curl unzip nano
+  distrobox podman fonts-noto-core fonts-noto-color-emoji curl unzip nano iputils-ping
 )
 # 32-bit parts for games through Steam (Ubuntu has no 32-bit MangoHud or vkBasalt)
 PACKAGES_I386=(libgamemodeauto0:i386 mesa-vulkan-drivers:i386 libgl1-mesa-dri:i386)

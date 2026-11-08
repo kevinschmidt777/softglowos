@@ -78,3 +78,6 @@ mkdir -p "$fonts"
 cp "$tmp"/geist/geist-font/{Geist,GeistMono}/variable/*.ttf "$fonts/"
 cp "$tmp/geist/geist-font/OFL.txt" "$fonts/" 2>/dev/null || :
 chmod 644 "$fonts"/*
+
+# netplan only reads its files when nobody else can
+chmod 600 "$DEST/etc/netplan/01-network-manager-all.yaml"

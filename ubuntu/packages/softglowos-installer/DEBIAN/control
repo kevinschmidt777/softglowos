@@ -6,7 +6,7 @@ Homepage: https://softglowos.com
 Section: admin
 Priority: optional
 Depends: softglowos-base, softglowos-hub, softglowos-vendor-apps, calamares, casper, sudo,
- pciutils, ubuntu-drivers-common, grub-efi-amd64-signed, shim-signed, efibootmgr
+ pciutils, ubuntu-drivers-common, grub-efi-amd64-signed, shim-signed, efibootmgr, rsync
 Description: SoftglowOS installer for the live system
  Calamares with SoftglowOS's branding, opened on its own in the live session
  of the ISO. It installs Ubuntu's signed NVIDIA driver from the ISO where
