@@ -98,7 +98,8 @@ cp -a "$tmp/obs-vkcapture/stage/." "$DEST/"
 # DroidCam (phone as webcam), built with its own Makefile
 fetch "$DROIDCAM_URL" "$DROIDCAM_SHA256" "$tmp/droidcam"
 mkdir -p "$tmp/droidcam/build"
-make -C "$tmp/droidcam" -j"$(nproc)" \
+# Its Makefile adds to a variable SRC, which is ours (the repo) in the environment
+env -u SRC make -C "$tmp/droidcam" -j"$(nproc)" \
   LIBOBS_INCLUDES=/usr/include/obs FFMPEG_INCLUDES="/usr/include/$arch_dir" \
   LIBUSBMUXD=libusbmuxd-2.0 LIBIMOBILEDEV=libimobiledevice-1.0 >/dev/null
 install -D -m 644 "$tmp/droidcam/build/droidcam-obs.so" "$DEST$plugins/droidcam-obs.so"
