@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generates the SoftglowOS wallpapers as 4K JPEGs.
 
-Each wallpaper is a flat background with a few very soft color clouds, our
-wordmark small and faint in the middle, and a fine grain on top (see clouds.py). The output is committed to the repo,
+Each wallpaper is a flat background with a few very soft color clouds, a fine grain (see clouds.py), and our wordmark small in the middle on top of
+the grain, so it stays crisp. The output is committed to the repo,
 because rendering this live at login is far too slow.
 
 Needs numpy, Pillow and librsvg's GObject bindings (gir1.2-rsvg-2.0).
@@ -35,7 +35,7 @@ WALLPAPERS = {
         "background": "#141619",
         "grain": 4.5,
         "logo": "wordmark-white.svg",
-        "logo_opacity": 0.4,
+        "logo_opacity": 0.5,
         "clouds": [
             (400, 300, 520, "#3a4a52", 0.8),
             (1200, 650, 560, "#24555f", 0.6),
@@ -48,7 +48,7 @@ WALLPAPERS = {
         "background": "#f5f4f1",
         "grain": 3.5,
         "logo": "wordmark-dark.svg",
-        "logo_opacity": 0.32,
+        "logo_opacity": 0.42,
         "clouds": [
             (350, 250, 480, "#9fe0e6", 0.75),
             (1250, 700, 520, "#7cc7d4", 0.55),
@@ -81,14 +81,17 @@ def center_logo(svg, opacity):
 
     def paint(image):
         top, left = (H - height) // 2, (W - width) // 2
-        area = image[top:top + height, left:left + width]
+        area = image[top:top + height, left:left + width].astype(np.float64)
         alpha = logo[..., 3:4] * opacity
         area += (logo[..., :3] - area) * alpha
+        image[top:top + height, left:left + width] = np.clip(np.rint(area), 0, 255).astype(np.uint8)
+        return image
     return paint
 
 
 for seed, (name, spec) in enumerate(WALLPAPERS.items()):
     path = OUT / f"softglowos-{name}.jpg"
-    image = render(spec, W, H, DESIGN_WIDTH, SOFTNESS, seed, center_logo(BRANDING / spec["logo"], spec["logo_opacity"]))
+    image = render(spec, W, H, DESIGN_WIDTH, SOFTNESS, seed)
+    image = center_logo(BRANDING / spec["logo"], spec["logo_opacity"])(image)
     Image.fromarray(image).save(path, quality=92, subsampling=0)
     print(f"{path}  {path.stat().st_size / 1e6:.1f} MB")

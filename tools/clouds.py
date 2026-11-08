@@ -10,12 +10,11 @@ def rgb(hex_color):
     return np.array([int(hex_color[i:i + 2], 16) for i in (1, 3, 5)], dtype=np.float64)
 
 
-def render(spec, width, height, design_width, softness, seed, overlay=None):
+def render(spec, width, height, design_width, softness, seed):
     """Renders a spec to an RGB uint8 array.
 
     Cloud positions and radii in the spec are given in a design space that is
     design_width wide; softness (how far each cloud edge fades out) too.
-    overlay(image) may paint on the float RGB image before the grain.
     """
     scale = width / design_width
     softness *= scale
@@ -27,7 +26,5 @@ def render(spec, width, height, design_width, softness, seed, overlay=None):
         # Smooth step from 1 inside the cloud to 0 outside (blurred disc)
         alpha = opacity * 0.5 * (1 - np.tanh(0.85 * (dist - r * scale) / softness))
         image += (rgb(color) - image) * alpha[..., None]
-    if overlay:
-        overlay(image)
     noise = np.random.default_rng(seed).normal(0, spec["grain"], (height, width, 1))
     return np.clip(image + noise, 0, 255).astype(np.uint8)
