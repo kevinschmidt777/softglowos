@@ -63,7 +63,7 @@ trap unmount_root EXIT
 
 ### The system ###
 
-rm -rf "$WORK"
+rm -rf "$ROOT" "$ISO" "$WORK/efi.img"
 mkdir -p "$ROOT" "$ISO"
 debootstrap --arch=amd64 --variant=minbase --components=main,restricted,universe,multiverse \
   "$SUITE" "$ROOT" "$MIRROR" >/dev/null
