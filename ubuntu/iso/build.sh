@@ -25,7 +25,7 @@ export DEBIAN_FRONTEND=noninteractive
 # packages), and what makes a desktop work (network, Bluetooth, printing,
 # portals, firmware updates, power profiles, German and English).
 PACKAGES=(
-  linux-generic casper efibootmgr os-prober locales sudo
+  linux-generic casper efibootmgr os-prober locales sudo keyboard-configuration console-setup
   language-pack-de language-pack-en language-pack-gnome-de language-pack-gnome-en
   network-manager wpasupplicant wireless-regdb bluez cups firmware-sof-signed
   pipewire-pulse pipewire-alsa libspa-0.2-bluetooth xwayland
@@ -135,7 +135,13 @@ export BUILD_SYSTEM="Ubuntu"
 export FLAVOUR="SoftglowOS"
 EOF
 printf 'LANG=de_DE.UTF-8\n' > "$ROOT/etc/default/locale"
-sed -i 's/^XKBLAYOUT=.*/XKBLAYOUT="de"/' "$ROOT/etc/default/keyboard"
+cat > "$ROOT/etc/default/keyboard" <<'EOF'
+XKBMODEL="pc105"
+XKBLAYOUT="de"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"
+EOF
 
 in_root update-initramfs -u -k all
 
