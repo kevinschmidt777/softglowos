@@ -58,7 +58,8 @@ for package in "$@"; do
     elves=$(find "$stage" -type f -not -path '*/DEBIAN/*' -exec file {} + |
       awk -F: '/ELF/ { print $1 }')
     shlibs=$(cd "$(mktemp -d)" && mkdir debian && printf 'Source: x\n\nPackage: x\nArchitecture: any\n' > debian/control &&
-      dpkg-shlibdeps -O --ignore-missing-info -l"$stage/usr/lib" $elves 2>/dev/null |
+      dpkg-shlibdeps -O --ignore-missing-info -l"$stage/usr/lib" \
+        $(find "$stage" -name '*.so.*' -printf '-l%h\n' | sort -u) $elves 2>/dev/null |
       sed -n 's/^shlibs:Depends=//p')
     sed -i "s/@SHLIBS@/$shlibs/" "$stage/DEBIAN/control"
   fi

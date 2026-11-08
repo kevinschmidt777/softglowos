@@ -55,8 +55,10 @@ meson setup build --prefix=/usr --buildtype=release --force-fallback-for=libdex-
 meson compile -C build > "$tmp/compile.log" 2>&1 ||
   { grep -E -A8 "FAILED|error:" "$tmp/compile.log" | head -60; exit 1; }
 DESTDIR="$DEST" meson install -C build --skip-subprojects >/dev/null
-# Only the app: not the widget library's headers and demo
-rm -rf "$DEST/usr/include" "$DEST/usr/bin/bge-demo" "$DEST/usr/lib"/*/libbge* "$DEST/usr/lib"/*/pkgconfig
+# The app and its widget library, without the library's headers and demo
+rm -rf "$DEST/usr/include" "$DEST/usr/bin/bge-demo"
+find "$DEST/usr/lib" \( -name libbge.so -o -name bge.pc \) -delete
+find "$DEST/usr/lib" -type d -name pkgconfig -empty -delete
 
 mkdir -p "$DEST$CONFIG"
 cp "$SRC/files/system$CONFIG/"* "$DEST$CONFIG/"
