@@ -18,7 +18,7 @@ mirror() {  # owner/repo name-pattern
   [ -n "$digest" ] || { echo "No checksum for $url" >&2; return 1; }
   file="$OUT/$(basename "$url")"
   echo "==> $url"
-  curl -fsSL --retry 5 --retry-all-errors -o "$file" "$url"
+  curl -fsSL --retry 10 --retry-all-errors --retry-delay 15 -o "$file" "$url"
   echo "${digest#sha256:}  $file" | sha256sum -c --quiet -
 }
 

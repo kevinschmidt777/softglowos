@@ -30,6 +30,9 @@ fi
 VERSION="$(cat "$SRC/VERSION")~$(date -u +%Y%m%d%H%M)"
 
 export DEBIAN_FRONTEND=noninteractive
+# Every download of the stage scripts retries for a few minutes: GitHub's
+# release downloads fail with 5xx now and then
+printf 'retry = 10\nretry-all-errors\nretry-delay = 15\n' > ~/.curlrc
 apt-get update -qq
 # Tools the stage scripts use
 apt-get install -y -qq --no-install-recommends \
