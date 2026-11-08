@@ -82,6 +82,20 @@ filter-chain and doesn't start at all.
 The ISO's bootloader needs `quiet splash` on the kernel command line, or the
 boot splash never shows.
 
+`softglowos-obs` takes OBS from the OBS team's PPA (Ubuntu's OBS has no
+browser source) and builds every plugin of the Bazzite image against it,
+with the same pinned versions (`files/scripts/build-obs-plugins.sh`) plus
+obs-vkcapture and DroidCam. OBS's app entry is diverted and rebuilt by
+`softglowos-refresh` from `desktop-tweaks/`, so it starts `softglowos-obs`
+and prefers the strong GPU, and keeps doing so after OBS updates.
+
+The packages target x86_64. On Apple Silicon, Ubuntu 26.04's tar doesn't
+work under Rosetta at all, and under QEMU only packing fails, so the x86_64
+builds run on GitHub (`.github/workflows/ubuntu-packages.yml`, branch
+`ubuntu-base`), which also installs them on a stock Ubuntu 26.04 and checks
+OBS's plugins. `PLATFORM=linux/arm64 ubuntu/build.sh` builds the
+architecture-independent packages for the arm64 test VM locally.
+
 ## Testing
 
 1. Basics in the VM

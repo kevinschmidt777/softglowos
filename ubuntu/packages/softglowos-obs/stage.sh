@@ -22,14 +22,15 @@ sed -i 's/^Components: main.*/Components: main restricted universe multiverse/' 
   /etc/apt/sources.list.d/ubuntu.sources
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
-  obs-studio cmake make g++ pkgconf libcurl4-openssl-dev libsimde-dev \
+  obs-studio xz-utils cmake make g++ pkgconf libcurl4-openssl-dev libsimde-dev \
   qt6-base-dev qt6-base-private-dev qt6-svg-dev \
   libvulkan-dev libwayland-dev libegl-dev libgl-dev libx11-dev libxcb1-dev libdrm-dev \
   libturbojpeg0-dev libimobiledevice-dev libusbmuxd-dev \
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev >/dev/null
 
 arch_dir=$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || gcc -dumpmachine)
-plugins=$(dirname "$(dpkg -L obs-studio | grep -m1 '/obs-plugins/[^/]*\.so$')")
+plugins=$(dirname "$(find /usr/lib -path '*/obs-plugins/*.so' -print -quit)")
+[ "$plugins" != . ] || { echo "OBS's plugin directory not found" >&2; exit 1; }
 echo "OBS $(dpkg-query -W -f='${Version}' obs-studio), plugins in $plugins"
 data=/usr/share/obs/obs-plugins
 
