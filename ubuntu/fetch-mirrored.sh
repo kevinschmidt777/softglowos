@@ -6,6 +6,9 @@
 # - Valve's Steam launcher (steam-launcher, like Bazzite ships it), checked
 #   against Valve's apt repository; once installed it adds that repository
 #   and updates from there
+# - OpenRGB (GPL-2.0) with its hidapi build, pinned: Ubuntu only has a 0.9
+#   snapshot from 2025, the Bazzite image a 1.0; Codeberg lists no
+#   checksums, so the version and SHA-256 are fixed here
 set -euo pipefail
 
 OUT=$(cd "$(dirname "$0")" && pwd)/out
@@ -43,3 +46,19 @@ steam() {
   echo "$sha256  $file" | sha256sum -c --quiet -
 }
 steam
+
+# OpenRGB from Codeberg, the Debian 13 (trixie) builds
+pinned() {  # url sha256
+  local file
+  file="$OUT/$(basename "$1")"
+  echo "==> $1"
+  curl -fsSL --retry 10 --retry-all-errors --retry-delay 15 -o "$file" "$1"
+  echo "$2  $file" | sha256sum -c --quiet -
+}
+CODEBERG=https://codeberg.org/OpenRGB
+pinned "$CODEBERG/OpenRGB/releases/download/release_1.1/openrgb_1.1_amd64_trixie_8e16de2.deb" \
+  45d1ecf6a5d7b8e309ec6edd45a5759eac4eff14101ed210a87b88d121747d25
+pinned "$CODEBERG/hidapi-hotplug/releases/download/hidapi-hotplug-0.15.0/libhidapi-hotplug-hidraw0_0.15.0-1_trixie_amd64.deb" \
+  4c12ad429aad50b6e38ff7a04be37268a2401b76884d4067f70ed9df37ebbd2d
+pinned "$CODEBERG/hidapi-hotplug/releases/download/hidapi-hotplug-0.15.0/libhidapi-hotplug-libusb0_0.15.0-1_trixie_amd64.deb" \
+  ff4c563d396a80acd876454bf831af3e6578e4bd1d0b5b47990f75e6577450a6

@@ -7,7 +7,7 @@ Section: misc
 Priority: optional
 Depends: softglowos-base, python3, python3-gi, python3-pulsectl, gir1.2-gtk-4.0,
  gir1.2-adw-1, gir1.2-nm-1.0, gir1.2-soup-3.0, gir1.2-gstreamer-1.0,
- gstreamer1.0-pipewire, pciutils, libnotify-bin, pkexec, openrgb
+ gstreamer1.0-pipewire, pciutils, libnotify-bin, pkexec, openrgb (>= 1.1)
 Description: SoftglowOS Hub
  Mixer, devices, software, lighting and settings in one app, the setup
  assistant on the first login and the mixer in the top bar.

@@ -5,7 +5,7 @@ Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
 Homepage: https://softglowos.com
 Section: misc
 Priority: optional
-Depends: softglowos-base, softglowos-vendor-apps, flatpak, jq, openrgb, goxlr-utility
+Depends: softglowos-base, softglowos-vendor-apps, flatpak, jq, openrgb (>= 1.1), goxlr-utility
 Description: Creator apps of SoftglowOS
  StreamController (Stream Deck, as Flatpak from Flathub) with our mixer
  plugin and its OBS plugin, the GoXLR Utility daemon for the Hub, OpenRGB,
