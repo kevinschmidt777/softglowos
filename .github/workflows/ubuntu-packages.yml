@@ -183,6 +183,7 @@ jobs:
 
       - name: Boot it with Secure Boot
         run: |
+          sudo apt-get update -qq
           sudo apt-get install -y -qq qemu-system-x86 ovmf socat imagemagick >/dev/null
           sudo chmod 666 /dev/kvm
           ubuntu/iso/boot-test.sh /mnt/out/*.iso boot-test
