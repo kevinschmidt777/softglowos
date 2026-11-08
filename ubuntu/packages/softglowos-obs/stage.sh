@@ -38,6 +38,10 @@ echo "OBS $(dpkg-query -W -f='${Version}' obs-studio)"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+# OBS 33 marks APIs these releases still use as deprecated, and some of them
+# build with -Werror
+export CFLAGS=-Wno-error=deprecated-declarations CXXFLAGS=-Wno-error=deprecated-declarations
+
 fetch() {  # url sha256 dir
   curl -fsSL --retry 3 -o "$tmp/src.tar" "$1"
   echo "$2  $tmp/src.tar" | sha256sum -c --quiet -
@@ -81,7 +85,7 @@ take_plugin obs-stroke-glow-shadow "$tmp/obs-stroke-glow-shadow/stage"
 build_cmake "$RECORD_URL" "$RECORD_SHA256" source-record -DLIB_OUT_DIR="/lib/$arch_dir/obs-plugins"
 take_plugin source-record "$tmp/source-record/stage"
 build_cmake "$SHADER_URL" "$SHADER_SHA256" obs-shaderfilter -DLIB_OUT_DIR="/lib/$arch_dir/obs-plugins" \
-  -DCMAKE_C_FLAGS=-Wno-error=discarded-qualifiers
+  -DCMAKE_C_FLAGS="$CFLAGS -Wno-error=discarded-qualifiers"
 take_plugin obs-shaderfilter "$tmp/obs-shaderfilter/stage"
 
 # Game Capture: the plugin, the Vulkan layer and OpenGL hook that games load,
