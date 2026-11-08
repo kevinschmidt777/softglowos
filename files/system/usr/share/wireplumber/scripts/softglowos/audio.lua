@@ -34,6 +34,9 @@ local UNTOUCHED_APPS = { "obs" }
 
 -- Capture cards, matched against the device name (lowercase).
 local CAPTURE_CARDS = { "elgato", "game capture", "cam link", "avermedia", "live gamer", "usb3.0 capture", "hdmi capture" }
+-- Capture cards made for cameras rather than consoles. The console channel
+-- only takes one of these when no other capture card is connected.
+local CAMERA_CAPTURE_CARDS = { "cam link" }
 
 -- GoXLR channels by their ALSA UCM names (alsa-ucm-conf, USB-Audio/GoXLR).
 local GOXLR_SINKS = { game = "Game", chat = "Chat", music = "Music", system = "System" }
@@ -86,6 +89,12 @@ local function is_capture_card (props)
       matches_any (props ["node.description"], CAPTURE_CARDS) or
       matches_any (props ["device.product.name"], CAPTURE_CARDS) or
       matches_any (props ["node.nick"], CAPTURE_CARDS))
+end
+
+local function is_camera_capture_card (props)
+  return matches_any (props ["node.description"], CAMERA_CAPTURE_CARDS) or
+      matches_any (props ["device.product.name"], CAMERA_CAPTURE_CARDS) or
+      matches_any (props ["node.nick"], CAMERA_CAPTURE_CARDS)
 end
 
 local function find_by_name (om, name)
@@ -236,7 +245,10 @@ local function own_target (om, si_props, si_flags)
     if si_flags.has_defined_target then
       return "keep"
     end
-    return best_device (om, si_props, "Audio/Source", is_capture_card)
+    return best_device (om, si_props, "Audio/Source", function (props)
+          return is_capture_card (props) and not is_camera_capture_card (props)
+        end) or
+        best_device (om, si_props, "Audio/Source", is_capture_card)
   elseif name == PREFIX .. "goxlr-stream.in" then
     return goxlr and goxlr_node (om, "Audio/Source", GOXLR_STREAM_MIX) or nil
   elseif name == PREFIX .. "mic.mix.out" then
