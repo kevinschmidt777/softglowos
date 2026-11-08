@@ -109,12 +109,34 @@ the archive and Bazzite's system values. Steam puts its own app entry into
 the home folder on the first start, so the Game Capture variable
 (`OBS_VKCAPTURE=1`) sits in a wrapper diverted over `/usr/games/steam`;
 Lutris and Heroic get it in their app entries. The 32-bit parts (Steam's
-libraries, MangoHud, vkBasalt, Gamemode and NVIDIA's GL library for the
-installed driver) come with the ISO, which enables i386.
+libraries, Mesa, Gamemode and NVIDIA's GL library for the installed driver)
+come with the ISO, which enables i386. Ubuntu has no 32-bit MangoHud or
+vkBasalt, so those only work in 64-bit games.
 
 `softglowos-apps` sets up StreamController (Flatpak from Flathub, installed
 by the ISO) with our mixer plugin and its OBS plugin, the GoXLR Utility
 daemon, OpenRGB and Flathub.
+
+`softglowos-store` builds Bazaar from source as Softglow Store (see the
+decisions table).
+
+## The ISO
+
+`ubuntu/iso/build.sh` builds the live ISO in a privileged Ubuntu container
+(the `iso` job of the package workflow, started by hand): debootstrap,
+our packages with everything they recommend, the GNOME apps Bazzite ships
+(as Ubuntu packages, the rest as Flatpaks), casper for the live boot, a
+squashfs, and Ubuntu's signed shim and GRUB, so it boots with Secure Boot.
+UEFI only. The live session is German by default (English in the boot menu)
+and opens the installer.
+
+`softglowos-installer` only exists in the live system: Calamares with our
+branding, ext4 by default, no swap (zram), and Ubuntu's signed NVIDIA driver
+from the ISO's pool for NVIDIA cards (`softglowos-install-nvidia`: the open
+driver where the card supports it, the proprietary 580 for older cards).
+While it's installed, the setup assistant, crash reports and the Chrome/
+Discord timer are off; Calamares removes it, together with Calamares and
+casper, from the installed system, which turns them back on.
 
 The packages target x86_64. On Apple Silicon, Ubuntu 26.04's tar doesn't
 work under Rosetta at all, and under QEMU only packing fails, so the x86_64

@@ -5,7 +5,8 @@ name: Ubuntu packages
 # finds every plugin and that the drivers and launchers are in place. On
 # ubuntu-base it then publishes them as our apt repository on GitHub Pages,
 # signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
-# Utility (ubuntu/fetch-mirrored.sh).
+# Utility (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
+# builds the live ISO (ubuntu/iso/build.sh) as a workflow artifact.
 on:
   push:
     branches:
@@ -17,6 +18,11 @@ on:
       - "VERSION"
       - ".github/workflows/ubuntu-packages.yml"
   workflow_dispatch:
+    inputs:
+      iso:
+        description: Build the live ISO too
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -52,7 +58,8 @@ jobs:
             cp /src/ubuntu/packages/softglowos-obs/root/etc/apt/sources.list.d/obs-studio.sources /etc/apt/sources.list.d/
             cp /src/ubuntu/packages/softglowos-obs/root/usr/share/keyrings/obs-studio-ppa.asc /usr/share/keyrings/
             apt-get update -qq
-            apt-get install -y -q /src/ubuntu/out/*.deb
+            # All but the installer, which only belongs to the live ISO
+            apt-get install -y -q $(ls /src/ubuntu/out/*.deb | grep -v softglowos-installer)
             echo "### OBS app entry"
             grep -E "^(Exec|PrefersNonDefaultGPU)=" /usr/share/applications/com.obsproject.Studio.desktop
             echo "### OBS plugins and their libraries"
@@ -138,3 +145,37 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  iso:
+    name: Build the live ISO
+    needs: build
+    if: inputs.iso
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: softglowos-ubuntu-packages
+          path: debs
+
+      # The system, its squashfs and the ISO need more room than / has
+      - name: Prepare the build disk
+        run: |
+          sudo mkdir -p /mnt/work /mnt/out
+          df -h / /mnt
+
+      - name: Build the ISO
+        run: |
+          docker run --rm --privileged -e WORK=/work \
+            -v "$PWD:/src:ro" -v "$PWD/debs:/debs:ro" -v /mnt/work:/work -v /mnt/out:/out \
+            ubuntu:26.04 /src/ubuntu/iso/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: softglowos-ubuntu-iso
+          path: /mnt/out/*.iso
+          compression-level: 0
+          retention-days: 14
