@@ -22,7 +22,7 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Audio | Ubuntu's PipeWire and Mesa plus our PipeWire/WirePlumber config. Newer versions from PPAs only if the hardware test shows problems |
 | Snap | Removed and pinned so apt can't bring it back |
 | App store | Bazaar (Flathub), built by us as "Softglow Store" (own name, icon and texts; Bazaar's authors stay credited in the About dialog) with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
-| Heroic, GoXLR Utility | Official `.deb`s (open source), mirrored into our apt repository on every build |
+| Heroic, GoXLR Utility, Steam | Official `.deb`s (Heroic and GoXLR open source, Steam Valve's launcher like in Bazzite), mirrored into our apt repository on every build |
 | Chrome, Discord | Their licenses don't allow redistribution, so neither is in the ISO or our repository. `softglowos-vendor-apps` fetches the official `.deb` once the computer is online: once per app (a removed app stays removed). Chrome then updates through Google's repository, Discord through our timer while it isn't running |
 | Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
 | Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
@@ -103,12 +103,17 @@ ISO with `ubuntu-drivers`, which takes Ubuntu's signed prebuilt modules. The
 OBS virtual camera's v4l2loopback module comes signed with Ubuntu's kernel
 (`linux-image-generic` depends on it), so OBS doesn't need DKMS.
 
-`softglowos-gaming` takes Steam from Ubuntu (`steam-installer`), Lutris,
-Gamemode, MangoHud, vkBasalt, Gamescope, Protontricks and Winetricks from
-the archive and Bazzite's system values. Steam puts its own app entry into
-the home folder on the first start, so the Game Capture variable
-(`OBS_VKCAPTURE=1`) sits in a wrapper diverted over `/usr/games/steam`;
-Lutris and Heroic get it in their app entries. The 32-bit parts (Steam's
+`softglowos-gaming` takes Valve's Steam launcher (`steam-launcher`, like
+Bazzite ships it: Steam's icon and app entry are there from the start, no
+"Install Steam" step as with Ubuntu's `steam-installer`) plus Ubuntu's
+`steam-libs`, and Lutris, Gamemode, MangoHud, vkBasalt, Gamescope,
+Protontricks and Winetricks from the archive and Bazzite's system values.
+`fetch-mirrored.sh` puts Valve's package into our repository; once
+installed it adds Valve's repository and updates from there. Valve's
+launcher pulls in XTerm, which stays out of the app grid. The Game Capture
+variable (`OBS_VKCAPTURE=1`) sits in a wrapper diverted over
+`/usr/bin/steam`, so it also applies when Steam starts from an app entry of
+its own in the home folder; Lutris and Heroic get it in their app entries. The 32-bit parts (Steam's
 libraries, Mesa, Gamemode and NVIDIA's GL library for the installed driver)
 come with the ISO, which enables i386. Ubuntu has no 32-bit MangoHud or
 vkBasalt, so those only work in 64-bit games.

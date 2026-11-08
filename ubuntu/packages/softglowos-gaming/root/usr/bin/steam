@@ -2,7 +2,7 @@
 # Steam starts every game with OBS_VKCAPTURE=1, so OBS's Game Capture can
 # grab it without a launch option per game. A game that shouldn't be
 # captured gets the launch option OBS_VKCAPTURE=0. This sits in front of
-# Ubuntu's Steam script instead of in Steam's app entry, because Steam puts
-# its own entry into the home folder on the first start.
+# Valve's launcher instead of in Steam's app entry, because Steam may put
+# its own entry into the home folder.
 export OBS_VKCAPTURE="${OBS_VKCAPTURE:-1}"
-exec /usr/games/steam.distrib "$@"
+exec /usr/bin/steam.distrib "$@"

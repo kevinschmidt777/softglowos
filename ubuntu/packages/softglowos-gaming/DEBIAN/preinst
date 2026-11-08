@@ -1,16 +1,25 @@
 #!/bin/sh
-# /usr/games/steam becomes our wrapper (Game Capture for every Steam game),
-# the launchers' app entries are rebuilt by softglowos-refresh from the
-# originals (see /usr/share/softglowos/desktop-tweaks)
+# /usr/bin/steam becomes our wrapper (Game Capture for every Steam game),
+# the Lutris and Heroic app entries are rebuilt by softglowos-refresh from
+# the originals (see /usr/share/softglowos/desktop-tweaks)
 set -e
 
 divert() {
   dpkg-divert --package softglowos-gaming --add --rename --divert "$1.distrib" "$1"
 }
 
+# Ours, from before Valve's Steam replaced Ubuntu's steam-installer
+undivert_old() {
+  [ "$(dpkg-divert --listpackage "$1")" = softglowos-gaming ] || return 0
+  rm -f "$1"
+  dpkg-divert --package softglowos-gaming --remove --rename --divert "$1.distrib" "$1" || :
+}
+
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
-  divert /usr/games/steam
-  for id in steam net.lutris.Lutris heroic; do
+  undivert_old /usr/games/steam
+  undivert_old /usr/share/applications/steam.desktop
+  divert /usr/bin/steam
+  for id in net.lutris.Lutris heroic debian-xterm debian-uxterm; do
     divert "/usr/share/applications/$id.desktop"
   done
 fi

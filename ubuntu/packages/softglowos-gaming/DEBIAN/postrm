@@ -7,9 +7,9 @@ undivert() {
 }
 
 if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
-  for id in steam net.lutris.Lutris heroic; do
+  for id in net.lutris.Lutris heroic debian-xterm debian-uxterm; do
     rm -f "/usr/share/applications/$id.desktop"
     undivert "/usr/share/applications/$id.desktop"
   done
-  undivert /usr/games/steam
+  undivert /usr/bin/steam
 fi

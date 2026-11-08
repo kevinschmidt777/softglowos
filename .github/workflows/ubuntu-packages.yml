@@ -5,7 +5,7 @@ name: Ubuntu packages
 # finds every plugin and that the drivers and launchers are in place. On
 # ubuntu-base it then publishes them as our apt repository on GitHub Pages,
 # signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
-# Utility (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
+# Utility and Valve's Steam (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
 # builds the live ISO (ubuntu/iso/build.sh) as a workflow artifact.
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
       - name: Build the packages
         run: ubuntu/build.sh
 
-      - name: Add Heroic and GoXLR Utility
+      - name: Add Heroic, GoXLR Utility and Steam
         run: ubuntu/fetch-mirrored.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -81,7 +81,11 @@ jobs:
               /usr/share/applications/net.lutris.Lutris.desktop
             grep -q "^Exec=env OBS_VKCAPTURE=1 lutris" /usr/share/applications/net.lutris.Lutris.desktop
             grep -q "^Name=Steam$" /usr/share/applications/steam.desktop
-            grep -q "steam.distrib" /usr/games/steam && [ -x /usr/games/steam.distrib ]
+            grep -q "steam.distrib" /usr/bin/steam && [ -x /usr/bin/steam.distrib ]
+            dpkg -l steam-launcher steam-libs-i386:i386 | grep "^ii"
+            ls /usr/share/icons/hicolor/256x256/apps/steam.png
+            [ ! -e /usr/share/applications/debian-xterm.desktop ] ||
+              grep -q "^NoDisplay=true" /usr/share/applications/debian-xterm.desktop
             ls /usr/lib/sysctl.d/*softglowos* /usr/lib/udev/rules.d/60-softglowos-schedulers.rules \
               /etc/systemd/zram-generator.conf
             grep -E "^(Exec|PrefersNonDefaultGPU)=" /usr/share/applications/heroic.desktop
