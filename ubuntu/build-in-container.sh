@@ -36,7 +36,7 @@ printf 'retry = 10\nretry-all-errors\nretry-delay = 15\n' > ~/.curlrc
 apt-get update -qq
 # Tools the stage scripts use
 apt-get install -y -qq --no-install-recommends \
-  ca-certificates curl unzip librsvg2-bin libglib2.0-bin python3 >/dev/null
+  ca-certificates curl unzip patch librsvg2-bin libglib2.0-bin python3 >/dev/null
 
 for package in "$@"; do
   dir=$SRC/ubuntu/packages/$package

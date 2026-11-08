@@ -1,0 +1,83 @@
+--- a/apps/dot.js
++++ b/apps/dot.js
+@@ -165,8 +165,21 @@
+       ctx.fill();
+     }
+ 
++    // SoftglowOS: a longer, thicker dash with round ends than the
++    // extension's own, which is hard to see at small icon sizes
+     _draw_dash(ctx, state) {
+-      this._draw_dashes(ctx, { ...state, count: 1 });
++      let [size, _] = this.get_surface_size();
++      let width = Math.round(size * 0.34);
++      let height = Math.round(size * 0.11);
++      let r = height / 2;
++      let x = Math.floor((size - width) / 2);
++      let y = size - height * 1.6;
++      ctx.newSubPath();
++      ctx.arc(x + r, y + r, r, Math.PI / 2, (3 * Math.PI) / 2);
++      ctx.arc(x + width - r, y + r, r, -Math.PI / 2, Math.PI / 2);
++      ctx.closePath();
++      Drawing.set_color(ctx, state.color, state.color[3]);
++      ctx.fill();
+     }
+ 
+     _draw_squares(ctx, state) {
+--- a/dockItems.js
++++ b/dockItems.js
+@@ -22,6 +22,42 @@
+ 
+ import { DockPosition } from './dock.js';
+ 
++// SoftglowOS: the running indicator takes the system accent colour while
++// the extension's own colour is left at its default white
++const ACCENT_COLORS = {
++  blue: [0.208, 0.518, 0.894, 1],
++  teal: [0.129, 0.565, 0.643, 1],
++  green: [0.227, 0.580, 0.290, 1],
++  yellow: [0.784, 0.533, 0, 1],
++  orange: [0.929, 0.357, 0, 1],
++  red: [0.902, 0.176, 0.259, 1],
++  pink: [0.835, 0.380, 0.600, 1],
++  purple: [0.569, 0.255, 0.675, 1],
++  slate: [0.435, 0.514, 0.588, 1],
++};
++let _interfaceSettings = null;
++let _accentColor = null;
++function accentColor() {
++  if (!_interfaceSettings) {
++    _interfaceSettings = new Gio.Settings({
++      schema_id: 'org.gnome.desktop.interface',
++    });
++    _interfaceSettings.connect('changed::accent-color', () => {
++      _accentColor = null;
++    });
++  }
++  if (!_accentColor) {
++    _accentColor = [
++      ...(ACCENT_COLORS[_interfaceSettings.get_string('accent-color')] ||
++        ACCENT_COLORS.blue),
++    ];
++  }
++  return _accentColor;
++}
++function isDefaultWhite(c) {
++  return !c || (c[0] == 1 && c[1] == 1 && c[2] == 1 && c[3] == 1);
++}
++
+ class DockItemMenu extends PopupMenu.PopupMenu {
+   constructor(sourceActor, side = St.Side.TOP, params = {}) {
+     if (Clutter.get_default_text_direction() === Clutter.TextDirection.RTL) {
+@@ -121,7 +157,11 @@
+ 
+       let options = extension.running_indicator_style_options;
+       let running_indicator_style = options[extension.running_indicator_style];
+-      let running_indicator_color = extension.running_indicator_color;
++      let running_indicator_color = isDefaultWhite(
++        extension.running_indicator_color
++      )
++        ? accentColor()
++        : extension.running_indicator_color;
+ 
+       renderer.set_state({
+         count: appCount,

@@ -70,6 +70,10 @@ grep -vE '^\s*(#|$)' "$PACKAGE_DIR/extensions.list" | while read -r uuid _ tag s
   download "https://extensions.gnome.org/download-extension/$uuid.shell-extension.zip?version_tag=$tag" \
     "$sha256" "$tmp/$uuid.zip"
   unzip -q "$tmp/$uuid.zip" -d "$extensions/$uuid"
+  # Our changes to an extension, made for the pinned version
+  if [ -f "$PACKAGE_DIR/patches/$uuid.patch" ]; then
+    patch -p1 --no-backup-if-mismatch -s -d "$extensions/$uuid" < "$PACKAGE_DIR/patches/$uuid.patch"
+  fi
   # An extension prefers a schemas/ folder of its own, which would ignore our
   # overrides, so its schemas only live in the global directory
   if [ -d "$extensions/$uuid/schemas" ]; then
