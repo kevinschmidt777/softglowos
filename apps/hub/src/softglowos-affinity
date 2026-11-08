@@ -66,6 +66,9 @@ def install():
     print('@@step download', flush=True)
     tag, asset = latest()
     HOME.mkdir(parents=True, exist_ok=True)
+    # A download that was cut off (Hub closed, power lost) leaves its part
+    for leftover in HOME.glob('tmp*'):
+        leftover.unlink(missing_ok=True)
     digest = hashlib.sha256()
     with tempfile.NamedTemporaryFile(dir=HOME, delete=False) as part:
         try:
