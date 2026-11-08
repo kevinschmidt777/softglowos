@@ -12,6 +12,11 @@
 #   Both are cut out of the installed binaries again whenever those change.
 #   When the code they patch is gone, that overlay is left out and the
 #   system keeps working, only without that tweak.
+# - App entries of other packages we change (OBS starts through
+#   softglowos-obs, games and OBS prefer the strong GPU, ...): a package
+#   diverts the entry to <id>.desktop.distrib and ships a sed script as
+#   /usr/share/softglowos/desktop-tweaks/<id>.desktop.sed; the entry is
+#   rebuilt from the original whenever that changes.
 #
 # Never fails: a broken refresh must not break apt.
 set -uo pipefail
@@ -21,6 +26,8 @@ OS_RELEASE=/usr/lib/os-release
 OVERLAYS=/usr/share/softglowos/overlays
 ENV_FILE=/usr/lib/environment.d/60-softglowos-overlays.conf
 STAMP=/var/lib/softglowos/overlays.stamp
+DESKTOP_TWEAKS=/usr/share/softglowos/desktop-tweaks
+APPLICATIONS=/usr/share/applications
 
 log() { echo "softglowos-refresh: $*" >&2; }
 
@@ -122,6 +129,21 @@ refresh_overlays() {
   echo "$stamp" > "$STAMP"
 }
 
+refresh_desktop_files() {
+  local tweak id tmp
+  for tweak in "$DESKTOP_TWEAKS"/*.desktop.sed; do
+    [ -e "$tweak" ] || continue
+    id=$(basename "$tweak" .sed)
+    [ -f "$APPLICATIONS/$id.distrib" ] || continue
+    tmp=$(mktemp) || return 0
+    if sed -f "$tweak" "$APPLICATIONS/$id.distrib" > "$tmp" && ! cmp -s "$tmp" "$APPLICATIONS/$id"; then
+      install -m 644 "$tmp" "$APPLICATIONS/$id"
+    fi
+    rm -f "$tmp"
+  done
+}
+
 refresh_os_release || log "os-release not updated"
+refresh_desktop_files || log "app entries not updated"
 refresh_overlays || log "overlays not updated"
 exit 0
