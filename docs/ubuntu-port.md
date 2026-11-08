@@ -21,7 +21,7 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Intel / AMD | Same support as Bazzite: NVIDIA, AMD and Intel GPUs and CPUs. AMD and Intel run on the kernel drivers plus Mesa (32-bit too, for Steam). Encoding in OBS: VA-API for AMD, Quick Sync through `intel-media-va-driver-non-free` for Intel |
 | Audio | Ubuntu's PipeWire and Mesa plus our PipeWire/WirePlumber config. Newer versions from PPAs only if the hardware test shows problems |
 | Snap | Removed and pinned so apt can't bring it back |
-| App store | Bazaar (Flathub), built by us with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
+| App store | Bazaar (Flathub), built by us as "Softglow Store" (own name, icon and texts; Bazaar's authors stay credited in the About dialog) with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
 | Discord, Heroic | Official `.deb`s, mirrored into our apt repository daily so they update with the system |
 | Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
 | Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
