@@ -100,15 +100,17 @@ Package: snapd
 Pin: release a=*
 Pin-Priority: -10
 EOF
+in_root dpkg --add-architecture i386
+in_root apt-get update -qq
+in_root apt-get install -y -qq ca-certificates >/dev/null
+
 # OBS's PPA, as softglowos-obs sets it up, so its OBS can be installed
+# (HTTPS, so after ca-certificates)
 cp /src/ubuntu/packages/softglowos-obs/root/etc/apt/sources.list.d/obs-studio.sources \
   "$ROOT/etc/apt/sources.list.d/"
 cp /src/ubuntu/packages/softglowos-obs/root/usr/share/keyrings/obs-studio-ppa.asc \
   "$ROOT/usr/share/keyrings/"
-
-in_root dpkg --add-architecture i386
 in_root apt-get update -qq
-in_root apt-get install -y -qq ca-certificates >/dev/null
 
 mkdir -p "$ROOT/tmp/debs"
 cp /debs/*.deb "$ROOT/tmp/debs/"
