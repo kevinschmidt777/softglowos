@@ -1,0 +1,18 @@
+Package: softglowos-gaming
+Version: @VERSION@
+Architecture: all
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://softglowos.com
+Section: games
+Priority: optional
+Depends: softglowos-base, softglowos-drivers, steam-installer, steam-devices, lutris,
+ gamemode, mangohud, vkbasalt, gamescope, protontricks, winetricks,
+ systemd-zram-generator
+Recommends: heroic
+Description: Gaming setup of SoftglowOS
+ Steam, Lutris and the Heroic Games Launcher with Gamemode, MangoHud,
+ vkBasalt, Gamescope, Protontricks and Winetricks. Games from all three
+ launchers start with OBS's Game Capture enabled and on the strong GPU of
+ laptops with two. Plus the system values of the Bazzite image: zram swap
+ (zstd, half the RAM, at most 16 GB), kyber/bfq I/O schedulers, a higher
+ memory map limit, no split lock slowdown, BBR and higher inotify limits.

@@ -1,0 +1,16 @@
+#!/bin/sh
+# /usr/games/steam becomes our wrapper (Game Capture for every Steam game),
+# the launchers' app entries are rebuilt by softglowos-refresh from the
+# originals (see /usr/share/softglowos/desktop-tweaks)
+set -e
+
+divert() {
+  dpkg-divert --package softglowos-gaming --add --rename --divert "$1.distrib" "$1"
+}
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+  divert /usr/games/steam
+  for id in steam net.lutris.Lutris heroic; do
+    divert "/usr/share/applications/$id.desktop"
+  done
+fi

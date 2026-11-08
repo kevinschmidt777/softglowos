@@ -36,6 +36,8 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/src:ro" ubuntu:26.04 bash -euo pipefail -c '
             export DEBIAN_FRONTEND=noninteractive
+            # Steam needs the 32-bit libraries
+            dpkg --add-architecture i386
             sed -i "s/^Components: main.*/Components: main restricted universe multiverse/" \
               /etc/apt/sources.list.d/ubuntu.sources
             apt-get update -qq
@@ -60,6 +62,14 @@ jobs:
               /usr/lib/udev/rules.d/80-nvidia-pm.rules
             [ "$(readlink /etc/systemd/system/nvidia-persistenced.service)" = /dev/null ]
             ls /usr/lib/systemd/user-environment-generators/60-softglowos-nouveau
+            echo "### Gaming: launchers with Game Capture and the strong GPU"
+            grep -E "^(Name|Exec|PrefersNonDefaultGPU)=" /usr/share/applications/steam.desktop \
+              /usr/share/applications/net.lutris.Lutris.desktop
+            grep -q "^Exec=env OBS_VKCAPTURE=1 lutris" /usr/share/applications/net.lutris.Lutris.desktop
+            grep -q "^Name=Steam$" /usr/share/applications/steam.desktop
+            grep -q "steam.distrib" /usr/games/steam && [ -x /usr/games/steam.distrib ]
+            ls /usr/lib/sysctl.d/*softglowos* /usr/lib/udev/rules.d/60-softglowos-schedulers.rules \
+              /etc/systemd/zram-generator.conf
           '
 
       - uses: actions/upload-artifact@v4

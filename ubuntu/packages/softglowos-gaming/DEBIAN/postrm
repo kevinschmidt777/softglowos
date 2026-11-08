@@ -1,0 +1,15 @@
+#!/bin/sh
+# Gives Steam, Lutris and Heroic their own launcher and app entries back
+set -e
+
+undivert() {
+  dpkg-divert --package softglowos-gaming --remove --rename --divert "$1.distrib" "$1"
+}
+
+if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+  for id in steam net.lutris.Lutris heroic; do
+    rm -f "/usr/share/applications/$id.desktop"
+    undivert "/usr/share/applications/$id.desktop"
+  done
+  undivert /usr/games/steam
+fi

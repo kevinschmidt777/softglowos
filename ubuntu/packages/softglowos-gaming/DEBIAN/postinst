@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+  /usr/libexec/softglowos-refresh
+  # The new limits and schedulers now instead of after the next boot
+  systemctl --system daemon-reload >/dev/null 2>&1 || :
+  /usr/lib/systemd/systemd-sysctl >/dev/null 2>&1 || :
+  udevadm trigger --subsystem-match=block --action=change >/dev/null 2>&1 || :
+fi
