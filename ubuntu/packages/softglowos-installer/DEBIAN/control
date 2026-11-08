@@ -6,10 +6,12 @@ Homepage: https://softglowos.com
 Section: admin
 Priority: optional
 Depends: softglowos-base, softglowos-hub, softglowos-vendor-apps, calamares, casper, sudo,
- pciutils, ubuntu-drivers-common, grub-efi-amd64-signed, shim-signed, efibootmgr, rsync
+ pciutils, ubuntu-drivers-common, grub-efi-amd64-signed, shim-signed, efibootmgr, rsync,
+ bluez, python3-gi, gir1.2-adw-1, gir1.2-gtk-4.0, gir1.2-gudev-1.0
 Description: SoftglowOS installer for the live system
  Calamares with SoftglowOS's branding, opened on its own in the live session
  of the ISO. It installs Ubuntu's signed NVIDIA driver from the ISO where
  there's an NVIDIA card. Only part of the live system: while it's installed,
  the setup assistant, crash reports and the Chrome/Discord timer are off;
  Calamares removes it from the installed system, which turns them back on.
+ Without a mouse or keyboard it first pairs Bluetooth ones.
