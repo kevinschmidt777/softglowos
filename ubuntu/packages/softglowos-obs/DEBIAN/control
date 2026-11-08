@@ -5,9 +5,8 @@ Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
 Homepage: https://softglowos.com
 Section: video
 Priority: optional
-Depends: softglowos-base, obs-studio (>= 33), python3, vainfo, vlc-plugin-base,
- v4l2loopback-dkms, @SHLIBS@
-Recommends: intel-media-va-driver-non-free, libmfx-gen1.2 | libmfx-gen1
+Depends: softglowos-base, softglowos-drivers, obs-studio (>= 33), python3, vainfo,
+ vlc-plugin-base, @SHLIBS@
 Description: OBS Studio set up for SoftglowOS
  OBS from the OBS team's PPA (Ubuntu's has no browser source), prepared on the
  first start (encoder for the graphics card, the mixer as audio, remote control
