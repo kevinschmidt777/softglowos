@@ -23,6 +23,7 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Snap | Removed and pinned so apt can't bring it back |
 | App store | Bazaar (Flathub), built by us as "Softglow Store" (own name, icon and texts; Bazaar's authors stay credited in the About dialog) with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
 | Heroic, GoXLR Utility, Steam | Official `.deb`s (Heroic and GoXLR open source, Steam Valve's launcher like in Bazzite), mirrored into our apt repository on every build |
+| OpenRGB | Official 1.1 `.deb` from Codeberg (with its hidapi build), pinned and mirrored: Ubuntu only has a 0.9 snapshot, which left ARGB zones unconfigured |
 | Chrome, Discord | Their licenses don't allow redistribution, so neither is in the ISO or our repository. `softglowos-vendor-apps` fetches the official `.deb` once the computer is online: once per app (a removed app stays removed). Chrome then updates through Google's repository, Discord through our timer while it isn't running |
 | Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
 | Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
@@ -92,7 +93,7 @@ boot splash never shows.
 `softglowos-obs` takes OBS from the OBS team's PPA (Ubuntu's OBS has no
 browser source) and builds every plugin of the Bazzite image against it,
 with the same pinned versions (`files/scripts/build-obs-plugins.sh`) plus
-obs-vkcapture and DroidCam. OBS's app entry is diverted and rebuilt by
+obs-vkcapture (without DroidCam, which failed on Ubuntu). OBS's app entry is diverted and rebuilt by
 `softglowos-refresh` from `desktop-tweaks/`, so it starts `softglowos-obs`
 and prefers the strong GPU, and keeps doing so after OBS updates.
 

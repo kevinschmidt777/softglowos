@@ -5,7 +5,7 @@ name: Ubuntu packages
 # finds every plugin and that the drivers and launchers are in place. On
 # ubuntu-base it then publishes them as our apt repository on GitHub Pages,
 # signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
-# Utility and Valve's Steam (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
+# Utility, Valve's Steam and OpenRGB (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
 # builds the live ISO (ubuntu/iso/build.sh) as a workflow artifact.
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
       - name: Build the packages
         run: ubuntu/build.sh
 
-      - name: Add Heroic, GoXLR Utility and Steam
+      - name: Add Heroic, GoXLR Utility, Steam and OpenRGB
         run: ubuntu/fetch-mirrored.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -66,7 +66,7 @@ jobs:
             plugins=/usr/lib/x86_64-linux-gnu/obs-modules/plugins
             missing=$(ldd "$plugins"/*.so | grep "not found" || true)
             [ -z "$missing" ] || { echo "$missing"; exit 1; }
-            ls "$plugins" | grep -E "move|record|clone|shader|blur|mask|glow|vkcapture|droidcam"
+            ls "$plugins" | grep -E "move|record|clone|shader|blur|mask|glow|vkcapture"
             echo "### Drivers: Quick Sync, VA-API, Vulkan"
             dpkg -l intel-media-va-driver-non-free libmfx-gen1.2 libvpl2 mesa-libgallium \
               mesa-vulkan-drivers ubuntu-drivers-common | grep "^ii"
@@ -92,6 +92,7 @@ jobs:
             grep -q "^Exec=env OBS_VKCAPTURE=1 " /usr/share/applications/heroic.desktop
             echo "### Apps"
             flatpak remotes --system | grep flathub
+            dpkg-query -W -f="\${Version}\n" openrgb | grep "^1\.1"
             ls /etc/systemd/user/graphical-session.target.wants/goxlr-daemon.service \
               /etc/systemd/user/graphical-session.target.wants/softglowos-streamcontroller.service \
               /usr/share/softglowos/streamcontroller/com_core447_OBSPlugin/main.py \

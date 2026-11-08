@@ -11,9 +11,6 @@ eval "$(grep -E '^(MOVE|RECORD|CLONE|SHADER|FINITE|BLUR|MASKS|GLOW)_[A-Z0-9]+=' 
 VKCAPTURE_VERSION=1.5.6
 VKCAPTURE_SHA256=4f0eecd574cf4765bf8a4c5e09b7c764d1c4a9128e6c6fea99e2c6474c494fe0
 VKCAPTURE_URL=https://github.com/nowrep/obs-vkcapture/archive/refs/tags/v$VKCAPTURE_VERSION.tar.gz
-DROIDCAM_VERSION=2.5.1
-DROIDCAM_SHA256=f02dc570c0dfc3c83124d3b9758555c9b0f93d76633d2c19537154e74ddf1d2f
-DROIDCAM_URL=https://github.com/dev47apps/droidcam-obs-plugin/archive/refs/tags/$DROIDCAM_VERSION.tar.gz
 
 # OBS from the PPA, with the source this package installs on the system
 cp "$PACKAGE_DIR/root/etc/apt/sources.list.d/obs-studio.sources" /etc/apt/sources.list.d/
@@ -25,7 +22,6 @@ apt-get install -y -qq --no-install-recommends \
   obs-studio xz-utils cmake make g++ pkgconf libcurl4-openssl-dev libsimde-dev \
   qt6-base-dev qt6-base-private-dev qt6-svg-dev \
   libvulkan-dev libwayland-dev libegl-dev libgl-dev libx11-dev libxcb1-dev libdrm-dev \
-  libturbojpeg0-dev libimobiledevice-dev libusbmuxd-dev \
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev >/dev/null
 
 arch_dir=$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || gcc -dumpmachine)
@@ -95,22 +91,11 @@ take_plugin linux-vkcapture "$tmp/obs-vkcapture/stage"
 rm -rf "$tmp"/obs-vkcapture/stage/usr/lib/*/obs-plugins "$tmp/obs-vkcapture/stage/usr/share/obs"
 cp -a "$tmp/obs-vkcapture/stage/." "$DEST/"
 
-# DroidCam (phone as webcam), built with its own Makefile
-fetch "$DROIDCAM_URL" "$DROIDCAM_SHA256" "$tmp/droidcam"
-mkdir -p "$tmp/droidcam/build"
-# Its Makefile adds to a variable SRC, which is ours (the repo) in the environment
-env -u SRC make -C "$tmp/droidcam" -j"$(nproc)" \
-  LIBOBS_INCLUDES=/usr/include/obs FFMPEG_INCLUDES="/usr/include/$arch_dir" \
-  LIBUSBMUXD=libusbmuxd-2.0 LIBIMOBILEDEV=libimobiledevice-1.0 >/dev/null
-install -D -m 644 "$tmp/droidcam/build/droidcam-obs.so" "$DEST$plugins/droidcam-obs.so"
-mkdir -p "$DEST$data/droidcam-obs"
-cp -r "$tmp/droidcam/data/." "$DEST$data/droidcam-obs/"
-
 # The first-start launcher, shared with the Fedora image
 install -D -m 755 "$SRC/files/system/usr/bin/softglowos-obs" "$DEST/usr/bin/softglowos-obs"
 
 # Fail the build if a plugin landed somewhere OBS doesn't look
 for plugin in move-transition source-record source-clone obs-shaderfilter \
-  obs-composite-blur obs-advanced-masks obs-stroke-glow-shadow linux-vkcapture droidcam-obs; do
+  obs-composite-blur obs-advanced-masks obs-stroke-glow-shadow linux-vkcapture; do
   ls "$DEST$plugins/$plugin.so"
 done
