@@ -25,6 +25,8 @@ install_deb() {  # name url
   curl -fsSL --retry 3 -o "$tmp/$1.deb" "$2" || return 1
   # Check that it's the vendor's package before installing it
   [ "$(dpkg-deb -f "$tmp/$1.deb" Package)" = "$1" ] || return 1
+  # Fresh package lists for its dependencies (the ISO's may be weeks old)
+  apt-get update -q -o DPkg::Lock::Timeout=600 || :
   apt-get install -y -q -o DPkg::Lock::Timeout=600 "$tmp/$1.deb"
 }
 
