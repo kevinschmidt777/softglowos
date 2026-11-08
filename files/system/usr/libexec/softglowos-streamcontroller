@@ -2,8 +2,11 @@
 # Gets StreamController ready on every login: our mixer plugin and the OBS
 # plugin in its plugin folder, and the right to talk to the Hub (a flatpak
 # override; the mixer plugin works through the Hub's D-Bus actions).
-# Our own plugin follows the image's version; the OBS plugin is only put
+# Our own plugin follows the package's version; the OBS plugin is only put
 # there once, after that StreamController's store keeps it up to date.
+# With a Stream Deck plugged in it then starts StreamController in the
+# background, the way its own autostart does, unless that autostart is on
+# (it starts it then) or it already runs.
 set -euo pipefail
 
 APP=com.core447.StreamController
@@ -24,3 +27,22 @@ for plugin in "$SRC"/*/; do
   fi
   cp -r --no-preserve=mode "$plugin" "$DEST/$id"
 done
+
+# A Stream Deck, told apart from Elgato's capture cards by its product name
+stream_deck() {
+  local device
+  for device in /sys/bus/usb/devices/*; do
+    [ "$(cat "$device/idVendor" 2>/dev/null)" = 0fd9 ] || continue
+    case "$(cat "$device/product" 2>/dev/null)" in
+      *"Stream Deck"*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+running=$(flatpak ps --columns=application 2>/dev/null || true)
+if stream_deck && [ ! -e "$HOME/.config/autostart/$APP.desktop" ] && ! grep -qx "$APP" <<<"$running"; then
+  # Its own unit, so it keeps running after this oneshot service is done
+  systemd-run --user --collect --unit="softglowos-streamcontroller-app" \
+    flatpak run --command=/app/bin/launch.sh "$APP" --daemon-only >/dev/null 2>&1 || true
+fi
