@@ -1,0 +1,10 @@
+#!/bin/sh
+# Gives GNOME Software its own app entry back
+set -e
+
+if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+  rm -f /usr/share/applications/org.gnome.Software.desktop
+  dpkg-divert --package softglowos-store --remove --rename \
+    --divert /usr/share/applications/org.gnome.Software.desktop.distrib \
+    /usr/share/applications/org.gnome.Software.desktop
+fi

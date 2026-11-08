@@ -1,0 +1,13 @@
+Package: softglowos-store
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://softglowos.com
+Section: admin
+Priority: optional
+Depends: softglowos-base, flatpak, gnome-software, gnome-software-plugin-deb, @SHLIBS@
+Description: Softglow Store, the app store of SoftglowOS
+ Bazaar by kolunmi and contributors (GPL-3.0), built as Softglow Store: apps
+ from Flathub, with SoftglowOS's home page and without the Flatpaks of the
+ apps SoftglowOS ships itself. GNOME Software stays hidden and only opens
+ downloaded .deb files.
