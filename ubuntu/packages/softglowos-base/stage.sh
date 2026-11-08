@@ -44,7 +44,7 @@ rsvg-convert -h 48 "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" \
   -o "$DEST/usr/share/softglowos/branding/gdm-logo.png"
 
 download() {  # url sha256 file
-  curl -fsSL --retry 3 -o "$3" "$1"
+  curl -fsSL --retry 3 -o "$3" "$1" || { echo "Download failed: $1" >&2; return 1; }
   echo "$2  $3" | sha256sum -c --quiet -
 }
 
