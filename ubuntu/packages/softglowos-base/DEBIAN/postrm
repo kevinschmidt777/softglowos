@@ -1,5 +1,5 @@
 #!/bin/sh
-# Hands wpctl and os-release back to Ubuntu and removes what
+# Hands wpctl, os-release and the Settings logos back to Ubuntu and removes what
 # softglowos-refresh and postinst generated
 set -e
 
@@ -11,6 +11,10 @@ if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
 
   dpkg-divert --package softglowos-base --remove --rename \
     --divert /usr/bin/wpctl.distrib /usr/bin/wpctl
+  for logo in ubuntu-logo-text ubuntu-logo-text-dark; do
+    dpkg-divert --package softglowos-base --remove --rename \
+      --divert /usr/share/pixmaps/$logo.svg.distrib /usr/share/pixmaps/$logo.svg
+  done
   dpkg-divert --package softglowos-base --remove --no-rename \
     --divert /usr/lib/os-release.ubuntu /usr/lib/os-release
   # Ubuntu's own version back in place, without a moment without one

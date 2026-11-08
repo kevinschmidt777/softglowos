@@ -43,6 +43,12 @@ rsvg-convert -h 64 "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" \
 rsvg-convert -h 48 "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" \
   -o "$DEST/usr/share/softglowos/branding/gdm-logo.png"
 
+# Settings > System > About: our wordmark in place of Ubuntu's (light and
+# dark mode; the Fedora image does the same with Fedora's files)
+mkdir -p "$DEST/usr/share/pixmaps"
+cp "$SYSTEM/usr/share/softglowos/branding/wordmark-dark.svg" "$DEST/usr/share/pixmaps/ubuntu-logo-text.svg"
+cp "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" "$DEST/usr/share/pixmaps/ubuntu-logo-text-dark.svg"
+
 download() {  # url sha256 file
   curl -fsSL --retry 3 -o "$3" "$1" || { echo "Download failed: $1" >&2; return 1; }
   echo "$2  $3" | sha256sum -c --quiet -

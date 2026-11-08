@@ -1,6 +1,6 @@
 #!/bin/sh
-# Moves Ubuntu's wpctl and os-release aside before ours take their place
-# (see /usr/bin/wpctl and /usr/libexec/softglowos-refresh)
+# Moves Ubuntu's wpctl, os-release and Settings logos aside before ours take
+# their place (see /usr/bin/wpctl and /usr/libexec/softglowos-refresh)
 set -e
 
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
@@ -12,4 +12,10 @@ if [ "$1" = install ] || [ "$1" = upgrade ]; then
   dpkg-divert --package softglowos-base --add --no-rename \
     --divert /usr/lib/os-release.ubuntu /usr/lib/os-release
   [ -e /usr/lib/os-release.ubuntu ] || cp -a /usr/lib/os-release /usr/lib/os-release.ubuntu
+  # Settings > System > About shows these two files (light and dark mode),
+  # built into Ubuntu's GNOME Settings, not the os-release logo
+  for logo in ubuntu-logo-text ubuntu-logo-text-dark; do
+    dpkg-divert --package softglowos-base --add --rename \
+      --divert /usr/share/pixmaps/$logo.svg.distrib /usr/share/pixmaps/$logo.svg
+  done
 fi

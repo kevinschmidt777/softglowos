@@ -92,6 +92,11 @@ jobs:
               /etc/systemd/user/graphical-session.target.wants/softglowos-streamcontroller.service \
               /usr/share/softglowos/streamcontroller/com_core447_OBSPlugin/main.py \
               /usr/lib/systemd/system/softglowos-vendor-apps.timer
+            echo "### Settings > About shows our wordmark"
+            cmp /usr/share/pixmaps/ubuntu-logo-text.svg /src/files/system/usr/share/softglowos/branding/wordmark-dark.svg
+            cmp /usr/share/pixmaps/ubuntu-logo-text-dark.svg /src/files/system/usr/share/softglowos/branding/wordmark-white.svg
+            echo "### Installer: Bluetooth pairing"
+            dpkg-deb -c /src/ubuntu/out/softglowos-installer_*.deb | grep -E "softglowos-live-pairing|shellprocess_bluetooth.conf"
             echo "### Softglow Store"
             grep -q "^Name=Softglow Store$" /usr/share/applications/io.github.kolunmi.Bazaar.desktop
             grep -q "^NoDisplay=true" /usr/share/applications/org.gnome.Software.desktop
