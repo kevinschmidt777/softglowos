@@ -72,6 +72,16 @@ config. `softglowos-refresh` rebuilds `os-release` and the GNOME overlays
 (donate banner, microphone indicator) after every apt run, because unlike the
 image those come from packages that update on their own.
 
+`softglowos-hub` builds the Hub with meson and leaves out the helpers for
+image updates, image switching by graphics card and Resolve; the Hub hides
+those features when their helpers are missing. `softglowos-rnnoise` builds
+RNNoise's LADSPA plugin from source per architecture. `softglowos-base`
+depends on it: without the plugin PipeWire can't load the mixer's
+filter-chain and doesn't start at all.
+
+The ISO's bootloader needs `quiet splash` on the kernel command line, or the
+boot splash never shows.
+
 ## Testing
 
 1. Basics in the VM
