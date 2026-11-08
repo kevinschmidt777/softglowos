@@ -22,6 +22,15 @@ current version is in [`VERSION`](VERSION).
 
 ### Fixed
 
+- SoftglowOS didn't update itself and never said when a new version was
+  out. Updates from the SoftglowOS repository (and Ubuntu's regular updates)
+  now install automatically in the background, and a notification says when
+  a new version is available or was installed.
+- Hub → Settings → Updates shows the installed and the new version, what's
+  new from this changelog and an "Update now" button (no password needed for
+  administrators), followed by a restart button.
+- The GoXLR's desk faders now default to Chat on fader B and Music on fader
+  C (set once per GoXLR, changes in the Hub's mixer stay).
 - Steam did nothing when started from the dock or the app grid. Valve's
   launcher refused to start under the name our Game Capture wrapper gave it
   ("Unknown Steam package 'steam.distrib'").

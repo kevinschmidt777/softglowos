@@ -48,6 +48,8 @@ GOXLR_DEVICE_KEYS = ('alsa.card_name', 'api.alsa.card.name', 'device.product.nam
 MIC_MONITOR_VOLUME = 128  # half, when listening to yourself is switched on at 0
 FADERS = ('A', 'B', 'C', 'D')
 FADER_CHOICES = ('mic', 'game', 'chat', 'music', 'system')
+# Set once per GoXLR (_default_faders): Discord's chat on B, music on C
+DEFAULT_FADERS = {'B': 'chat', 'C': 'music'}
 
 FULL_EQ = ('31Hz', '63Hz', '125Hz', '250Hz', '500Hz', '1KHz', '2KHz', '4KHz', '8KHz', '16KHz')
 MINI_EQ = ('90Hz', '250Hz', '500Hz', '1KHz', '3KHz', '8KHz')
@@ -232,6 +234,20 @@ class Mixer(PipeWireMixer):
         self.goxlr.command('SetRouter', 'Samples', 'ChatMic', False)
         self._route_mic()
         self._apply_routes()
+        self._default_faders()
+
+    def _default_faders(self):
+        """Our layout of the desk faders, once per GoXLR (the user may change
+        it in the mixer afterwards): B chat, C music; A and D keep theirs.
+        Remembered per serial number in the routing metadata."""
+        serial = self.goxlr.serial
+        done = self._metadata('goxlr-default-faders') or []
+        if not serial or serial in done:
+            return
+        for letter, channel in DEFAULT_FADERS.items():
+            if self.fader_of(channel) != letter:
+                self.put_on_fader(letter, channel)
+        self._set_metadata('goxlr-default-faders', sorted(done + [serial]))
 
     def _mic_in_software(self):
         """RNNoise and a mic offset only work in software: the GoXLR's own

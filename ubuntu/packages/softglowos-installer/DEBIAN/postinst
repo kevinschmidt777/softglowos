@@ -1,10 +1,11 @@
 #!/bin/sh
 # The live system isn't a computer to set up: no setup assistant, crash
-# reports or Chrome/Discord downloads there
+# reports, update notifications or Chrome/Discord downloads there
 set -e
 
 if [ "$1" = configure ]; then
   cp /usr/share/softglowos/live/com.softglowos.Hub.Setup.desktop /etc/xdg/autostart/
   systemctl --global disable softglowos-crash-reporter.service >/dev/null 2>&1 || :
+  systemctl --global disable softglowos-update-notifier.timer >/dev/null 2>&1 || :
   systemctl disable softglowos-vendor-apps.timer >/dev/null 2>&1 || :
 fi

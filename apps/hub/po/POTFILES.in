@@ -12,6 +12,8 @@ src/software.py
 src/software_page.py
 src/devices_page.py
 src/settings_page.py
+src/update_group.py
+src/softglowos-update-notifier.in
 src/lighting_page.py
 src/bug_report.py
 src/setup.py

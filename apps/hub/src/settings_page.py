@@ -2,15 +2,18 @@ from gi.repository import Adw, Gio, Gtk
 
 from . import crash_reports
 from .bug_report import BugReportDialog
+from .update_group import UpdateGroup
 from .version import version
 
 
 class SettingsPage(Adw.PreferencesPage):
-    """Mixer in the top bar, bug reports, crash reports and the version.
-    System updates come through apt like every other package."""
+    """Updates, mixer in the top bar, bug reports, crash reports and the
+    version."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        self.add(UpdateGroup())
 
         mixer_group = Adw.PreferencesGroup(title=_('Mixer'))
         tray = Adw.SwitchRow(title=_('Mixer in the top bar'),

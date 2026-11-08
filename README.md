@@ -11,7 +11,7 @@ is in [docs/ubuntu-port.md](docs/ubuntu-port.md).
 ## What's in it
 
 - **One live ISO for every graphics card:** boots a German live desktop (English in the boot menu) and opens the installer (Calamares, in our colors and with our logo). Bluetooth mice and keyboards can be paired before it opens. NVIDIA cards get Ubuntu's signed driver from the ISO during installation, the open modules for RTX 20 and newer, the proprietary driver for older cards. Secure Boot stays on.
-- **The Hub:** our own app for the mixer (PipeWire and GoXLR, with audio routing and a mini mixer in the top bar), devices, software, lighting and settings, plus a setup assistant on the first login.
+- **The Hub:** our own app for the mixer (PipeWire and GoXLR, with audio routing and a mini mixer in the top bar), devices, software, lighting and settings, plus a setup assistant on the first login and the updates (what's new, update now).
 - **OBS Studio** from the OBS team's PPA with the browser source and our plugins (game capture via vkcapture, Move Transition, Source Record, Source Clone, Shaderfilter, Composite Blur, Advanced Masks, Stroke Glow Shadow). Ready on first start: the graphics card's hardware encoder and the mixer as global audio (track 1 the Stream-Mix, tracks 2–6 mic, game, chat, music and console). Games started from Steam, Heroic or Lutris work with "Game Capture" right away.
 - **StreamController** for the Stream Deck with our mixer plugin and its OBS plugin already connected to OBS.
 - **GoXLR Utility** daemon in the background (the Hub is the interface).
@@ -62,7 +62,11 @@ ones for an arm64 test VM.
 
 ## Updates
 
-SoftglowOS updates through apt like every other Ubuntu package:
+SoftglowOS keeps itself up to date: unattended-upgrades installs our
+packages (and Ubuntu's regular updates) in the background, a notification
+tells about every new version, and Hub → Settings → Updates shows what's
+new (from `CHANGELOG.md`, published next to the apt repository) with an
+"Update now" button. By hand it's apt like every other Ubuntu package:
 
 ```bash
 sudo apt update && sudo apt full-upgrade

@@ -16,6 +16,7 @@ on:
       - "apps/**"
       - "files/**"
       - "VERSION"
+      - "CHANGELOG.md"
       - ".github/workflows/ubuntu-packages.yml"
   workflow_dispatch:
     inputs:
@@ -104,6 +105,14 @@ jobs:
             [ -x /usr/libexec/softglowos-mount-disks ]
             ls /usr/share/polkit-1/rules.d/50-softglowos-mount-disks.rules \
               /etc/systemd/user/graphical-session.target.wants/softglowos-mount-disks.service
+            echo "### Updates: background, notifications, Hub"
+            [ -x /usr/libexec/softglowos-update ] && [ -x /usr/libexec/softglowos-update-notifier ]
+            ls /usr/share/polkit-1/actions/com.softglowos.update.policy \
+              /usr/share/polkit-1/rules.d/50-softglowos-update.rules \
+              /etc/systemd/user/timers.target.wants/softglowos-update-notifier.timer \
+              /usr/share/softglowos/CHANGELOG.md
+            apt-config dump | grep -q "origin=SoftglowOS,label=SoftglowOS"
+            python3 -c "import sys; sys.path.insert(0, \"/usr/share/softglowos-hub\"); from hub import updates; print(updates.installed_version(), updates.available_version())"
             echo "### Settings > About shows our wordmark"
             cmp /usr/share/pixmaps/ubuntu-logo-text.svg /src/files/system/usr/share/softglowos/branding/wordmark-dark.svg
             cmp /usr/share/pixmaps/ubuntu-logo-text-dark.svg /src/files/system/usr/share/softglowos/branding/wordmark-white.svg
@@ -138,6 +147,15 @@ jobs:
         with:
           name: softglowos-ubuntu-packages
           path: repo
+
+      # The changelog next to the packages: the Hub shows what a new version
+      # brings before it's installed
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+          path: src
+      - run: cp src/CHANGELOG.md repo/
 
       # A flat repository (Suites: ./), signed like Ubuntu's own
       - name: Index and sign

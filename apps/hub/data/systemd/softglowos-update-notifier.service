@@ -1,0 +1,7 @@
+[Unit]
+Description=Tell about new SoftglowOS versions
+After=graphical-session.target
+
+[Service]
+# Waits while its notification is open, so the button keeps working
+ExecStart=@libexecdir@/softglowos-update-notifier

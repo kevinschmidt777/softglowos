@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Run as root through pkexec by the Hub (50-softglowos-update.rules lets
+# administrators do it without the password):
+#   softglowos-update check     fresh package lists, so the Hub sees new versions
+#   softglowos-update upgrade   installs every update, like apt full-upgrade
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+LOCK=(-o DPkg::Lock::Timeout=600)
+
+case "${1:-}" in
+  check)
+    apt-get update -q "${LOCK[@]}"
+    ;;
+  upgrade)
+    apt-get update -q "${LOCK[@]}"
+    # Changed config files keep the user's version, new ones are taken
+    apt-get full-upgrade -y -q "${LOCK[@]}" \
+      -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold
+    apt-get autoremove -y -q "${LOCK[@]}" || :
+    ;;
+  *)
+    echo "usage: $0 check|upgrade" >&2
+    exit 2
+    ;;
+esac

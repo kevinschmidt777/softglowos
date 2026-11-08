@@ -33,7 +33,19 @@ for path in usr/libexec/softglowos-crash-reporter \
     "$SRC/files/system/$path" "$DEST/$path"
 done
 
-# Version and build date for the Hub's footer and bug reports
+# Updates: in the background (unattended-upgrades), and from the Hub's
+# settings through a root helper that administrators may run without the
+# password
+for path in usr/libexec/softglowos-update \
+            usr/share/polkit-1/actions/com.softglowos.update.policy \
+            usr/share/polkit-1/rules.d/50-softglowos-update.rules \
+            etc/apt/apt.conf.d/52softglowos-unattended-upgrades; do
+  install -D -m "$([ -x "$SRC/files/system/$path" ] && echo 755 || echo 644)" \
+    "$SRC/files/system/$path" "$DEST/$path"
+done
+
+# Version, build date and changelog for the Hub's settings and bug reports
 mkdir -p "$DEST/usr/share/softglowos"
 cp "$SRC/VERSION" "$DEST/usr/share/softglowos/version"
+cp "$SRC/CHANGELOG.md" "$DEST/usr/share/softglowos/CHANGELOG.md"
 date -u +%Y-%m-%d > "$DEST/usr/share/softglowos/build-date"

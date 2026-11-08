@@ -1,0 +1,9 @@
+// SoftglowOS updates itself in the background, like Ubuntu's security
+// updates: unattended-upgrades also installs everything from our apt
+// repository (SoftglowOS, Steam, Heroic, GoXLR Utility, OpenRGB) and Ubuntu's
+// regular updates, which our packages may need. The Hub's settings show what
+// a new version brings and update right away on request.
+Unattended-Upgrade::Origins-Pattern {
+	"origin=SoftglowOS,label=SoftglowOS";
+	"origin=Ubuntu,archive=${distro_codename}-updates";
+};

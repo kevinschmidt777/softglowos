@@ -1,0 +1,9 @@
+// Administrators sitting at the computer update SoftglowOS from the Hub
+// without the password, like GNOME Software lets them install updates
+// (softglowos-update only checks for or installs updates).
+polkit.addRule(function(action, subject) {
+    if (action.id == "com.softglowos.update" &&
+        subject.local && subject.active && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});

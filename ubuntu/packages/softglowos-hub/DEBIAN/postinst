@@ -4,6 +4,8 @@ set -e
 if [ "$1" = configure ]; then
   # Crash reports for every user (they only send with consent)
   systemctl --global enable softglowos-crash-reporter.service >/dev/null 2>&1 || true
+  # Notifications about new SoftglowOS versions
+  systemctl --global enable softglowos-update-notifier.timer >/dev/null 2>&1 || true
   if [ -f /usr/share/applications/goxlr-utility.desktop ]; then
     # The Hub is the only GoXLR interface; the daemon stays the driver
     desktop-file-edit --set-key=NoDisplay --set-value=true \

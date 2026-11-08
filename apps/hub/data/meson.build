@@ -20,12 +20,25 @@ install_data(
 
 unit_conf = configuration_data()
 unit_conf.set('pkgdatadir', pkgdatadir)
+unit_conf.set('libexecdir', get_option('prefix') / get_option('libexecdir'))
 
 # OpenRGB server for the Lighting page (enabled per user by the Hub)
 configure_file(
   input: 'systemd' / 'softglowos-lighting.service',
   output: 'softglowos-lighting.service',
   configuration: unit_conf,
+  install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
+)
+
+# Notifications about new SoftglowOS versions, hourly
+configure_file(
+  input: 'systemd' / 'softglowos-update-notifier.service',
+  output: 'softglowos-update-notifier.service',
+  configuration: unit_conf,
+  install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
+)
+install_data(
+  'systemd' / 'softglowos-update-notifier.timer',
   install_dir: get_option('prefix') / 'lib' / 'systemd' / 'user',
 )
 

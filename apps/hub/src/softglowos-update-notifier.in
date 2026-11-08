@@ -1,0 +1,117 @@
+#!@PYTHON@
+# A GNOME notification when a new SoftglowOS version is ready to install,
+# and one when a new version was installed (in the background by
+# unattended-upgrades, or from the Hub). A click opens the Hub's settings,
+# which show what's new and update right away. Run hourly by
+# softglowos-update-notifier.timer; each version is announced once
+# (~/.local/state/softglowos/updates.json).
+
+import gettext
+import json
+import locale
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+pkgdatadir = '@pkgdatadir@'
+localedir = '@localedir@'
+sys.path.insert(1, pkgdatadir)
+locale.setlocale(locale.LC_ALL, '')
+locale.bindtextdomain('softglowos-hub', localedir)
+gettext.install('softglowos-hub', localedir)
+
+from gi.repository import Gio, GLib  # noqa: E402
+
+from hub import updates  # noqa: E402
+
+STATE = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local' / 'state')) \
+    / 'softglowos' / 'updates.json'
+ICON = 'softglowos-logo'
+WAIT_HOURS = 4  # how long a notification's button keeps working
+
+
+def read_state():
+    try:
+        return json.loads(STATE.read_text())
+    except (OSError, ValueError):
+        return None
+
+
+def write_state(state):
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(state))
+
+
+class Notifier:
+    """org.freedesktop.Notifications directly: the buttons keep working while
+    this waits, without the Hub running."""
+
+    def __init__(self):
+        self.bus = Gio.bus_get_sync(Gio.BusType.SESSION)
+        self.open = set()
+        self.loop = GLib.MainLoop()
+        self.bus.signal_subscribe('org.freedesktop.Notifications',
+                                  'org.freedesktop.Notifications', None,
+                                  '/org/freedesktop/Notifications', None, 0, self._on_signal)
+
+    def send(self, title, body, button):
+        actions = ['default', button, 'open', button]
+        hints = {'desktop-entry': GLib.Variant('s', 'com.softglowos.Hub'),
+                 'urgency': GLib.Variant('y', 1)}
+        reply = self.bus.call_sync(
+            'org.freedesktop.Notifications', '/org/freedesktop/Notifications',
+            'org.freedesktop.Notifications', 'Notify',
+            GLib.Variant('(susssasa{sv}i)', ('SoftglowOS', 0, ICON, title, body,
+                                             actions, hints, 0)),
+            GLib.VariantType('(u)'), Gio.DBusCallFlags.NONE, -1, None)
+        self.open.add(reply.unpack()[0])
+
+    def wait(self):
+        if self.open:
+            GLib.timeout_add_seconds(WAIT_HOURS * 3600, self.loop.quit)
+            self.loop.run()
+
+    def _on_signal(self, _bus, _sender, _path, _interface, signal, params):
+        notification = params.unpack()[0]
+        if notification not in self.open:
+            return
+        if signal == 'ActionInvoked':
+            subprocess.Popen(['softglowos-hub', '--page', 'settings'])
+        if signal in ('ActionInvoked', 'NotificationClosed'):
+            self.open.discard(notification)
+            if not self.open:
+                self.loop.quit()
+
+
+def main():
+    installed = updates.installed_version()
+    if not installed:
+        return 0
+    state = read_state()
+    if state is None:
+        # First run on this account: nothing to announce yet
+        write_state({'seen': installed, 'announced': ''})
+        return 0
+
+    notifier = Notifier()
+    if updates.newer(installed, state.get('seen', '')):
+        notifier.send(_('SoftglowOS {version} is installed').format(version=installed),
+                      _('See what\'s new in the Hub. A restart applies everything.'),
+                      _('What\'s new'))
+        state['seen'] = installed
+
+    available = updates.update_available()
+    if available and available != state.get('announced'):
+        notifier.send(_('SoftglowOS {version} is available').format(version=available),
+                      _('It installs itself in the background, or right now from the Hub.'),
+                      _('Update now'))
+        state['announced'] = available
+
+    write_state(state)
+    notifier.wait()
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

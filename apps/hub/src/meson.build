@@ -32,6 +32,16 @@ configure_file(
   install_mode: 'rwxr-xr-x',
 )
 
+# Notifications about new SoftglowOS versions (softglowos-update-notifier.timer)
+configure_file(
+  input: 'softglowos-update-notifier.in',
+  output: 'softglowos-update-notifier',
+  configuration: conf,
+  install: true,
+  install_dir: get_option('libexecdir'),
+  install_mode: 'rwxr-xr-x',
+)
+
 install_data(
   '__init__.py',
   'main.py',
@@ -48,6 +58,8 @@ install_data(
   'devices_page.py',
   'settings_page.py',
   'version.py',
+  'updates.py',
+  'update_group.py',
   'bug_report.py',
   'setup.py',
   'tray.py',
