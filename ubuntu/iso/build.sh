@@ -210,7 +210,7 @@ mmd -i "$efi" ::/EFI ::/EFI/boot
 mcopy -i "$efi" "$ISO/EFI/boot/"* ::/EFI/boot/
 
 mkdir -p /out
-iso_file=/out/softglowos-ubuntu-$VERSION-amd64.iso
+iso_file=/out/softglowos-$VERSION-amd64.iso
 xorriso -as mkisofs -r -V "SoftglowOS" -J -joliet-long -l -iso-level 3 \
   -partition_offset 16 -append_partition 2 0xef "$efi" -appended_part_as_gpt \
   -e --interval:appended_partition_2:all:: -no-emul-boot \
