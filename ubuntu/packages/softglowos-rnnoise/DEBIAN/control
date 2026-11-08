@@ -1,0 +1,12 @@
+Package: softglowos-rnnoise
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://github.com/werman/noise-suppression-for-voice
+Section: sound
+Priority: optional
+Description: RNNoise noise suppression (LADSPA) for the Hub's microphone chain
+ noise-suppression-for-voice (GPL-3.0), which Ubuntu doesn't package. Its
+ own package because it's built per architecture, while the rest of
+ SoftglowOS's packages run anywhere. The mixer's PipeWire config can't load
+ without it.

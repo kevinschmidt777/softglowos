@@ -27,7 +27,8 @@ for package in "$@"; do
 
   mkdir -p "$stage/DEBIAN"
   cp -a "$dir/DEBIAN/." "$stage/DEBIAN/"
-  sed -i "s/@VERSION@/$VERSION/" "$stage/DEBIAN/control"
+  sed -i -e "s/@VERSION@/$VERSION/" -e "s/@ARCH@/$(dpkg --print-architecture)/" \
+    "$stage/DEBIAN/control"
   chmod 755 "$stage/DEBIAN"/{preinst,postinst,prerm,postrm} 2>/dev/null || :
 
   # A directory as target names the file package_version_arch.deb
