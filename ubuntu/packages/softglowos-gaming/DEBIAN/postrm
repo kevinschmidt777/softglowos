@@ -6,7 +6,9 @@ undivert() {
   dpkg-divert --package softglowos-gaming --remove --rename --divert "$1.distrib" "$1"
 }
 
-if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+# Not on purge: it follows remove, and undoing again would delete what remove
+# just put back
+if [ "$1" = remove ] || [ "$1" = abort-install ]; then
   for id in net.lutris.Lutris heroic debian-xterm debian-uxterm; do
     rm -f "/usr/share/applications/$id.desktop"
     undivert "/usr/share/applications/$id.desktop"

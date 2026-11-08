@@ -2,7 +2,9 @@
 # Removed by Calamares from the installed system: everything back on
 set -e
 
-if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+# Not on purge: it follows remove, and undoing again would delete what remove
+# just put back
+if [ "$1" = remove ] || [ "$1" = abort-install ]; then
   rm -f /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop
   dpkg-divert --package softglowos-installer --remove --rename \
     --divert /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop.installed \

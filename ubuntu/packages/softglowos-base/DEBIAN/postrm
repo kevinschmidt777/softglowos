@@ -3,7 +3,9 @@
 # softglowos-refresh and postinst generated
 set -e
 
-if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+# Not on purge: it follows remove, and undoing again would delete what remove
+# just put back
+if [ "$1" = remove ] || [ "$1" = abort-install ]; then
   rm -rf /usr/share/softglowos/overlays /var/lib/softglowos/overlays.stamp
   rm -f /usr/lib/environment.d/60-softglowos-overlays.conf
   find /usr/share/plymouth/themes/softglowos -type l -delete 2>/dev/null || true

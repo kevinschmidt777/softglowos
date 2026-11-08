@@ -2,7 +2,9 @@
 # Gives GNOME Software its own app entry back
 set -e
 
-if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+# Not on purge: it follows remove, and undoing again would delete what remove
+# just put back
+if [ "$1" = remove ] || [ "$1" = abort-install ]; then
   rm -f /usr/share/applications/org.gnome.Software.desktop
   dpkg-divert --package softglowos-store --remove --rename \
     --divert /usr/share/applications/org.gnome.Software.desktop.distrib \
