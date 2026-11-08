@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+  systemctl --global disable goxlr-daemon.service softglowos-streamcontroller.service || :
+fi

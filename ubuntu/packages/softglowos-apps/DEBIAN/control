@@ -1,0 +1,13 @@
+Package: softglowos-apps
+Version: @VERSION@
+Architecture: all
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://softglowos.com
+Section: misc
+Priority: optional
+Depends: softglowos-base, softglowos-vendor-apps, flatpak, jq, openrgb, goxlr-utility
+Description: Creator apps of SoftglowOS
+ StreamController (Stream Deck, as Flatpak from Flathub) with our mixer
+ plugin and its OBS plugin, the GoXLR Utility daemon for the Hub, OpenRGB,
+ and Flathub as the source for the app store. Chrome and Discord come from
+ softglowos-vendor-apps.

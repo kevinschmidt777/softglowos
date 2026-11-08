@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+  systemctl disable --now softglowos-vendor-apps.timer >/dev/null 2>&1 || :
+fi

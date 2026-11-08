@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+  flatpak remote-add --system --if-not-exists flathub /usr/share/softglowos/flathub.flatpakrepo
+  # For every user: the GoXLR daemon for the Hub, StreamController's plugins
+  systemctl --global enable goxlr-daemon.service softglowos-streamcontroller.service
+fi

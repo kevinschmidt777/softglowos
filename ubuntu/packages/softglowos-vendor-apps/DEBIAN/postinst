@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+  systemctl daemon-reload >/dev/null 2>&1 || :
+  systemctl enable softglowos-vendor-apps.timer >/dev/null 2>&1 || :
+  # Started after apt is done, it waits for the dpkg lock
+  systemctl start --no-block softglowos-vendor-apps.timer >/dev/null 2>&1 || :
+fi

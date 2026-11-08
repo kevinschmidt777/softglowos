@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Chrome and Discord straight from Google and Discord: their licenses don't
+# let us put them into the ISO or our repository, so this fetches the
+# official .deb on the computer itself.
+# - Each app is installed once. If it's removed later, it stays removed.
+# - Chrome then updates through Google's repository, which its package adds.
+# - Discord has no repository, so this updates it, but only while it isn't
+#   running: its package closes a running Discord.
+set -euo pipefail
+
+STATE=/var/lib/softglowos/vendor-apps
+CHROME_URL=https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+DISCORD_URL='https://discord.com/api/download?platform=linux&format=deb'
+mkdir -p "$STATE"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+installed() {  # package
+  dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'install ok installed'
+}
+
+# Called with || below, where set -e doesn't apply, so every step returns
+install_deb() {  # name url
+  curl -fsSL --retry 3 -o "$tmp/$1.deb" "$2" || return 1
+  # Check that it's the vendor's package before installing it
+  [ "$(dpkg-deb -f "$tmp/$1.deb" Package)" = "$1" ] || return 1
+  apt-get install -y -q -o DPkg::Lock::Timeout=600 "$tmp/$1.deb"
+}
+
+once() {  # package url: the first install only
+  [ -e "$STATE/$1" ] && return 0
+  if ! installed "$1"; then
+    install_deb "$1" "$2" || return 1
+  fi
+  touch "$STATE/$1"
+}
+
+update_discord() {
+  installed discord || return 0
+  pgrep -x Discord >/dev/null && return 0
+  # The download link leads to .../x64/<version>/Discord.deb
+  local url latest
+  url=$(curl -fsSI "$DISCORD_URL" -o /dev/null -w '%{redirect_url}') || return 1
+  url=$(curl -fsSI "$url" -o /dev/null -w '%{redirect_url}') || return 1
+  latest=$(sed -nE 's|.*/x64/([0-9.]+)/[^/]*\.deb$|\1|p' <<<"$url")
+  [ -n "$latest" ] || return 0
+  dpkg --compare-versions "$latest" gt "$(dpkg-query -W -f='${Version}' discord)" || return 0
+  install_deb discord "$url"
+}
+
+status=0
+once google-chrome-stable "$CHROME_URL" || status=1
+once discord "$DISCORD_URL" || status=1
+update_discord || status=1
+exit $status
