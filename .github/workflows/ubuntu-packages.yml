@@ -1,8 +1,9 @@
 name: Ubuntu packages
 
 # The Ubuntu prototype (docs/ubuntu-port.md): builds the .deb packages on
-# x86_64 and checks that they install on a stock Ubuntu 26.04 and that OBS
-# finds every plugin. The packages are kept as a workflow artifact.
+# x86_64 and checks that they install on a stock Ubuntu 26.04, that OBS
+# finds every plugin and that the drivers are in place. The packages are kept
+# as a workflow artifact.
 on:
   push:
     branches:
@@ -50,8 +51,15 @@ jobs:
             missing=$(ldd "$plugins"/*.so | grep "not found" || true)
             [ -z "$missing" ] || { echo "$missing"; exit 1; }
             ls "$plugins" | grep -E "move|record|clone|shader|blur|mask|glow|vkcapture|droidcam"
-            echo "### Quick Sync runtime"
-            dpkg -l | grep -E "intel-media-va-driver|libmfx-gen|libvpl" || true
+            echo "### Drivers: Quick Sync, VA-API, Vulkan"
+            dpkg -l intel-media-va-driver-non-free libmfx-gen1.2 libvpl2 mesa-libgallium \
+              mesa-vulkan-drivers ubuntu-drivers-common | grep "^ii"
+            ls /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so /usr/lib/x86_64-linux-gnu/dri/radeonsi_drv_video.so
+            echo "### NVIDIA settings"
+            ls /usr/lib/modprobe.d/nvidia-power.conf /usr/lib/modprobe.d/nvidia-deck.conf \
+              /usr/lib/udev/rules.d/80-nvidia-pm.rules
+            [ "$(readlink /etc/systemd/system/nvidia-persistenced.service)" = /dev/null ]
+            ls /usr/lib/systemd/user-environment-generators/60-softglowos-nouveau
           '
 
       - uses: actions/upload-artifact@v4

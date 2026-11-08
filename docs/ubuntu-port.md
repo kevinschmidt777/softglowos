@@ -13,7 +13,7 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Base | Ubuntu 26.04 LTS, GNOME on Wayland |
 | Kernel | Ubuntu's stock kernel (HWE later). No gaming kernel: Secure Boot and NVIDIA rebuilds aren't worth the small gain |
 | Build | Our parts as `.deb` packages, an apt repository, a live ISO |
-| Packages | `softglowos-base`, `softglowos-hub`, `softglowos-obs`, `softglowos-drivers`, `softglowos-gaming` |
+| Packages | `softglowos-base`, `softglowos-hub`, `softglowos-rnnoise`, `softglowos-obs`, `softglowos-drivers`, `softglowos-gaming` |
 | apt repository | GitHub Pages, signed, filled by GitHub Actions |
 | Updates | Plain apt. No atomic updates or rollback (the biggest loss compared to Bazzite) |
 | Installer | Calamares with our branding, German with "du" |
@@ -23,7 +23,8 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Snap | Removed and pinned so apt can't bring it back |
 | App store | Bazaar (Flathub), built by us with our home page and blocklist. GNOME Software stays hidden and only opens downloaded `.deb` files |
 | Discord, Heroic | Official `.deb`s, mirrored into our apt repository daily so they update with the system |
-| Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, xone, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
+| Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
+| Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
 | Hub | Updates, channels, rollback and GPU image switching are hidden. GPU switching isn't needed on Ubuntu, one system covers every card |
 | Later | DaVinci Resolve (davincibox via Distrobox), Hub update page on apt |
 
@@ -49,7 +50,12 @@ From `ublue-os/bazzite` (`system_files/desktop/shared`, `build_files/bazzite`):
   BBR + MTU probing, IPv6 temporary addresses, higher inotify limits
 - zram: zstd, half the RAM, at most 16 GB
 - I/O scheduler: kyber for SSD/NVMe, bfq for HDD and SD cards
-- Kernel modules via DKMS: `v4l2loopback` (OBS virtual camera), `xone` (Xbox wireless dongle)
+- NVIDIA: the power saving options (`nvidia-power.conf`, `nvidia-deck.conf`),
+  `80-nvidia-pm.rules` (removes the card's USB controllers) and
+  `nvidia-persistenced` off. `nvidia-powerd` is on in Ubuntu already. Not
+  taken: mutter's `kms-modifiers`, which GNOME 50 already uses for NVIDIA;
+  set for every card, it would force them on the older Intel GPUs mutter
+  leaves out on purpose
 
 Bazzite's WirePlumber (Terra's `terra-wireplumber`) is upstream WirePlumber
 with a single OpenGamingCollective patch: `wpctl clear-default` does nothing
@@ -88,6 +94,13 @@ with the same pinned versions (`files/scripts/build-obs-plugins.sh`) plus
 obs-vkcapture and DroidCam. OBS's app entry is diverted and rebuilt by
 `softglowos-refresh` from `desktop-tweaks/`, so it starts `softglowos-obs`
 and prefers the strong GPU, and keeps doing so after OBS updates.
+
+`softglowos-drivers` holds what AMD, Intel and NVIDIA need: Mesa, firmware,
+Intel's Quick Sync runtime, `switcheroo-control`, `ubuntu-drivers` and the
+NVIDIA settings from Bazzite. The NVIDIA driver itself is installed by the
+ISO with `ubuntu-drivers`, which takes Ubuntu's signed prebuilt modules. The
+OBS virtual camera's v4l2loopback module comes signed with Ubuntu's kernel
+(`linux-image-generic` depends on it), so OBS doesn't need DKMS.
 
 The packages target x86_64. On Apple Silicon, Ubuntu 26.04's tar doesn't
 work under Rosetta at all, and under QEMU only packing fails, so the x86_64

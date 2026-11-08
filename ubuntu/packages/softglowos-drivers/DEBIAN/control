@@ -1,0 +1,19 @@
+Package: softglowos-drivers
+Version: @VERSION@
+Architecture: all
+Maintainer: Kevin Schmidt <https://github.com/kevinschmidt777/softglowos>
+Homepage: https://softglowos.com
+Section: misc
+Priority: optional
+Depends: linux-firmware, libgl1-mesa-dri, mesa-libgallium, mesa-vulkan-drivers,
+ intel-media-va-driver-non-free, libvpl2, libmfx-gen1.2, ubuntu-drivers-common,
+ switcheroo-control
+Recommends: vainfo, vulkan-tools
+Description: Graphics drivers and settings for SoftglowOS
+ AMD, Intel and NVIDIA on one system: Mesa for AMD and Intel (Vulkan, OpenGL,
+ video encoding through VA-API), Intel Quick Sync for OBS, switcheroo-control
+ for PCs with two graphics cards, and ubuntu-drivers, which installs the
+ signed NVIDIA driver that fits the card. For NVIDIA it adds the settings of
+ the Bazzite image: power saving, NVIDIA's USB controllers on the card
+ switched off, nvidia-persistenced off, and the older GL renderer for GTK 4
+ apps while the free nouveau driver runs.
