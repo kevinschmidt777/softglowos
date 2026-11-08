@@ -37,6 +37,8 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             sed -i "s/^Components: main.*/Components: main restricted universe multiverse/" \
               /etc/apt/sources.list.d/ubuntu.sources
+            apt-get update -qq
+            apt-get install -y -qq ca-certificates >/dev/null
             cp /src/ubuntu/packages/softglowos-obs/root/etc/apt/sources.list.d/obs-studio.sources /etc/apt/sources.list.d/
             cp /src/ubuntu/packages/softglowos-obs/root/usr/share/keyrings/obs-studio-ppa.asc /usr/share/keyrings/
             apt-get update -qq
