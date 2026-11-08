@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Runs in the new system during installation (Calamares). An NVIDIA card gets
+# Ubuntu's signed driver from the ISO's pool: the open modules where the card
+# supports them (RTX 20 / GTX 16 and newer), otherwise the proprietary driver
+# for older cards. Plus the 32-bit GL library for Steam. Without an NVIDIA
+# card, or for cards neither driver supports, nouveau stays.
+set -euo pipefail
+
+# The versions the ISO carries (ubuntu/iso/build.sh reads them from here)
+OPEN=595
+CLOSED=580
+
+lspci -n | grep -qE ' 03[0-9a-f]{2}: 10de:' || exit 0
+
+# The ISO's pool next to the archive; without network the archive just fails
+apt-get update -q || :
+devices=$(ubuntu-drivers devices 2>/dev/null || :)
+echo "$devices"
+if grep -q "nvidia-driver-$OPEN-open " <<<"$devices"; then
+  driver=$OPEN-open version=$OPEN
+elif grep -q "nvidia-driver-$CLOSED " <<<"$devices"; then
+  driver=$CLOSED version=$CLOSED
+else
+  echo "No driver on the ISO for this card, nouveau stays"
+  exit 0
+fi
+apt-get install -y -q "nvidia-driver-$driver" "linux-modules-nvidia-$driver-generic" \
+  "libnvidia-gl-$version:i386"

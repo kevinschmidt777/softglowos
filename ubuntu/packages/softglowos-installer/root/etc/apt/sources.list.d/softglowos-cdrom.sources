@@ -1,0 +1,5 @@
+# The ISO's pool with the NVIDIA drivers (softglowos-install-nvidia)
+Types: deb
+URIs: file:/cdrom/pool/
+Suites: ./
+Trusted: yes

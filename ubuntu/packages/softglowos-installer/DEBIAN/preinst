@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+  dpkg-divert --package softglowos-installer --add --rename \
+    --divert /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop.installed \
+    /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop
+fi

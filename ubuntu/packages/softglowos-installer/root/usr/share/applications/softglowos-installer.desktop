@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Install SoftglowOS
+Name[de]=SoftglowOS installieren
+Exec=/usr/libexec/softglowos-installer
+Icon=softglowos-logo
+Categories=System;

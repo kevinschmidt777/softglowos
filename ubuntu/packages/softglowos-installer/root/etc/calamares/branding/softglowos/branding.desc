@@ -1,0 +1,30 @@
+---
+componentName: softglowos
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 1024px,680px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+    productName: SoftglowOS
+    shortProductName: SoftglowOS
+    version: "@VERSION@"
+    shortVersion: "@VERSION@"
+    versionedName: SoftglowOS
+    shortVersionedName: SoftglowOS
+    bootloaderEntryName: SoftglowOS
+    productUrl: https://softglowos.com
+    supportUrl: https://github.com/kevinschmidt777/softglowos/issues
+images:
+    productLogo: "logo.png"
+    productIcon: "logo.png"
+    productWelcome: "welcome.png"
+slideshow: "show.qml"
+slideshowAPI: 1
+style:
+    SidebarBackground: "#242424"
+    SidebarText: "#FFFFFF"
+    SidebarTextCurrent: "#FFFFFF"
+    SidebarBackgroundCurrent: "#2190a4"

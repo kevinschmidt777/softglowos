@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Opens Calamares as root in the live session (casper's live user may use
+# sudo without a password); it needs the session's Wayland socket
+exec sudo -E calamares "$@"

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Removed by Calamares from the installed system: everything back on
+set -e
+
+if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+  rm -f /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop
+  dpkg-divert --package softglowos-installer --remove --rename \
+    --divert /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop.installed \
+    /etc/xdg/autostart/com.softglowos.Hub.Setup.desktop
+  systemctl --global enable softglowos-crash-reporter.service >/dev/null 2>&1 || :
+  systemctl enable softglowos-vendor-apps.timer >/dev/null 2>&1 || :
+fi
