@@ -1,0 +1,59 @@
+name: Ubuntu packages
+
+# The Ubuntu prototype (docs/ubuntu-port.md): builds the .deb packages on
+# x86_64 and checks that they install on a stock Ubuntu 26.04 and that OBS
+# finds every plugin. The packages are kept as a workflow artifact.
+on:
+  push:
+    branches:
+      - ubuntu-base
+    paths:
+      - "ubuntu/**"
+      - "apps/**"
+      - "files/**"
+      - "VERSION"
+      - ".github/workflows/ubuntu-packages.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the packages
+        run: ubuntu/build.sh
+
+      - name: Install them on Ubuntu 26.04
+        run: |
+          docker run --rm -v "$PWD:/src:ro" ubuntu:26.04 bash -euo pipefail -c '
+            export DEBIAN_FRONTEND=noninteractive
+            sed -i "s/^Components: main.*/Components: main restricted universe multiverse/" \
+              /etc/apt/sources.list.d/ubuntu.sources
+            cp /src/ubuntu/packages/softglowos-obs/root/etc/apt/sources.list.d/obs-studio.sources /etc/apt/sources.list.d/
+            cp /src/ubuntu/packages/softglowos-obs/root/usr/share/keyrings/obs-studio-ppa.asc /usr/share/keyrings/
+            apt-get update -qq
+            apt-get install -y -q /src/ubuntu/out/*.deb
+            echo "### OBS app entry"
+            grep -E "^(Exec|PrefersNonDefaultGPU)=" /usr/share/applications/com.obsproject.Studio.desktop
+            echo "### OBS plugins and their libraries"
+            plugins=$(dirname "$(dpkg -L obs-studio | grep -m1 "/obs-plugins/[^/]*\.so$")")
+            missing=$(ldd "$plugins"/*.so | grep "not found" || true)
+            [ -z "$missing" ] || { echo "$missing"; exit 1; }
+            ls "$plugins" | grep -E "move|record|clone|shader|blur|mask|glow|vkcapture|droidcam"
+            echo "### Quick Sync runtime"
+            dpkg -l | grep -E "intel-media-va-driver|libmfx-gen|libvpl" || true
+          '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: softglowos-ubuntu-packages
+          path: ubuntu/out/*.deb
+          retention-days: 14
