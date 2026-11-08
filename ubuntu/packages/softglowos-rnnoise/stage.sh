@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# RNNoise's LADSPA plugin (noise-suppression-for-voice, GPL-3.0), the same
-# release the Fedora image downloads prebuilt (files/scripts/install-rnnoise.sh).
-# Built from source here, so it also runs in the arm64 test VM. Into
+# RNNoise's LADSPA plugin (noise-suppression-for-voice, GPL-3.0), built from
+# source, so it also runs in the arm64 test VM. Into
 # /usr/lib/ladspa, which PipeWire's filter-chain searches on Ubuntu.
 set -euo pipefail
 

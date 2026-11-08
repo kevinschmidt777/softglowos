@@ -18,7 +18,7 @@ gi.require_version('Soup', '3.0')
 
 from gi.repository import Adw, Gio, GLib, Gtk, Soup
 
-from .updates import version
+from .version import version
 
 REPO = 'kevinschmidt777/softglowos'
 RELAY = os.environ.get('SOFTGLOWOS_BUG_URL', 'https://softglowos.com/api/bug')

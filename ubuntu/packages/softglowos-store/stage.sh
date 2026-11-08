@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Bazaar (GPL-3.0, Flathub app store) built from source as "Softglow Store",
-# with the home page, blocklist and settings of the Fedora image. Bazzite's
-# Bazaar reads these from /usr/share/ublue-os/bazaar, so our files keep that
-# path. Only what the user sees is renamed: the app ID stays Bazaar's, and
+# with our home page, blocklist and settings. Bazaar reads these from
+# /usr/share/ublue-os/bazaar (Universal Blue's path), so our files keep it. Only what the user sees is renamed: the app ID stays Bazaar's, and
 # its authors stay credited in the About dialog.
 set -euo pipefail
 

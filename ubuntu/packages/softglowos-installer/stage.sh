@@ -8,7 +8,3 @@ rsvg-convert -w 128 -h 128 "$SYSTEM/usr/share/icons/hicolor/scalable/places/soft
   -o "$BRANDING/logo.png"
 rsvg-convert -h 96 "$SYSTEM/usr/share/softglowos/branding/wordmark-dark.svg" -o "$BRANDING/welcome.png"
 sed -i "s/@VERSION@/$(cat "$SRC/VERSION")/" "$BRANDING/branding.desc"
-
-# Bluetooth mice and keyboards before the installer opens (shared with the
-# Fedora ISO)
-cp "$SRC/installer/system_files/usr/libexec/softglowos-live-pairing" "$DEST/usr/libexec/"

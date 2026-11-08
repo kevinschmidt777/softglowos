@@ -2,7 +2,7 @@
 set -e
 
 if [ "$1" = configure ]; then
-  # Like install-hub.sh and the recipe on Fedora
+  # Crash reports for every user (they only send with consent)
   systemctl --global enable softglowos-crash-reporter.service >/dev/null 2>&1 || true
   if [ -f /usr/share/applications/goxlr-utility.desktop ]; then
     # The Hub is the only GoXLR interface; the daemon stays the driver

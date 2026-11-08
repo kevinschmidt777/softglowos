@@ -35,19 +35,6 @@ class App:
         return self._desktop_ids
 
 
-class LocalApp(App):
-    """An app whose launchers live in ~/.local/share/applications
-    (DaVinci Resolve from davincibox), found by file name."""
-
-    def __init__(self, app_id, name, detail, patterns):
-        super().__init__(app_id, name, detail, ())
-        self._patterns = patterns
-
-    def desktop_ids(self):
-        return tuple(sorted(path.name for pattern in self._patterns
-                            for path in APPLICATIONS.glob(pattern)))
-
-
 APPS = (
     App('obs', 'OBS Studio', _('Stream and record, encoder matched to the graphics card'),
         ('com.obsproject.Studio.desktop',)),
@@ -66,9 +53,6 @@ APPS = (
     App('chrome', 'Google Chrome', _('Browser'),
         ('google-chrome.desktop',)),
 )
-
-RESOLVE = LocalApp('resolve', 'DaVinci Resolve', _('Video editing'),
-                   ('DaVinci*.desktop', 'blackmagicraw*.desktop'))
 
 
 def is_installed(app):

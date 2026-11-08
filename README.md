@@ -5,31 +5,23 @@
 A Linux desktop for gamers and Twitch streamers that works out of the box:
 native OBS, GoXLR, Stream Deck and audio routing without the usual fiddling.
 It is built on Ubuntu 26.04 LTS with GNOME: our parts are `.deb` packages in
-our own apt repository, installed from our live ISO. See
-[docs/ubuntu-port.md](docs/ubuntu-port.md) for how it's built.
+our own apt repository, installed from our live ISO. How it's built and why
+is in [docs/ubuntu-port.md](docs/ubuntu-port.md).
 
-> The list below still describes the earlier Bazzite (Fedora) image, which is
-> no longer built. It will be rewritten for Ubuntu.
+## What's in it
 
-## What's in the prototype (v0)
-
-- Two images on top of Bazzite GNOME: `softglowos` for AMD and Intel graphics (`bazzite-gnome`) and `softglowos-nvidia` for NVIDIA RTX 20 / GTX 16 series and newer (`bazzite-gnome-nvidia-open`).
-- **One live ISO for every graphics card:** it boots SoftglowOS as a live desktop (the Hub works there too) and opens the installer right away, in our colors and with our logo. It carries both images and installs the one that fits the graphics card, so NVIDIA PCs get `softglowos-nvidia` directly. After a GPU swap a login notification and Hub → Settings → Graphics switch to the fitting image, keeping all settings, apps and files. While nouveau drives an NVIDIA card, GTK falls back to its GL renderer so apps still open.
-- **OBS Studio as a native RPM** instead of the Flatpak, with the browser source, game capture (vkcapture), VLC source, DroidCam, the x264 encoder, and Move Transition and Source Record (built from source, as there are no packages). Games started from Steam, Heroic or Lutris work with OBS's "Game Capture" source right away.
-- **OBS ready on first start:** the hardware encoder of the graphics card (NVENC, VA-API or x264) and the mixer as global audio: track 1 is the Stream-Mix, tracks 2–6 mic, game, chat, music and console for editing. Resolution and bitrate come from OBS's own wizard; existing OBS settings are never touched.
-- **GoXLR Utility daemon** running in the background (tray disabled; our own mixer will be the UI).
-- **Google Chrome** as the default browser, **Discord** and the **Heroic Games Launcher**, all as native RPMs.
-- **StreamController** for the Stream Deck, the one Flatpak we ship (there is no native package), with our mixer plugin (mute and volume per channel and the mic, also with a GoXLR) and its OBS plugin already connected to OBS.
-- **OpenRGB** as a native RPM for the RGB lighting of most vendors. The setup assistant hides it when it finds no RGB lighting to control; the Hub can bring it back. Hub → Lighting sets one color, effect and brightness for everything (OpenRGB's server runs on localhost only, the last state comes back with every login).
-- Mac-style **dock at the bottom**, always visible, with Files, Chrome, OBS, the Hub, Discord, Steam, the terminal and Settings; window buttons on the right.
-- macOS-style **top bar**: logo menu on the left, clock and status icons on the right.
-- **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color.
-- **Automatic light/dark theme** by time of day (Night Theme Switcher).
-- **No system sounds**, so nothing beeps into a stream.
-- No Bazzite welcome portal, announcements or Steam autostart; a short own terminal greeting (English/German) in teal.
-- **Bazaar** (app store for Flatpaks) with our own start page: Creator Tools, Chat & Community, Gaming, Music & Media, Office & Tools. It doesn't offer Flatpaks of the apps we ship natively.
-- Bazzite's own entries (docs, forum, portal, updater, Steam Big Picture) are hidden from the app grid, `ujust` lost the recipes that would break our setup, and `fastfetch` shows our logo.
-- Placeholder branding: name, wallpapers, boot splash and login logo.
+- **One live ISO for every graphics card:** boots a German live desktop (English in the boot menu) and opens the installer (Calamares, in our colors and with our logo). Bluetooth mice and keyboards can be paired before it opens. NVIDIA cards get Ubuntu's signed driver from the ISO during installation, the open modules for RTX 20 and newer, the proprietary driver for older cards. Secure Boot stays on.
+- **The Hub:** our own app for the mixer (PipeWire and GoXLR, with audio routing and a mini mixer in the top bar), devices, software, lighting and settings, plus a setup assistant on the first login.
+- **OBS Studio** from the OBS team's PPA with the browser source and our plugins (game capture via vkcapture, Move Transition, Source Record, Source Clone, Shaderfilter, Composite Blur, Advanced Masks, Stroke Glow Shadow). Ready on first start: the graphics card's hardware encoder and the mixer as global audio (track 1 the Stream-Mix, tracks 2–6 mic, game, chat, music and console). Games started from Steam, Heroic or Lutris work with "Game Capture" right away.
+- **StreamController** for the Stream Deck with our mixer plugin and its OBS plugin already connected to OBS.
+- **GoXLR Utility** daemon in the background (the Hub is the interface).
+- **OpenRGB 1.1** for the RGB lighting of most vendors; Hub → Lighting sets one color, effect and brightness for everything.
+- **Gaming:** Valve's Steam launcher, Heroic, Lutris, Gamemode, MangoHud, vkBasalt, Gamescope, Protontricks, Winetricks, and Bazzite's sysctl, zram and I/O scheduler values.
+- **Google Chrome** and **Discord**, fetched from their makers once the computer is online (their licenses don't allow us to ship them).
+- **Softglow Store:** Bazaar (Flathub) built as our own app store with our start page: Creator Tools, Chat & Community, Gaming, Music & Media, Office & Tools.
+- Plain GNOME instead of Ubuntu's session: Mac-style **dock at the bottom** (open apps marked with a dash in the accent color), macOS-style **top bar** with the logo menu, window buttons on the right.
+- **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color, **automatic light/dark theme** by time of day, no system sounds.
+- Branding: name, wallpapers, boot splash, login logo and `fastfetch` logo.
 
 The look and feel is described in [DESIGN.md](DESIGN.md).
 
@@ -37,47 +29,39 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 
 | Path | Purpose |
 |---|---|
-| `recipes/common.yml` | All modules, shared by both images |
-| `recipes/softglowos.yml`, `recipes/softglowos-nvidia.yml` | The two image recipes: name and base image |
-| `files/system/` | Files copied 1:1 into the image root |
+| `ubuntu/packages/` | One folder per package: `DEBIAN/`, an optional `root/` with its own files and an optional `stage.sh` that takes the shared files and builds or downloads the rest |
+| `ubuntu/build.sh` | Builds the packages in an Ubuntu 26.04 container into `ubuntu/out/` |
+| `ubuntu/fetch-mirrored.sh` | Puts the official `.deb`s of Heroic, GoXLR Utility, Steam and OpenRGB into our apt repository |
+| `ubuntu/iso/` | The live ISO (debootstrap, casper, Ubuntu's signed shim and GRUB, UEFI only) |
+| `files/system/` | Shared files the packages install at the same paths (audio config, branding, wallpapers, udev rules, user services, StreamController plugin, store config) |
 | `files/gschema-overrides/` | GNOME default settings |
-| `files/scripts/` | Build-time scripts |
-| `installer/` | The live ISO: turns the image into a live system with the installer (built with [Titanoboa](https://github.com/ublue-os/titanoboa), following Bazzite's live ISO) |
-| `disk_config/` | Settings for the qcow2 VM disk |
-| `apps/hub/` | The Hub app (Python, GTK4/libadwaita, Meson): mixer for PipeWire and GoXLR; `run-in-vm.sh` builds and starts it in the Fedora dev VM |
-| `tools/` | Generators for the wallpapers, the Bazaar banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into the dev VM |
-| `.github/workflows/` | Image build (on push and daily) and disk image build (manual) |
+| `apps/hub/` | The Hub (Python, GTK4/libadwaita, Meson); `run-in-vm.sh` builds and starts it in a test VM |
+| `tools/` | Generators for the wallpapers, the store banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into a test VM |
+| `.github/workflows/ubuntu-packages.yml` | Builds and checks the packages, publishes the apt repository from `main`, builds the ISO when started by hand |
 | `VERSION` | The SoftglowOS version (SemVer: new features raise the minor, fixes the patch number); every release gets a `v<version>` tag |
 
 ## Building
 
-Every push to `main` builds both images and publishes them to
-`ghcr.io/kevinschmidt777/softglowos` and `ghcr.io/kevinschmidt777/softglowos-nvidia`,
-signed with cosign.
+Every push to `main` that touches the packages builds them on GitHub,
+installs them on a stock Ubuntu 26.04 to check them, and publishes them as
+our apt repository on GitHub Pages
+(`https://kevinschmidt777.github.io/softglowos/`, signed with
+`APT_SIGNING_KEY`).
 
-The live ISO (`softglowos.iso`) and a ready-to-boot qcow2 VM disk are built by the **Build disk images** workflow,
-started manually:
+The live ISO is built by the same workflow, started by hand:
 
 ```bash
-gh workflow run build-disk.yml
+gh workflow run ubuntu-packages.yml -f iso=true
 ```
 
-Systems installed from the ISO only accept updates signed with our key.
+Locally, `ubuntu/build.sh [package…]` builds packages in Docker;
+`PLATFORM=linux/arm64 ubuntu/build.sh` builds the architecture-independent
+ones for an arm64 test VM.
 
-The qcow2 disk ships a throwaway test user (`tester` / `streamer`) because Bazzite
-has no first-boot account setup. Only use it in a VM.
+## Updates
 
-## Switching an existing Bazzite install
-
-```bash
-# AMD/Intel graphics
-sudo bootc switch ghcr.io/kevinschmidt777/softglowos:latest
-# NVIDIA
-sudo bootc switch ghcr.io/kevinschmidt777/softglowos-nvidia:latest
-```
-
-## Verification
+SoftglowOS updates through apt like every other Ubuntu package:
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/kevinschmidt777/softglowos
+sudo apt update && sudo apt full-upgrade
 ```

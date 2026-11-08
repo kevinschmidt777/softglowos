@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Hub (apps/hub) like files/scripts/install-hub.sh does on Fedora,
-# minus the helpers for image updates, image switching by graphics card and
-# Resolve via davincibox: the Hub hides those features without them.
+# Builds the Hub (apps/hub) with meson.
 set -euo pipefail
 
 OPENRGB_PYTHON_VERSION=0.3.7
@@ -19,17 +17,15 @@ meson setup "$build/out" "$build/src" --prefix=/usr
 DESTDIR=$DEST meson install -C "$build/out" --quiet
 
 hub=$DEST/usr/share/softglowos-hub
-rm -f "$hub"/softglowos-{update,update-check,switch-channel,rebase,gpu-check,switch-gpu,resolve}
-rm -f "$DEST"/usr/lib/systemd/user/softglowos-{update-check.service,update-check.timer,gpu-check.service}
 
 # openrgb-python (GPL-3.0), the OpenRGB SDK client behind the Lighting page:
-# Ubuntu doesn't package it either, so the same pinned wheel as on Fedora
+# Ubuntu doesn't package it, so a pinned wheel from PyPI
 curl -fsSL --retry 3 -o "$build/openrgb.whl" "$OPENRGB_PYTHON_URL"
 echo "$OPENRGB_PYTHON_SHA256  $build/openrgb.whl" | sha256sum -c --quiet -
 python3 -m zipfile -e "$build/openrgb.whl" "$hub/"
 
 # Crash reports (only with the user's consent) and i2c for RGB on mainboards
-# and RAM, shared with the Fedora image
+# and RAM
 for path in usr/libexec/softglowos-crash-reporter \
             usr/lib/systemd/user/softglowos-crash-reporter.service \
             usr/lib/modules-load.d/openrgb.conf; do

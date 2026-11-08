@@ -63,7 +63,7 @@ Geist Medium.
 ## Motion
 
 - GNOME's default animations: fast and fluid.
-- No decorative effects. Bazzite's magic lamp minimize effect is turned off.
+- No decorative effects, such as a magic lamp minimize effect.
 
 ## Sound
 

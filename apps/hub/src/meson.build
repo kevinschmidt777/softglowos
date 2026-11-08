@@ -45,11 +45,9 @@ install_data(
   'goxlr.py',
   'software.py',
   'software_page.py',
-  'resolve.py',
   'devices_page.py',
   'settings_page.py',
-  'updates.py',
-  'gpu.py',
+  'version.py',
   'bug_report.py',
   'setup.py',
   'tray.py',
@@ -62,13 +60,6 @@ install_data(
 )
 
 install_data(
-  'softglowos-resolve',
-  'softglowos-update',
-  'softglowos-update-check',
-  'softglowos-gpu-check',
-  'softglowos-switch-gpu',
-  'softglowos-switch-channel',
-  'softglowos-rebase',
   'softglowos-lighting-save',
   'softglowos-lighting-login',
   install_dir: pkgdatadir,

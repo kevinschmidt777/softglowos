@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# StreamController and GoXLR Utility as on the Fedora image: the Stream Deck
-# udev rule, the user services, our mixer plugin and StreamController's OBS
-# plugin (fetched by the Fedora image's own script, same pin and checksum)
+# StreamController and GoXLR Utility: the Stream Deck udev rule, the user
+# services, our mixer plugin and StreamController's OBS plugin
+# (fetch-obs-plugin.sh)
 set -euo pipefail
 
 SYSTEM=$SRC/files/system
@@ -17,6 +17,6 @@ take usr/libexec/softglowos-streamcontroller 755
 plugins=usr/share/softglowos/streamcontroller
 mkdir -p "$DEST/$plugins"
 cp -r "$SYSTEM/$plugins/com_softglowos_Mixer" "$DEST/$plugins/"
-bash "$SRC/files/scripts/install-streamcontroller-plugins.sh" >/dev/null
+bash "$PACKAGE_DIR/fetch-obs-plugin.sh" >/dev/null
 cp -r "/$plugins/com_core447_OBSPlugin" "$DEST/$plugins/"
 chmod -R u=rwX,go=rX "$DEST/$plugins"

@@ -1,8 +1,7 @@
 """The setup assistant on the first login: Wi-Fi, look, software and
 devices, one full-screen step at a time. Language and keyboard come from the
-installer. Once online it also switches to the image that fits the graphics
-card (see gpu.py), in the background and without asking, and it hides
-OpenRGB when OpenRGB finds no RGB lighting to control.
+installer, the graphics driver from the installer too. It hides OpenRGB when
+OpenRGB finds no RGB lighting to control.
 
 It starts from autostart (softglowos-hub --setup) until it's finished and
 continues where it left off (the step is kept in
@@ -25,7 +24,6 @@ from gi.repository import Adw, Gio, GLib, Gtk, NM, Soup
 from . import crash_reports
 from .devices_page import DevicesPage
 from .goxlr import Mixer
-from .gpu import GraphicsDriver
 from .software_page import app_switches
 
 STATE_FILE = Path(GLib.get_user_config_dir()) / 'softglowos' / 'setup.json'
@@ -91,7 +89,6 @@ class SetupWindow(Adw.ApplicationWindow):
         self.state = {} if preview else load_state()
         self.settings = Gio.Settings(schema_id='org.gnome.desktop.interface')
         self.nm = NM.Client.new(None)
-        self.driver = GraphicsDriver()
 
         self.steps = [('welcome', _step(_('Welcome to SoftglowOS'),
                                         _('Just a few quick steps. You can change everything '
@@ -136,9 +133,6 @@ class SetupWindow(Adw.ApplicationWindow):
         resume = self.state.get('step')
         self._show(ids.index(resume) if resume in ids else 0)
 
-        self.driver.connect('changed', self._on_driver_changed)
-        self.nm.connect('notify::primary-connection', lambda *_args: self._maybe_switch_driver())
-        self.driver.check()
         self._check_rgb()
 
     # Navigation
@@ -168,7 +162,6 @@ class SetupWindow(Adw.ApplicationWindow):
             dot = dot.get_next_sibling()
             number += 1
         self._update_buttons()
-        self._maybe_switch_driver()
 
     def _update_buttons(self):
         step_id = self.steps[self._index()][0]
@@ -179,10 +172,6 @@ class SetupWindow(Adw.ApplicationWindow):
         if not self.preview:
             self.state = {'done': True}
             save_state(self.state)
-        if self.driver.state == 'staged':
-            self.driver.restart()
-        elif self.driver.state == 'switching':
-            self._notify_when_driver_ready()
         self.close()
 
     # RGB lighting
@@ -214,61 +203,6 @@ class SetupWindow(Adw.ApplicationWindow):
         save_state(self.state)
         if not re.search(r'^\d+: ', stdout or '', re.M):
             self.app_rows['openrgb'].set_active(False)
-
-    # Graphics driver
-
-    def _maybe_switch_driver(self):
-        if (self.preview or not self.driver.needs_switch
-                or self.nm.get_primary_connection() is None):
-            return
-        self.driver.switch()
-
-    def _on_driver_changed(self, _driver):
-        self._maybe_switch_driver()
-        state = self.driver.state
-        texts = {
-            'switching': _('Setting up the driver for your graphics card …'),
-            'staged': _('The driver for your graphics card is ready, it starts with a restart.'),
-            'failed': _('Setting up the graphics driver didn\'t work. Try again in the Hub '
-                        'under Settings.'),
-            'nvidia': _('Your graphics card still needs its driver. It\'s in the Hub '
-                        'under Settings.'),
-            'amd': _('Your graphics card still needs its driver. It\'s in the Hub '
-                     'under Settings.'),
-        }
-        self.driver_label.set_label(texts.get(state, ''))
-        self.driver_status.set_visible(state in texts)
-        self.driver_spinner.set_visible(state == 'switching')
-        self.finish_button.set_label(_('Restart') if state == 'staged' else _('Let\'s go'))
-
-    def _notify_when_driver_ready(self):
-        """The window closes, the download goes on: keep running until it's
-        done, then offer the restart in a notification."""
-        app = self.get_application()
-        app.hold()
-
-        def on_changed(driver):
-            if driver.state == 'staged':
-                process = Gio.Subprocess.new(
-                    ['notify-send', '--app-name=Hub', '--icon=com.softglowos.Hub', '--wait',
-                     f'--action=restart={_("Restart")}',
-                     _('Graphics driver ready'),
-                     _('It starts with the next restart.')],
-                    Gio.SubprocessFlags.STDOUT_PIPE)
-                process.communicate_utf8_async(None, None, on_answer)
-            elif driver.state == 'failed':
-                app.release()
-
-        def on_answer(process, result):
-            try:
-                _ok, stdout, _stderr = process.communicate_utf8_finish(result)
-                if (stdout or '').strip() == 'restart':
-                    self.driver.restart()
-            except GLib.Error:
-                pass
-            app.release()
-
-        self.driver.connect('changed', on_changed)
 
     # Wi-Fi
 
@@ -494,17 +428,10 @@ class SetupWindow(Adw.ApplicationWindow):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
         icon = Gtk.Image(icon_name='com.softglowos.Hub', pixel_size=128)
         box.append(icon)
-        self.driver_spinner = Adw.Spinner()
-        self.driver_label = Gtk.Label(wrap=True, justify=Gtk.Justification.CENTER)
-        self.driver_label.add_css_class('dim-label')
-        self.driver_status = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER, visible=False)
-        self.driver_status.append(self.driver_spinner)
-        self.driver_status.append(self.driver_label)
-        box.append(self.driver_status)
         self.finish_button = Gtk.Button(label=_('Let\'s go'), halign=Gtk.Align.CENTER)
         self.finish_button.add_css_class('suggested-action')
         self.finish_button.add_css_class('setup-finish')
         self.finish_button.connect('clicked', self._finish)
         box.append(self.finish_button)
         return _step(_('All set'),
-                     _('Mixer, devices, software and updates are always in the Hub.'), box)
+                     _('Mixer, devices and software are always in the Hub.'), box)

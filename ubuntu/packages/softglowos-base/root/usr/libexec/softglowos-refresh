@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Keeps the files SoftglowOS derives from other Ubuntu packages in step with
-# them. On Fedora the image build does this once (render-branding.sh,
-# hide-gnome-donate.sh, hide-mixer-from-mic-indicator.sh); here those packages
-# update on their own, so this runs from postinst and after every apt run
+# them. Those packages update on their own, so this runs from postinst and
+# after every apt run
 # (/etc/apt/apt.conf.d/80-softglowos-refresh).
 #
 # - /usr/lib/os-release: Ubuntu's copy (diverted to os-release.ubuntu) with
@@ -37,7 +36,7 @@ refresh_os_release() {
   tmp=$(mktemp) || return 0
   grep -vE '^(NAME|PRETTY_NAME|LOGO|ANSI_COLOR|DEFAULT_HOSTNAME|HOME_URL|DOCUMENTATION_URL|SUPPORT_URL|BUG_REPORT_URL|PRIVACY_POLICY_URL)=' \
     "$UBUNTU_OS_RELEASE" > "$tmp"
-  # Same values as the os-release module in recipes/common.yml
+  # SoftglowOS names, ID stays ubuntu so apt and drivers keep working
   cat >> "$tmp" <<'EOF'
 NAME="SoftglowOS"
 PRETTY_NAME="SoftglowOS"

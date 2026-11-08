@@ -1,4 +1,3 @@
-# Our wordmark under the user list of the login screen (the Fedora image sets
-# the same through fedora-gdm-logo.png, see files/scripts/render-branding.sh)
+# Our wordmark under the user list of the login screen
 [org/gnome/login-screen]
 logo='/usr/share/softglowos/branding/gdm-logo.png'

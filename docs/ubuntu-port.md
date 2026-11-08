@@ -27,8 +27,8 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Chrome, Discord | Their licenses don't allow redistribution, so neither is in the ISO or our repository. `softglowos-vendor-apps` fetches the official `.deb` once the computer is online: once per app (a removed app stays removed). Chrome then updates through Google's repository, Discord through our timer while it isn't running |
 | Gaming | Steam, Lutris, MangoHud, vkBasalt, Gamemode, Bazzite's sysctl/zram/I/O-scheduler values. No sched_ext (scx) for now |
 | Secure Boot | Stays on. Only signed kernel modules: Ubuntu's prebuilt NVIDIA and v4l2loopback modules, no DKMS. xone (Xbox wireless dongle) is left out for now, Ubuntu only has it as DKMS |
-| Hub | Updates, channels, rollback and GPU image switching are hidden. GPU switching isn't needed on Ubuntu, one system covers every card |
-| Later | DaVinci Resolve (davincibox via Distrobox), Hub update page on apt |
+| Hub | Image updates, beta channel, rollback, GPU image switching and Resolve via davincibox are removed (they relied on rpm-ostree). GPU switching isn't needed on Ubuntu, one system covers every card; updates come through apt |
+| Later | DaVinci Resolve, a Hub update page on apt, a native replacement for Affinity |
 
 ## What carries over
 
@@ -36,13 +36,17 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 - PipeWire/WirePlumber config, branding, wallpapers, GNOME extensions and settings, udev rules, StreamController plugins
 - OBS (official PPA), GoXLR Utility (ships a `.deb`), OpenRGB, Chrome, Steam, Lutris
 
-## What has to be redone
+## What was redone
 
-- `recipes/` and `files/scripts/` (BlueBuild, dnf) become Debian packaging
-- The OBS plugins we build ourselves, now against Ubuntu's OBS
-- The installer: Anaconda (`installer/`) becomes Calamares
-- Hub helpers tied to rpm-ostree: `softglowos-update`, `-update-check`, `-switch-channel`, `-rebase`, `-gpu-check`, `-resolve`
-- Bazzite pieces we rely on: Bazaar, the Terra repository (Discord, Heroic), davincibox
+- BlueBuild recipes and build scripts (dnf) became Debian packaging; the
+  Fedora image, its recipes, Anaconda installer and workflows are gone
+- The OBS plugins we build ourselves, now against the OBS PPA
+- The installer: Anaconda became Calamares
+- Hub helpers tied to rpm-ostree (`softglowos-update`, `-update-check`,
+  `-switch-channel`, `-rebase`, `-gpu-check`, `-switch-gpu`, `-resolve`)
+  were removed
+- Bazzite pieces we relied on: Bazaar is built by us, Discord and Heroic come
+  from their makers instead of Terra
 
 ## Taken from Bazzite
 
@@ -78,11 +82,9 @@ our extensions (pinned in `extensions.list`), Geist, wallpapers, boot splash,
 login logo, the GNOME defaults Bazzite gave us, and our PipeWire/WirePlumber
 config. `softglowos-refresh` rebuilds `os-release` and the GNOME overlays
 (donate banner, microphone indicator) after every apt run, because unlike the
-image those come from packages that update on their own.
+Fedora image we started from, those come from packages that update on their own.
 
-`softglowos-hub` builds the Hub with meson and leaves out the helpers for
-image updates, image switching by graphics card and Resolve; the Hub hides
-those features when their helpers are missing. `softglowos-rnnoise` builds
+`softglowos-hub` builds the Hub with meson. `softglowos-rnnoise` builds
 RNNoise's LADSPA plugin from source per architecture. `softglowos-base`
 depends on it: without the plugin PipeWire can't load the mixer's
 filter-chain and doesn't start at all.
@@ -91,9 +93,8 @@ The ISO's bootloader needs `quiet splash` on the kernel command line, or the
 boot splash never shows.
 
 `softglowos-obs` takes OBS from the OBS team's PPA (Ubuntu's OBS has no
-browser source) and builds every plugin of the Bazzite image against it,
-with the same pinned versions (`files/scripts/build-obs-plugins.sh`) plus
-obs-vkcapture (without DroidCam, which failed on Ubuntu). OBS's app entry is diverted and rebuilt by
+browser source) and builds our plugins against it, pinned with checksums
+in its `stage.sh`, plus obs-vkcapture (without DroidCam, which failed on Ubuntu). OBS's app entry is diverted and rebuilt by
 `softglowos-refresh` from `desktop-tweaks/`, so it starts `softglowos-obs`
 and prefers the strong GPU, and keeps doing so after OBS updates.
 

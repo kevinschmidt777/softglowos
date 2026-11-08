@@ -11,8 +11,8 @@ start, when there are no OBS settings yet, it prepares them first:
   wizard still runs for resolution and bitrate
 - OBS's remote control (obs-websocket, port 4455) with a random password,
   which also goes into StreamController's OBS plugin, so the Stream Deck
-  controls OBS right away. It's reachable on the home network too (Fedora's
-  firewall lets ports above 1024 in), the password protects it.
+  controls OBS right away. It's reachable on the home network too (Ubuntu
+  has no firewall on by default), the password protects it.
 
 Existing OBS settings are never touched."""
 import json

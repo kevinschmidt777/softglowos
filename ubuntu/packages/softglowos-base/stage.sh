@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Adds to softglowos-base what it shares with the Bazzite image (files/) and
+# Adds to softglowos-base our shared files (files/) and
 # what it downloads: GNOME Shell extensions and the Geist fonts.
 set -euo pipefail
 
@@ -24,7 +24,7 @@ take usr/share/pipewire/pipewire.conf.d \
 take usr/lib/udev/rules.d/90-softglowos-bluetooth-wake.rules \
   usr/libexec/softglowos-bluetooth-wake
 
-# Look: wallpapers, branding, logo, GNOME defaults shared with Fedora
+# Look: wallpapers, branding, logo, GNOME defaults
 take usr/share/backgrounds/softglowos \
   usr/share/gnome-background-properties/softglowos.xml \
   usr/share/softglowos/branding \
@@ -35,9 +35,9 @@ take usr/share/backgrounds/softglowos \
 mkdir -p "$DEST/usr/share/glib-2.0/schemas"
 cp "$SRC/files/gschema-overrides/zz1-softglowos.gschema.override" "$DEST/usr/share/glib-2.0/schemas/"
 
-# Fetch aliases with our logo (Fedora replaces Bazzite's file of this name)
+# Fetch aliases with our logo
 mkdir -p "$DEST/etc/profile.d"
-cp "$SYSTEM/etc/profile.d/bazzite-neofetch.sh" "$DEST/etc/profile.d/softglowos-fastfetch.sh"
+cp "$SYSTEM/etc/profile.d/softglowos-fastfetch.sh" "$DEST/etc/profile.d/"
 
 # Boot splash: Ubuntu's spinner theme with our wordmark (Bazzite uses the
 # same theme). Login screen: the wordmark under the user list.
@@ -48,7 +48,7 @@ rsvg-convert -h 48 "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" \
   -o "$DEST/usr/share/softglowos/branding/gdm-logo.png"
 
 # Settings > System > About: our wordmark in place of Ubuntu's (light and
-# dark mode; the Fedora image does the same with Fedora's files)
+# dark mode)
 mkdir -p "$DEST/usr/share/pixmaps"
 cp "$SYSTEM/usr/share/softglowos/branding/wordmark-dark.svg" "$DEST/usr/share/pixmaps/ubuntu-logo-text.svg"
 cp "$SYSTEM/usr/share/softglowos/branding/wordmark-white.svg" "$DEST/usr/share/pixmaps/ubuntu-logo-text-dark.svg"

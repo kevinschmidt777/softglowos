@@ -1,6 +1,6 @@
-# The defaults SoftglowOS gets from Bazzite's zz0-* overrides on Fedora,
-# which Ubuntu doesn't have. zz1-softglowos.gschema.override (shared with
-# the Bazzite image) goes on top.
+# GNOME defaults that Ubuntu's own packages don't set the way SoftglowOS
+# wants them (taken over from Bazzite at the start).
+# zz1-softglowos.gschema.override (files/gschema-overrides) goes on top.
 
 [org.gnome.desktop.wm.keybindings]
 switch-applications=['<Super>Tab']
@@ -78,9 +78,7 @@ blur=true
 [org.gnome.shell.extensions.blur-my-shell.dash-to-dock]
 blur=true
 
-# On Fedora this lives in the distro dconf database
-# (files/system/etc/dconf/db/distro.d/20-softglowos-logomenu); here the
-# extension's schema is installed system-wide, so an override works
+# The extension's schema is installed system-wide, so an override works
 [org.gnome.shell.extensions.logo-menu]
 use-custom-icon=true
 custom-icon-path='/usr/share/softglowos/branding/logo-symbolic.svg'
