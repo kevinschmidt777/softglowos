@@ -180,3 +180,16 @@ jobs:
           path: /mnt/out/*.iso
           compression-level: 0
           retention-days: 14
+
+      - name: Boot it with Secure Boot
+        run: |
+          sudo apt-get install -y -qq qemu-system-x86 ovmf socat imagemagick >/dev/null
+          sudo chmod 666 /dev/kvm
+          ubuntu/iso/boot-test.sh /mnt/out/*.iso boot-test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: softglowos-ubuntu-iso-boot-test
+          path: boot-test
+          if-no-files-found: ignore
