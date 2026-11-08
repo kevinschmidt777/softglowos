@@ -68,7 +68,18 @@
  class DockItemMenu extends PopupMenu.PopupMenu {
    constructor(sourceActor, side = St.Side.TOP, params = {}) {
      if (Clutter.get_default_text_direction() === Clutter.TextDirection.RTL) {
-@@ -121,7 +157,11 @@
+@@ -100,7 +136,9 @@
+       renderer._canvas.set_scale(canvasScale, canvasScale);
+ 
+       let offsetX = 0;
+-      let offsetY = renderer.height * 0.125 * scale;
++      // SoftglowOS: 6 px further from the icon, which it otherwise
++      // overlaps on icons that reach their bottom edge (Chrome)
++      let offsetY = (renderer.height * 0.125 + 6) * scale;
+       if (vertical) {
+         offsetX = -offsetY;
+         if (position == DockPosition.RIGHT) {
+@@ -121,7 +159,11 @@
  
        let options = extension.running_indicator_style_options;
        let running_indicator_style = options[extension.running_indicator_style];
