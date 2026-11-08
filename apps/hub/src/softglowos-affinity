@@ -24,7 +24,7 @@ import urllib.request
 from pathlib import Path
 
 RELEASES = 'https://api.github.com/repos/ryzendew/Linux-Affinity-Installer/releases/latest'
-ASSET = re.compile(r'^Affinity-[\d.]+-x86_64\.AppImage$')
+ASSET = re.compile(r'^Affinity-[\d.]+-x86_64(-[a-z]+)?\.AppImage$')  # e.g. -optimized
 
 DATA = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share'))
 HOME = DATA / 'softglowos' / 'affinity'
