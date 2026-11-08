@@ -54,7 +54,7 @@ for package in "$@"; do
     apt-get install -y -qq --no-install-recommends dpkg-dev file >/dev/null
     elves=$(find "$stage" -type f -not -path '*/DEBIAN/*' -exec file {} + |
       awk -F: '/ELF/ { print $1 }')
-    shlibs=$(cd "$(mktemp -d)" && mkdir debian && printf 'Source: x\n\nPackage: x\n' > debian/control &&
+    shlibs=$(cd "$(mktemp -d)" && mkdir debian && printf 'Source: x\n\nPackage: x\nArchitecture: any\n' > debian/control &&
       dpkg-shlibdeps -O --ignore-missing-info -l"$stage/usr/lib" $elves 2>/dev/null |
       sed -n 's/^shlibs:Depends=//p')
     sed -i "s/@SHLIBS@/$shlibs/" "$stage/DEBIAN/control"
