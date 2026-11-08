@@ -1,16 +1,16 @@
 name: Ubuntu packages
 
-# The Ubuntu prototype (docs/ubuntu-port.md): builds the .deb packages on
+# SoftglowOS on Ubuntu (docs/ubuntu-port.md): builds the .deb packages on
 # x86_64 and checks that they install on a stock Ubuntu 26.04, that OBS
 # finds every plugin and that the drivers and launchers are in place. On
-# ubuntu-base it then publishes them as our apt repository on GitHub Pages,
+# main it then publishes them as our apt repository on GitHub Pages,
 # signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
 # Utility, Valve's Steam and OpenRGB (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
 # builds the live ISO (ubuntu/iso/build.sh) as a workflow artifact.
 on:
   push:
     branches:
-      - ubuntu-base
+      - main
     paths:
       - "ubuntu/**"
       - "apps/**"
@@ -121,7 +121,7 @@ jobs:
   publish:
     name: Publish the apt repository
     needs: build
-    if: github.ref == 'refs/heads/ubuntu-base'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write

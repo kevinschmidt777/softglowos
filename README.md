@@ -4,8 +4,12 @@
 
 A Linux desktop for gamers and Twitch streamers that works out of the box:
 native OBS, GoXLR, Stream Deck and audio routing without the usual fiddling.
-It is built as a custom [Bazzite](https://bazzite.gg) GNOME image with
-[BlueBuild](https://blue-build.org), so updates are atomic and can be rolled back.
+It is built on Ubuntu 26.04 LTS with GNOME: our parts are `.deb` packages in
+our own apt repository, installed from our live ISO. See
+[docs/ubuntu-port.md](docs/ubuntu-port.md) for how it's built.
+
+> The list below still describes the earlier Bazzite (Fedora) image, which is
+> no longer built. It will be rewritten for Ubuntu.
 
 ## What's in the prototype (v0)
 

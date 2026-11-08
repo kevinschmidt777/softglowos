@@ -1,8 +1,8 @@
-# Ubuntu port (prototype)
+# Ubuntu port
 
-SoftglowOS is built on Bazzite GNOME (`main`). This branch (`ubuntu-base`)
-builds a prototype of the same system on Ubuntu, so both can be compared on
-real hardware before deciding on a base. `main` stays untouched.
+SoftglowOS is built on Ubuntu (decided 2026-11-08 after the hardware test).
+It started as a prototype next to the Bazzite GNOME image on the branch
+`ubuntu-base`, which is now `main`. The Bazzite image is no longer built.
 
 Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 
@@ -14,7 +14,7 @@ Why: a lot of Linux software only ships as `.deb` (Ubuntu/Debian).
 | Kernel | Ubuntu's stock kernel (HWE later). No gaming kernel: Secure Boot and NVIDIA rebuilds aren't worth the small gain |
 | Build | Our parts as `.deb` packages, an apt repository, a live ISO |
 | Packages | `softglowos-base`, `softglowos-hub`, `softglowos-rnnoise`, `softglowos-obs`, `softglowos-drivers`, `softglowos-gaming`, `softglowos-apps`, `softglowos-vendor-apps` |
-| apt repository | GitHub Pages (`kevinschmidt777.github.io/softglowos`), a flat repository signed with `APT_SIGNING_KEY`, published by GitHub Actions from `ubuntu-base` |
+| apt repository | GitHub Pages (`kevinschmidt777.github.io/softglowos`), a flat repository signed with `APT_SIGNING_KEY`, published by GitHub Actions from `main` |
 | Updates | Plain apt. No atomic updates or rollback (the biggest loss compared to Bazzite) |
 | Installer | Calamares with our branding, German with "du" |
 | NVIDIA | Picked per card by `ubuntu-drivers`: open modules for RTX 20 and newer, the proprietary driver for older cards. Installed from the ISO during installation, offline |
@@ -147,7 +147,7 @@ casper, from the installed system, which turns them back on.
 The packages target x86_64. On Apple Silicon, Ubuntu 26.04's tar doesn't
 work under Rosetta at all, and under QEMU only packing fails, so the x86_64
 builds run on GitHub (`.github/workflows/ubuntu-packages.yml`, branch
-`ubuntu-base`), which also installs them on a stock Ubuntu 26.04 and checks
+`main`), which also installs them on a stock Ubuntu 26.04 and checks
 OBS's plugins. `PLATFORM=linux/arm64 ubuntu/build.sh` builds the
 architecture-independent packages for the arm64 test VM locally.
 
