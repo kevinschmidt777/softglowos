@@ -122,6 +122,15 @@ done
 in_root apt-get install -y -q "${PACKAGES[@]}" "${debs[@]}"
 in_root apt-get install -y -q "${PACKAGES_I386[@]}"
 
+# Bluetooth on from the start (live system and installed system), so mice
+# and keyboards can be paired before the installer opens: every controller
+# is switched on when it's found, and no saved "off" state comes along
+sed -i -E 's/^#?AutoEnable=.*/AutoEnable=true/' "$ROOT/etc/bluetooth/main.conf"
+grep -q '^AutoEnable=true' "$ROOT/etc/bluetooth/main.conf" ||
+  printf '\n[Policy]\nAutoEnable=true\n' >> "$ROOT/etc/bluetooth/main.conf"
+rm -rf "$ROOT/var/lib/systemd/rfkill"
+in_root systemctl enable bluetooth.service
+
 # Flatpaks system-wide (Flathub is set up by softglowos-apps)
 in_root flatpak install --system --noninteractive -y flathub "${FLATPAKS[@]}"
 

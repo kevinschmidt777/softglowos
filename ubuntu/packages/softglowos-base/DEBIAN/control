@@ -7,7 +7,7 @@ Section: misc
 Priority: optional
 Depends: gnome-shell (>= 50), gnome-session, gdm3, gnome-shell-extensions,
  gnome-shell-extension-gsconnect, pipewire, wireplumber, plymouth,
- plymouth-theme-spinner, dconf-cli, libglib2.0-bin, python3,
+ plymouth-theme-spinner, dconf-cli, libglib2.0-bin, python3, python3-gi, udisks2,
  lsp-plugins-ladspa, softglowos-rnnoise, alsa-utils, pulseaudio-utils,
  whiptail
 Recommends: fastfetch
@@ -16,4 +16,5 @@ Conflicts: ubuntu-session, ubuntu-settings, gnome-shell-ubuntu-extensions,
 Description: SoftglowOS desktop, branding and audio configuration
  The SoftglowOS look on plain GNOME instead of Ubuntu's (dock, top bar,
  extensions, fonts, wallpapers, boot splash, login logo) and the PipeWire
- and WirePlumber configuration behind the Hub's mixer.
+ and WirePlumber configuration behind the Hub's mixer. The computer's other
+ internal disks are mounted at login, without asking for the password.

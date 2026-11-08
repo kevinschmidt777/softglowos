@@ -24,6 +24,11 @@ take usr/share/pipewire/pipewire.conf.d \
 take usr/lib/udev/rules.d/90-softglowos-bluetooth-wake.rules \
   usr/libexec/softglowos-bluetooth-wake
 
+# The other internal disks mount at login without the password
+take usr/libexec/softglowos-mount-disks \
+  usr/lib/systemd/user/softglowos-mount-disks.service \
+  usr/share/polkit-1/rules.d/50-softglowos-mount-disks.rules
+
 # Look: wallpapers, branding, logo, GNOME defaults
 take usr/share/backgrounds/softglowos \
   usr/share/gnome-background-properties/softglowos.xml \

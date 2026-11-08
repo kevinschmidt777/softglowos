@@ -8,6 +8,7 @@
 # screen too. --force shows the window anyway and keeps it (for testing).
 
 import random
+import struct
 import sys
 from pathlib import Path
 
@@ -25,6 +26,11 @@ INPUT_ICONS = ('input-keyboard', 'input-mouse', 'input-tablet', 'input-gaming')
 INPUT_UUIDS = ('00001124-0000-1000-8000-00805f9b34fb',  # HID
                '00001812-0000-1000-8000-00805f9b34fb')  # HID over GATT
 CHECK_SECONDS = 2
+ADAPTER_WAIT_SECONDS = 20
+POWER_ATTEMPTS = 10
+# linux/rfkill.h: unblock (soft) every Bluetooth radio
+RFKILL_TYPE_BLUETOOTH = 2
+RFKILL_OP_CHANGE_ALL = 3
 LOGO = '/usr/share/icons/hicolor/scalable/places/softglowos-logo.svg'
 
 AGENT_XML = '''
@@ -70,6 +76,17 @@ def text(key, **values):
     return f'{german.format(**values)}\n{english.format(**values)}'
 
 
+def unblock_bluetooth():
+    """Switches Bluetooth on where it's soft-blocked (rfkill), like the
+    switch in Settings. The session's user may write /dev/rfkill."""
+    event = struct.pack('IBBBB', 0, RFKILL_TYPE_BLUETOOTH, RFKILL_OP_CHANGE_ALL, 0, 0)
+    try:
+        with open('/dev/rfkill', 'wb', buffering=0) as rfkill:
+            rfkill.write(event)
+    except OSError as error:
+        print(f'rfkill: {error}')
+
+
 def has_keyboard_and_pointer():
     keyboard = pointer = False
     for device in GUdev.Client().query_by_subsystem('input'):
@@ -85,29 +102,69 @@ class Pairing:
     """BlueZ side: an agent that shows codes, discovery, and pairing every
     input device that shows up."""
 
-    def __init__(self, on_status):
+    def __init__(self, on_status, on_no_adapter):
         self._on_status = on_status  # (device path, name, status) -> None
+        self._on_no_adapter = on_no_adapter  # () -> None, once the wait is over
         self._bus = Gio.bus_get_sync(Gio.BusType.SYSTEM)
         self._busy = set()
         self._devices = {}  # path -> Device1 properties, kept up to date
+        self.adapter = None
+        # Bluetooth may start switched off (rfkill), and the controller may
+        # show up only some seconds after the desktop (firmware loading)
+        unblock_bluetooth()
+        self._waited = 0
+        if not self._try_start():
+            GLib.timeout_add_seconds(1, self._wait_for_adapter)
+
+    def _wait_for_adapter(self):
+        if self._try_start():
+            return GLib.SOURCE_REMOVE
+        self._waited += 1
+        if self._waited % 5 == 0:
+            unblock_bluetooth()
+        if self._waited >= ADAPTER_WAIT_SECONDS:
+            self._on_no_adapter()
+            return GLib.SOURCE_REMOVE
+        return GLib.SOURCE_CONTINUE
+
+    def _try_start(self):
         self.adapter = self._find_adapter()
         if self.adapter is None:
-            return
+            return False
+        self._start()
+        return True
+
+    def _start(self):
         node = Gio.DBusNodeInfo.new_for_xml(AGENT_XML)
         self._bus.register_object(AGENT_PATH, node.interfaces[0], self._on_agent_call)
         self._call('/org/bluez', 'org.bluez.AgentManager1', 'RegisterAgent',
                    GLib.Variant('(os)', (AGENT_PATH, 'KeyboardDisplay')))
         self._call('/org/bluez', 'org.bluez.AgentManager1', 'RequestDefaultAgent',
                    GLib.Variant('(o)', (AGENT_PATH,)))
-        self._set(self.adapter, 'org.bluez.Adapter1', 'Powered', GLib.Variant('b', True))
-        self._set(self.adapter, 'org.bluez.Adapter1', 'Pairable', GLib.Variant('b', True))
         self._bus.signal_subscribe(BLUEZ, 'org.freedesktop.DBus.ObjectManager',
                                    'InterfacesAdded', None, None, 0, self._on_added)
         self._bus.signal_subscribe(BLUEZ, 'org.freedesktop.DBus.Properties',
                                    'PropertiesChanged', None, None, 0, self._on_changed)
-        self._call(self.adapter, 'org.bluez.Adapter1', 'StartDiscovery', None)
         for path, interfaces in self._objects().items():
             self._consider(path, interfaces.get('org.bluez.Device1'))
+        self._power_on(0)
+
+    def _power_on(self, attempt):
+        """Switches the controller on, then searches. Retried for a while:
+        right after an rfkill unblock the controller may still refuse."""
+        def powered(ok):
+            if ok:
+                self._set(self.adapter, 'org.bluez.Adapter1', 'Pairable',
+                          GLib.Variant('b', True))
+                self._call(self.adapter, 'org.bluez.Adapter1', 'StartDiscovery', None)
+            elif attempt < POWER_ATTEMPTS:
+                unblock_bluetooth()
+                GLib.timeout_add_seconds(1, lambda: self._power_on(attempt + 1))
+        self._call(self.adapter, 'org.freedesktop.DBus.Properties', 'Set',
+                   GLib.Variant('(ssv)', ('org.bluez.Adapter1', 'Powered',
+                                          GLib.Variant('b', True))),
+                   powered)
+        return GLib.SOURCE_REMOVE
 
     def stop(self):
         if self.adapter:
@@ -244,10 +301,11 @@ class PairingWindow(Adw.ApplicationWindow):
                                    margin_end=24))
         self.fullscreen()
 
-        self.pairing = Pairing(self._on_status)
-        if self.pairing.adapter is None:
+        def no_adapter():
             self.body.set_label(text('no_adapter'))
             searching.set_visible(False)
+
+        self.pairing = Pairing(self._on_status, no_adapter)
         self.connect('close-request', lambda _window: self.pairing.stop())
         if not force:
             GLib.timeout_add_seconds(CHECK_SECONDS, self._check)

@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount the computer's other internal disks
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/softglowos-mount-disks
+
+[Install]
+WantedBy=graphical-session.target

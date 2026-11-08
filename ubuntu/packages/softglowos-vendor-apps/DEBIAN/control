@@ -7,7 +7,8 @@ Section: misc
 Priority: optional
 Depends: curl, ca-certificates, apt, procps, systemd
 Description: Chrome and Discord from their vendors
- Their licenses don't allow putting them into SoftglowOS, so a timer fetches
- the official packages from Google and Discord once the computer is online.
+ Their licenses don't allow putting them into SoftglowOS, so the installer
+ fetches the official packages from Google and Discord, or a timer does once
+ the computer is online.
  Each is installed once and stays removed if removed. Chrome updates through
  Google's repository, Discord through this timer while it isn't running.

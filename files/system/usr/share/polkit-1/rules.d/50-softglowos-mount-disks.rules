@@ -1,0 +1,10 @@
+// Internal disks mount without the password, like USB sticks do, for the
+// administrators sitting at the computer (softglowos-mount-disks mounts them
+// at login). Unlocking encrypted disks still asks.
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+         action.id == "org.freedesktop.udisks2.filesystem-mount-system") &&
+        subject.local && subject.active && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});

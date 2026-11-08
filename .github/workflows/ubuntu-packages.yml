@@ -81,7 +81,7 @@ jobs:
               /usr/share/applications/net.lutris.Lutris.desktop
             grep -q "^Exec=env OBS_VKCAPTURE=1 lutris" /usr/share/applications/net.lutris.Lutris.desktop
             grep -q "^Name=Steam$" /usr/share/applications/steam.desktop
-            grep -q "steam.distrib" /usr/bin/steam && [ -x /usr/bin/steam.distrib ]
+            grep -q "/usr/lib/steam/bin_steam.sh" /usr/bin/steam && [ -x /usr/lib/steam/bin_steam.sh ]
             dpkg -l steam-launcher steam-libs-i386:i386 | grep "^ii"
             ls /usr/share/icons/hicolor/256x256/apps/steam.png
             [ ! -e /usr/share/applications/debian-xterm.desktop ] ||
@@ -100,11 +100,15 @@ jobs:
             echo "### Bluetooth keyboards and mice may wake the computer"
             ls /usr/lib/udev/rules.d/90-softglowos-bluetooth-wake.rules
             [ -x /usr/libexec/softglowos-bluetooth-wake ]
+            echo "### Other internal disks mount at login without the password"
+            [ -x /usr/libexec/softglowos-mount-disks ]
+            ls /usr/share/polkit-1/rules.d/50-softglowos-mount-disks.rules \
+              /etc/systemd/user/graphical-session.target.wants/softglowos-mount-disks.service
             echo "### Settings > About shows our wordmark"
             cmp /usr/share/pixmaps/ubuntu-logo-text.svg /src/files/system/usr/share/softglowos/branding/wordmark-dark.svg
             cmp /usr/share/pixmaps/ubuntu-logo-text-dark.svg /src/files/system/usr/share/softglowos/branding/wordmark-white.svg
             echo "### Installer: Bluetooth pairing"
-            dpkg-deb -c /src/ubuntu/out/softglowos-installer_*.deb | grep -E "softglowos-live-pairing|shellprocess_bluetooth.conf"
+            dpkg-deb -c /src/ubuntu/out/softglowos-installer_*.deb | grep -E "softglowos-live-pairing|shellprocess_bluetooth.conf|shellprocess_vendor_apps.conf"
             echo "### Softglow Store"
             grep -q "^Name=Softglow Store$" /usr/share/applications/io.github.kolunmi.Bazaar.desktop
             grep -q "^NoDisplay=true" /usr/share/applications/org.gnome.Software.desktop

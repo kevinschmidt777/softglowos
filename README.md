@@ -17,10 +17,11 @@ is in [docs/ubuntu-port.md](docs/ubuntu-port.md).
 - **GoXLR Utility** daemon in the background (the Hub is the interface).
 - **OpenRGB 1.1** for the RGB lighting of most vendors; Hub → Lighting sets one color, effect and brightness for everything.
 - **Gaming:** Valve's Steam launcher, Heroic, Lutris, Gamemode, MangoHud, vkBasalt, Gamescope, Protontricks, Winetricks, and Bazzite's sysctl, zram and I/O scheduler values.
-- **Google Chrome** and **Discord**, fetched from their makers once the computer is online (their licenses don't allow us to ship them).
+- **Google Chrome** and **Discord**, fetched from their makers during installation, or right after the first boot if the computer was offline then (their licenses don't allow us to ship them).
 - **Softglow Store:** Bazaar (Flathub) built as our own app store with our start page: Creator Tools, Chat & Community, Gaming, Music & Media, Office & Tools.
 - Plain GNOME instead of Ubuntu's session: Mac-style **dock at the bottom** (open apps marked with a dash in the accent color), macOS-style **top bar** with the logo menu, window buttons on the right.
 - **Geist** and **Geist Mono** as system fonts, GNOME's **teal** as the accent color, **automatic light/dark theme** by time of day, no system sounds.
+- The computer's **other internal disks** (data disks, the Windows drive) are mounted at login and sit in the Files sidebar, without asking for the password.
 - Branding: name, wallpapers, boot splash, login logo and `fastfetch` logo.
 
 The look and feel is described in [DESIGN.md](DESIGN.md).
@@ -39,6 +40,7 @@ The look and feel is described in [DESIGN.md](DESIGN.md).
 | `tools/` | Generators for the wallpapers, the store banners and the mixer's PipeWire config (output is committed); `sync-audio-to-vm.sh` copies the audio config into a test VM |
 | `.github/workflows/ubuntu-packages.yml` | Builds and checks the packages, publishes the apt repository from `main`, builds the ISO when started by hand |
 | `VERSION` | The SoftglowOS version (SemVer: new features raise the minor, fixes the patch number); every release gets a `v<version>` tag |
+| `CHANGELOG.md` | What changed in every version (Keep a Changelog, in English) |
 
 ## Building
 

@@ -1,0 +1,86 @@
+#!/usr/bin/python3
+# Mounts every other internal disk at login, like Windows shows all its
+# drives: they appear in the Files sidebar right away instead of only after
+# a click and the password. UDisks mounts them for the logged-in user
+# (/media/<user>/<label>), 50-softglowos-mount-disks.rules lets it do that
+# without asking. Left out: removable drives (GNOME mounts those itself),
+# encrypted ones (they need their passphrase), swap, and the small helper
+# partitions Windows and the firmware keep (EFI, MSR, recovery). A disk that
+# can't be mounted (like a hibernated Windows) is skipped and stays in
+# "Other Locations".
+
+import sys
+
+from gi.repository import Gio, GLib
+
+UDISKS = 'org.freedesktop.UDisks2'
+BLOCK = 'org.freedesktop.UDisks2.Block'
+FILESYSTEM = 'org.freedesktop.UDisks2.Filesystem'
+PARTITION = 'org.freedesktop.UDisks2.Partition'
+DRIVE = 'org.freedesktop.UDisks2.Drive'
+
+# GPT and MBR types of partitions that aren't for files
+SKIP_TYPES = {
+    'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',  # EFI system partition
+    'e3c9e316-0b5c-4db8-817d-f92df00215ae',  # Microsoft reserved
+    'de94bba4-06d1-4d40-a16a-bfd50179d6ac',  # Windows recovery
+    '21686148-6449-6e6f-744e-656564454649',  # BIOS boot
+    '0657fd6d-a4ab-43c4-84e5-0933c84b4f4f',  # Linux swap
+    '0xef', '0x27', '0x82',                  # MBR: EFI, recovery, swap
+}
+SKIP_FILESYSTEMS = {'swap', 'crypto_LUKS', 'BitLocker', 'LVM2_member',
+                    'linux_raid_member', 'zfs_member'}
+MIN_SIZE = 1024 ** 3  # smaller partitions are helpers, not drives
+
+
+def text(value):
+    """UDisks keeps paths as NUL-terminated byte arrays."""
+    return bytes(value).rstrip(b'\0').decode(errors='replace')
+
+
+def should_mount(interfaces, drives):
+    block = interfaces.get(BLOCK)
+    filesystem = interfaces.get(FILESYSTEM)
+    if block is None or filesystem is None or filesystem.get('MountPoints'):
+        return False
+    if block.get('IdUsage') != 'filesystem' or block.get('IdType') in SKIP_FILESYSTEMS:
+        return False
+    if block.get('HintIgnore') or block.get('Size', 0) < MIN_SIZE:
+        return False
+    if block.get('CryptoBackingDevice', '/') != '/':
+        return False  # opened by hand, so it's not ours to mount
+    partition = interfaces.get(PARTITION)
+    if partition and partition.get('Type', '').lower() in SKIP_TYPES:
+        return False
+    drive = drives.get(block.get('Drive', '/'))
+    if drive is None:
+        return False  # loop devices, zram
+    return not (drive.get('Removable') or drive.get('MediaRemovable')
+                or drive.get('Ejectable') or drive.get('Optical'))
+
+
+def main():
+    bus = Gio.bus_get_sync(Gio.BusType.SYSTEM)
+    reply = bus.call_sync(UDISKS, '/org/freedesktop/UDisks2',
+                          'org.freedesktop.DBus.ObjectManager', 'GetManagedObjects',
+                          None, None, Gio.DBusCallFlags.NONE, -1, None)
+    objects = reply.unpack()[0]
+    drives = {path: interfaces[DRIVE] for path, interfaces in objects.items()
+              if DRIVE in interfaces}
+    for path, interfaces in sorted(objects.items()):
+        if not should_mount(interfaces, drives):
+            continue
+        device = text(interfaces[BLOCK].get('PreferredDevice') or interfaces[BLOCK]['Device'])
+        try:
+            reply = bus.call_sync(
+                UDISKS, path, FILESYSTEM, 'Mount',
+                GLib.Variant('(a{sv})', ({'auth.no_user_interaction': GLib.Variant('b', True)},)),
+                GLib.VariantType('(s)'), Gio.DBusCallFlags.NONE, 120_000, None)
+            print(f'{device} -> {reply.unpack()[0]}')
+        except GLib.Error as error:
+            print(f'{device}: {error.message}', file=sys.stderr)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

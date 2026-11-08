@@ -2,6 +2,7 @@
 set -e
 
 if [ "$1" = remove ]; then
+  systemctl --global disable softglowos-mount-disks.service >/dev/null 2>&1 || :
   update-alternatives --remove default.plymouth \
     /usr/share/plymouth/themes/softglowos/softglowos.plymouth || true
 fi

@@ -29,6 +29,9 @@ if [ "$1" = configure ]; then
     [ -e "$iface" ] && /usr/libexec/softglowos-bluetooth-wake "$(readlink -f "$iface")"
   done
 
+  # The other internal disks mount at login (softglowos-mount-disks)
+  systemctl --global enable softglowos-mount-disks.service >/dev/null 2>&1 || :
+
   # Login screen logo
   if [ -x /usr/share/gdm/generate-config ]; then
     /usr/share/gdm/generate-config || true

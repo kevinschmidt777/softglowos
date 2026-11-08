@@ -4,5 +4,10 @@
 # captured gets the launch option OBS_VKCAPTURE=0. This sits in front of
 # Valve's launcher instead of in Steam's app entry, because Steam may put
 # its own entry into the home folder.
+#
+# Valve's launcher takes its package name from the name it was started by
+# and refuses any it doesn't know ("Unknown Steam package 'steam.distrib'"),
+# so it's started as bin_steam.sh, which it knows as "steam", not through the
+# diverted /usr/bin/steam.distrib.
 export OBS_VKCAPTURE="${OBS_VKCAPTURE:-1}"
-exec /usr/bin/steam.distrib "$@"
+exec /usr/lib/steam/bin_steam.sh "$@"
