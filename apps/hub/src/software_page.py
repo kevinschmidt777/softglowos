@@ -1,7 +1,6 @@
 from gi.repository import Adw, Gtk
 
 from . import resolve, software
-from .affinity import Affinity
 from .resolve import Resolve
 
 
@@ -21,7 +20,7 @@ def app_switches(group):
 
 
 class OnDemandRow(Adw.ActionRow):
-    """An app the Hub installs on request (Resolve, Affinity): Install,
+    """An app the Hub installs on request (Resolve): Install,
     progress, then a show/hide switch, Remove and, if offered, Update.
     The installer has a state (missing, waiting, working, installed or
     failed), the current step and a "changed" signal; see resolve.py."""
@@ -104,7 +103,7 @@ class OnDemandRow(Adw.ActionRow):
 
 
 class SoftwarePage(Adw.PreferencesPage):
-    """Curated creator apps with a switch each, DaVinci Resolve and Affinity
+    """Curated creator apps with a switch each, DaVinci Resolve
     to install on demand, and a way into Bazaar for everything else."""
 
     def __init__(self, **kwargs):
@@ -127,19 +126,7 @@ class SoftwarePage(Adw.PreferencesPage):
                 'remove': _('Resolve and its environment are deleted. Your projects and media stay.'),
             }))
 
-        self.affinity = Affinity()
-        apps.add(OnDemandRow(software.AFFINITY, self.affinity, {
-            'missing': _('Photo, design and layout, runs the Windows version through '
-                         'the community project AffinityOnLinux'),
-            'steps': {
-                'download': _('Downloading, {percent} % …'),
-                'setup': _('Setting up …'),
-                'remove': _('Removing …'),
-            },
-            'remove': _('Affinity is deleted. Your documents stay.'),
-        }))
         self.add(apps)
-        self.connect('map', lambda _page: self.affinity.check_update())
 
         more = Adw.PreferencesGroup()
         store_row = Adw.ActionRow(title=_('More apps'),

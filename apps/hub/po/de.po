@@ -493,21 +493,6 @@ msgstr "Grafiktreiber bereit"
 msgid "It starts with the next restart."
 msgstr "Er startet mit dem nächsten Neustart."
 
-msgid "Photo, design and layout"
-msgstr "Foto, Design und Layout"
-
-msgid "Photo, design and layout, runs the Windows version through the community project AffinityOnLinux"
-msgstr "Foto, Design und Layout, läuft als Windows-Version über das Community-Projekt AffinityOnLinux"
-
-msgid "Downloading, {percent} % …"
-msgstr "Wird geladen, {percent} % …"
-
-msgid "Setting up …"
-msgstr "Wird eingerichtet …"
-
-msgid "Affinity is deleted. Your documents stay."
-msgstr "Affinity wird gelöscht. Deine Dokumente bleiben."
-
 msgid "Update"
 msgstr "Aktualisieren"
 

@@ -46,7 +46,6 @@ install_data(
   'software.py',
   'software_page.py',
   'resolve.py',
-  'affinity.py',
   'devices_page.py',
   'settings_page.py',
   'updates.py',
@@ -64,7 +63,6 @@ install_data(
 
 install_data(
   'softglowos-resolve',
-  'softglowos-affinity',
   'softglowos-update',
   'softglowos-update-check',
   'softglowos-gpu-check',
