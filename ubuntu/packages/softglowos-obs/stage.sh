@@ -29,10 +29,11 @@ apt-get install -y -qq --no-install-recommends \
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev >/dev/null
 
 arch_dir=$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || gcc -dumpmachine)
-plugins=$(dirname "$(find /usr/lib -path '*/obs-plugins/*.so' -print -quit)")
-[ "$plugins" != . ] || { echo "OBS's plugin directory not found" >&2; exit 1; }
-echo "OBS $(dpkg-query -W -f='${Version}' obs-studio), plugins in $plugins"
-data=/usr/share/obs/obs-plugins
+# OBS 33 loads third-party plugins from obs-modules/plugins (obs-plugins only
+# for now, as a legacy path); their builds still install to the old place
+plugins=/usr/lib/$arch_dir/obs-modules/plugins
+data=/usr/share/obs/obs-modules/plugins
+echo "OBS $(dpkg-query -W -f='${Version}' obs-studio)"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -56,10 +57,11 @@ build_cmake() {  # url sha256 name [cmake flags]
 
 take_plugin() {  # name stage: only the plugin and its data, wherever its build put them
   local name=$1 stage=$2
-  install -D -m 644 "$(find "$stage" -name "$name.so" -path '*obs-plugins*' | head -n1)" \
+  install -D -m 644 "$(find "$stage" -name "$name.so" \( -path '*obs-plugins*' -o -path '*obs-modules*' \) | head -n1)" \
     "$DEST$plugins/$name.so"
   local share
-  share=$(find "$stage" -type d -path "*/obs-plugins/$name" -not -path '*/lib*' | head -n1)
+  share=$(find "$stage" -type d \( -path "*/obs-plugins/$name" -o -path "*/obs-modules/plugins/$name" \) \
+    -path '*/share/*' | head -n1)
   if [ -n "$share" ]; then
     mkdir -p "$DEST$data"
     cp -r "$share" "$DEST$data/"
@@ -85,6 +87,8 @@ take_plugin obs-shaderfilter "$tmp/obs-shaderfilter/stage"
 # Game Capture: the plugin, the Vulkan layer and OpenGL hook that games load,
 # and the obs-gamecapture launchers, all as the project installs them
 build_cmake "$VKCAPTURE_URL" "$VKCAPTURE_SHA256" obs-vkcapture
+take_plugin linux-vkcapture "$tmp/obs-vkcapture/stage"
+rm -rf "$tmp"/obs-vkcapture/stage/usr/lib/*/obs-plugins "$tmp/obs-vkcapture/stage/usr/share/obs"
 cp -a "$tmp/obs-vkcapture/stage/." "$DEST/"
 
 # DroidCam (phone as webcam), built with its own Makefile

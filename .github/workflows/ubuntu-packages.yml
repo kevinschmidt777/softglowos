@@ -44,7 +44,7 @@ jobs:
             echo "### OBS app entry"
             grep -E "^(Exec|PrefersNonDefaultGPU)=" /usr/share/applications/com.obsproject.Studio.desktop
             echo "### OBS plugins and their libraries"
-            plugins=$(dirname "$(find /usr/lib -path "*/obs-plugins/*.so" -print -quit)")
+            plugins=/usr/lib/x86_64-linux-gnu/obs-modules/plugins
             missing=$(ldd "$plugins"/*.so | grep "not found" || true)
             [ -z "$missing" ] || { echo "$missing"; exit 1; }
             ls "$plugins" | grep -E "move|record|clone|shader|blur|mask|glow|vkcapture|droidcam"
