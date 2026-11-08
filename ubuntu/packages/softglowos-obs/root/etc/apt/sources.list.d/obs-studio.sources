@@ -1,0 +1,7 @@
+# OBS Studio from the OBS team's own PPA: Ubuntu's OBS has no browser source.
+# Key BC7345F522079769F5BBE987EFC71127F425E228 (ppa:obsproject/obs-studio)
+Types: deb
+URIs: https://ppa.launchpadcontent.net/obsproject/obs-studio/ubuntu
+Suites: resolute
+Components: main
+Signed-By: /usr/share/keyrings/obs-studio-ppa.asc

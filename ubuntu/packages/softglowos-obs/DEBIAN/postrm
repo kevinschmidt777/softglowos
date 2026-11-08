@@ -1,0 +1,10 @@
+#!/bin/sh
+# Gives OBS its own app entry back
+set -e
+
+if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ]; then
+  rm -f /usr/share/applications/com.obsproject.Studio.desktop
+  dpkg-divert --package softglowos-obs --remove --rename \
+    --divert /usr/share/applications/com.obsproject.Studio.desktop.distrib \
+    /usr/share/applications/com.obsproject.Studio.desktop
+fi

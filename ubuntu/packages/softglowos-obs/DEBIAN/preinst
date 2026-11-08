@@ -1,0 +1,10 @@
+#!/bin/sh
+# OBS's app entry is rebuilt by softglowos-refresh from the original
+# (see /usr/share/softglowos/desktop-tweaks)
+set -e
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+  dpkg-divert --package softglowos-obs --add --rename \
+    --divert /usr/share/applications/com.obsproject.Studio.desktop.distrib \
+    /usr/share/applications/com.obsproject.Studio.desktop
+fi
