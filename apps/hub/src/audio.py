@@ -95,8 +95,14 @@ class PipeWireMixer(GObject.Object):
 
     def __init__(self):
         super().__init__()
-        self._pulse = pulsectl.Pulse('softglowos-hub')
-        self._connected = True
+        # PipeWire may not be up yet (or not start at all): the Hub still
+        # opens, shows the mixer as missing and _listen connects later
+        try:
+            self._pulse = pulsectl.Pulse('softglowos-hub')
+            self._connected = True
+        except pulsectl.PulseError:
+            self._pulse = pulsectl.Pulse('softglowos-hub', connect=False)
+            self._connected = False
         self._node_ids = {}
         self._refresh_pending = False
         self._meters = []
