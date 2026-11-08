@@ -20,6 +20,10 @@ take usr/share/pipewire/pipewire.conf.d \
   usr/share/wireplumber \
   usr/lib/systemd/user/pipewire.service.d
 
+# Bluetooth keyboards and mice may wake the computer
+take usr/lib/udev/rules.d/90-softglowos-bluetooth-wake.rules \
+  usr/libexec/softglowos-bluetooth-wake
+
 # Look: wallpapers, branding, logo, GNOME defaults shared with Fedora
 take usr/share/backgrounds/softglowos \
   usr/share/gnome-background-properties/softglowos.xml \

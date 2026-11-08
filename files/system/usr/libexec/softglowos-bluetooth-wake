@@ -1,0 +1,10 @@
+#!/bin/sh
+# Called by 90-softglowos-bluetooth-wake.rules with the Bluetooth
+# controller's USB interface: allows waking from sleep for the controller
+# and every device above it, up to the USB controller on the mainboard.
+dev=$(dirname "$1")
+while [ "$dev" != /sys/devices ] && [ "$dev" != / ]; do
+  [ -w "$dev/power/wakeup" ] && echo enabled > "$dev/power/wakeup"
+  dev=$(dirname "$dev")
+done
+exit 0

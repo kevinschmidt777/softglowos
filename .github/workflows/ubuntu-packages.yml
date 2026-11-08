@@ -97,6 +97,9 @@ jobs:
               /etc/systemd/user/graphical-session.target.wants/softglowos-streamcontroller.service \
               /usr/share/softglowos/streamcontroller/com_core447_OBSPlugin/main.py \
               /usr/lib/systemd/system/softglowos-vendor-apps.timer
+            echo "### Bluetooth keyboards and mice may wake the computer"
+            ls /usr/lib/udev/rules.d/90-softglowos-bluetooth-wake.rules
+            [ -x /usr/libexec/softglowos-bluetooth-wake ]
             echo "### Settings > About shows our wordmark"
             cmp /usr/share/pixmaps/ubuntu-logo-text.svg /src/files/system/usr/share/softglowos/branding/wordmark-dark.svg
             cmp /usr/share/pixmaps/ubuntu-logo-text-dark.svg /src/files/system/usr/share/softglowos/branding/wordmark-white.svg

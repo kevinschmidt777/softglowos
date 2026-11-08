@@ -23,6 +23,12 @@ if [ "$1" = configure ]; then
     update-initramfs -u || true
   fi
 
+  # Bluetooth keyboards and mice may wake the computer: now, not only from
+  # the next boot on (90-softglowos-bluetooth-wake.rules)
+  for iface in /sys/bus/usb/drivers/btusb/*:*; do
+    [ -e "$iface" ] && /usr/libexec/softglowos-bluetooth-wake "$(readlink -f "$iface")"
+  done
+
   # Login screen logo
   if [ -x /usr/share/gdm/generate-config ]; then
     /usr/share/gdm/generate-config || true

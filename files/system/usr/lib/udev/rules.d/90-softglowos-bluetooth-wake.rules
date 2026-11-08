@@ -1,0 +1,5 @@
+# Bluetooth keyboards and mice wake the computer from sleep, like USB ones:
+# the Bluetooth controller may wake it, and so may the USB hubs and the USB
+# controller between it and the mainboard (softglowos-bluetooth-wake).
+ACTION=="add|bind", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", DRIVER=="btusb", \
+  RUN+="/usr/libexec/softglowos-bluetooth-wake /sys%p"
