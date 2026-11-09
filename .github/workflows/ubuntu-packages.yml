@@ -175,7 +175,7 @@ jobs:
           gpg --armor --export > softglowos-archive.asc
           ls -l
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: repo
 
