@@ -180,7 +180,7 @@ jobs:
           path: repo
 
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   iso:
     name: Build the live ISO
