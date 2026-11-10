@@ -9,6 +9,19 @@ current version is in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-10
+
+### Fixed
+
+- With a GoXLR, the Stream-Mix in OBS didn't follow the mixer: a channel at
+  full volume in the Hub could still be quiet in the stream (and in the
+  headphones). PipeWire gave the GoXLR's channels a volume of its own (40 %
+  for new devices), on top of the GoXLR's faders. The Hub now keeps them at
+  100 %, so the faders alone set the volume.
+- With a GoXLR, the single tracks for OBS (chat, music, system) stayed at
+  full volume whatever the stream fader said. They now follow the stream
+  faders and mutes, also when you move a fader on the desk.
+
 ## [1.1.0] - 2026-11-10
 
 ### Changed

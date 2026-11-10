@@ -316,6 +316,8 @@ class Mixer(PipeWireMixer):
         if not self.goxlr_active or not self.available():
             self._speakers = None
             return
+        self._pin_outputs()
+        self._sync_tracks()
         speakers = self._on_speakers()
         if speakers != self._speakers:
             self._speakers = speakers
@@ -327,6 +329,29 @@ class Mixer(PipeWireMixer):
                 if super().fader(channel, 'speakers') != (value, muted):
                     super().set_fader(channel, 'speakers', value)
                     super().set_fader_muted(channel, 'speakers', muted)
+
+    def _pin_outputs(self):
+        """The GoXLR's channels stay at 100 % in PipeWire: its faders are the
+        volume. Anything lower (WirePlumber gives new outputs 40 %, the volume
+        keys change the default output) would make a channel quieter in the
+        stream and the headphones than its fader says."""
+        for sink in self._pulse.sink_list():
+            texts = [sink.description] + [sink.proplist.get(key) for key in GOXLR_DEVICE_KEYS]
+            if not any('goxlr' in (text or '').lower() for text in texts):
+                continue
+            if abs(sink.volume.value_flat - 1.0) > 0.001:
+                self._pulse.volume_set_all_chans(sink, 1.0)
+            if sink.mute:
+                self._pulse.sink_mute(sink.index, False)
+
+    def _sync_tracks(self):
+        """The single tracks for OBS (softglowos.<channel>.stream.out) follow
+        the stream faders and mutes, which the GoXLR does in hardware."""
+        for channel in GOXLR_CHANNELS:
+            value, muted = self.fader(channel, 'stream')
+            if super().fader(channel, 'stream') != (value, muted):
+                super().set_fader(channel, 'stream', value)
+                super().set_fader_muted(channel, 'stream', muted)
 
     def set_route(self, source, target, on):
         super().set_route(source, target, on)
