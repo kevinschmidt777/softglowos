@@ -55,14 +55,6 @@ class RoutingDialog(Adw.Dialog):
                 self.checks[source, target] = check
         box.append(grid)
 
-        if len(mixer.linked_routes('browser')) > 1:
-            hint = Gtk.Label(label=_('With the GoXLR, browser and console share one channel '
-                                     '(Sample), so they switch together.'),
-                             wrap=True, xalign=0)
-            hint.add_css_class('dim-label')
-            hint.add_css_class('caption')
-            box.append(hint)
-
         reset = Gtk.Button(label=_('Reset'), halign=Gtk.Align.END)
         reset.connect('clicked', self._on_reset)
         box.append(reset)
@@ -77,7 +69,6 @@ class RoutingDialog(Adw.Dialog):
 
     def _on_toggled(self, check, source, target):
         self.mixer.set_route(source, target, check.get_active())
-        # Linked sources (browser and console with a GoXLR) follow along
         self._show()
 
     def _on_reset(self, _button):

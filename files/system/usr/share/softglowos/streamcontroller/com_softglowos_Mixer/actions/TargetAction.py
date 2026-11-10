@@ -13,14 +13,16 @@ from gi.repository import Adw, Gtk
 
 from ..texts import t
 
-CHANNELS = ('mic', 'game', 'chat', 'music', 'system', 'browser', 'console')
+CHANNELS = ('mic', 'chat', 'music', 'system')
+# Channels before SoftglowOS 1.1.0, now part of system
+OLD_CHANNELS = ('game', 'browser', 'console')
 MIXES = ('stream', 'monitor', 'both')
 MUTED_COLOR = [190, 45, 45, 255]
 CLEAR = [0, 0, 0, 0]
 
 
 class TargetAction(ActionBase):
-    DEFAULT_CHANNEL = 'game'
+    DEFAULT_CHANNEL = 'system'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,7 +32,8 @@ class TargetAction(ActionBase):
 
     @property
     def channel(self):
-        return self.get_settings().get('channel', self.DEFAULT_CHANNEL)
+        channel = self.get_settings().get('channel', self.DEFAULT_CHANNEL)
+        return 'system' if channel in OLD_CHANNELS else channel
 
     @property
     def mixes(self):
@@ -58,7 +61,8 @@ class TargetAction(ActionBase):
 
     def _combo(self, title, key, values, default):
         row = Adw.ComboRow(title=title, model=Gtk.StringList.new([t(v) for v in values]))
-        row.set_selected(values.index(self.get_settings().get(key, default)))
+        current = self.channel if key == 'channel' else self.get_settings().get(key, default)
+        row.set_selected(values.index(current) if current in values else 0)
 
         def on_selected(combo, _param):
             settings = self.get_settings()

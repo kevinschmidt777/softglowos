@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Generates the PipeWire config of the SoftglowOS mixer.
 
-The graph, per channel (game, chat, music, system, browser, console):
+The graph, per channel (chat, music, system, the GoXLR Mini's channels):
 
   apps ──> sink "softglowos.<ch>" ──[stream fader]──> source "softglowos.<ch>.stream.out"
                                │                         │  (single track for OBS)
                                │                         └──> sink "softglowos.stream-mix"
                                └──[headphone fader]──> your headphones (default output)
 
-With a GoXLR, the GoXLR mixes in hardware instead: game, chat, music and
-system go 1:1 into the GoXLR channel of the same name (its faders are the
-volume), browser and console go into its Sample channel, which the Hub takes
-out of the GoXLR's own stream mix, and the GoXLR's "Stream Mix 1" is fed into
-our stream mix. So OBS always records "SoftglowOS Stream-Mix". The WirePlumber
+With a GoXLR, the GoXLR mixes in hardware instead: chat, music and system go
+1:1 into the GoXLR channel of the same name (its faders are the volume), and
+the GoXLR's "Stream Mix 1" is fed into our stream mix. So OBS always records "SoftglowOS Stream-Mix". The WirePlumber
 script switches between both ways when a GoXLR comes or goes. When the default
 output isn't the GoXLR (e.g. speakers on the mainboard), the GoXLR channels
 also go to that output through "speakers" loopbacks, which the Hub keeps at
@@ -31,8 +29,9 @@ so it works with the Hub closed.
 The microphone runs through a filter chain (RNNoise, gate, 10-band EQ,
 compressor) into the source "softglowos.mic", which OBS records and the chat
 mic (the default input) is built from, so Discord gets the same filtered mic.
-The capture card runs through a
-delay filter (the "offset", 0 ms by default) into the console channel.
+The capture card (console) plays into the
+system channel: system is everything you hear from the PC, so the system
+offset lines the console's sound up with its picture.
 
 Every other channel has an offset too: its stream and headphone faders (and
 its way into the GoXLR) are delay filters instead of plain loopbacks, all set
@@ -53,16 +52,13 @@ from pathlib import Path
 OUT = Path("files/system/usr/share/pipewire/pipewire.conf.d/60-softglowos-mixer.conf")
 
 CHANNELS = [
-    ("game", "Game"),
     ("chat", "Chat"),
     ("music", "Music"),
     ("system", "System"),
-    ("browser", "Browser"),
-    ("console", "Console"),
 ]
 
-# Channels the GoXLR mixes itself (it has a channel of the same name).
-GOXLR_CHANNELS = ["game", "chat", "music", "system"]
+# Channels the GoXLR mixes itself (it has a channel of the same name): all.
+GOXLR_CHANNELS = [ch for ch, _label in CHANNELS]
 
 # Channels that can go into the chat mic (chat can't, Discord would hear itself)
 CHAT_MIC_CHANNELS = [ch for ch, _label in CHANNELS if ch != "chat"]
@@ -165,8 +161,7 @@ def delayed_loopback(name, description, capture, playback):
 
 def channel_modules(ch, label):
     sink = f'"softglowos.{ch}"'
-    # The console's offset sits right after the capture card instead
-    fader = loopback if ch == "console" else delayed_loopback
+    fader = delayed_loopback
     return [
         # Stream fader: channel -> its single track (a source OBS can record)
         fader(f"softglowos.{ch}.stream", f"SoftglowOS {label} (Stream)",
@@ -276,36 +271,6 @@ def mic_chain():
   }}"""
 
 
-def console_delay():
-    return """  { name = libpipewire-module-filter-chain
-    args = {
-      node.description = "SoftglowOS Console Offset"
-      media.name       = "SoftglowOS Console Offset"
-      filter.graph = {
-        nodes = [
-          { type = builtin name = offset label = delay
-            config = { "max-delay" = %s }
-            control = { "Delay (s)" = 0.0 } }
-        ]
-      }
-      audio.rate     = 48000
-      audio.channels = 2
-      audio.position = [ FL FR ]
-      capture.props = {
-        node.name  = "softglowos.console-offset.in"
-        media.name = "softglowos.console-offset.in"
-        node.linger = true
-      }
-      playback.props = {
-        node.name  = "softglowos.console-offset.out"
-        media.name = "softglowos.console-offset.out"
-        node.linger = true
-        target.object = "softglowos.console"
-      }
-    }
-  }""" % MAX_OFFSET_S
-
-
 def not_on_login_screen(entry):
     """Adds the condition before the closing brace of an object or module."""
     body, end = entry.rsplit("\n", 1)
@@ -328,7 +293,9 @@ def main():
     modules.append(loopback("softglowos.mic.monitor", "SoftglowOS Microphone (Me)",
                             {"target.object": '"softglowos.mic"'}, {}))
     modules += chat_mic_modules()
-    modules.append(console_delay())
+    # Capture card -> system (the script picks the card)
+    modules.append(loopback("softglowos.capture", "SoftglowOS Capture Card",
+                            {}, {"target.object": '"softglowos.system"'}))
     for ch, label in CHANNELS:
         if ch in GOXLR_CHANNELS:
             # Only linked with a GoXLR: channel -> GoXLR channel at full volume

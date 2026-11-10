@@ -5,8 +5,8 @@ start, when there are no OBS settings yet, it prepares them first:
 - the hardware encoder of the graphics card: NVENC with the NVIDIA driver,
   VA-API on AMD and Intel, x264 as a fallback
 - the SoftglowOS mixer as global audio, so it plays in every scene:
-  track 1 = Stream-Mix (what goes into the stream), tracks 2-6 = mic, game,
-  chat, music and console alone for editing; recordings keep all six
+  track 1 = Stream-Mix (what goes into the stream), tracks 2-5 = mic, chat,
+  music and system alone for editing; recordings keep all five
 - no scenes beyond OBS's empty default one, and OBS's own auto-configuration
   wizard still runs for resolution and bitrate
 - OBS's remote control (obs-websocket, port 4455) with a random password,
@@ -14,7 +14,9 @@ start, when there are no OBS settings yet, it prepares them first:
   controls OBS right away. It's reachable on the home network too (Ubuntu
   has no firewall on by default), the password protects it.
 
-Existing OBS settings are never touched."""
+Existing OBS settings are never touched, except for one thing: audio sources
+on the game, browser or console channel of SoftglowOS before 1.1.0 move to
+system, where that sound plays now (see migrate())."""
 import json
 import os
 import re
@@ -33,12 +35,17 @@ GERMAN = os.environ.get('LANG', '').startswith('de')
 AUDIO = (
     ('DesktopAudioDevice1', 'Stream-Mix', 'pulse_output_capture', 'softglowos.stream-mix.monitor', 1),
     ('AuxAudioDevice1', 'Mikrofon' if GERMAN else 'Microphone', 'pulse_input_capture', 'softglowos.mic', 2),
-    ('AuxAudioDevice2', 'Game', 'pulse_input_capture', 'softglowos.game.stream.out', 3),
-    ('AuxAudioDevice3', 'Chat', 'pulse_input_capture', 'softglowos.chat.stream.out', 4),
-    ('AuxAudioDevice4', 'Musik' if GERMAN else 'Music', 'pulse_input_capture', 'softglowos.music.stream.out', 5),
-    ('DesktopAudioDevice2', 'Konsole' if GERMAN else 'Console', 'pulse_input_capture',
-     'softglowos.console.stream.out', 6),
+    ('AuxAudioDevice2', 'Chat', 'pulse_input_capture', 'softglowos.chat.stream.out', 3),
+    ('AuxAudioDevice3', 'Musik' if GERMAN else 'Music', 'pulse_input_capture', 'softglowos.music.stream.out', 4),
+    ('DesktopAudioDevice2', 'System', 'pulse_input_capture', 'softglowos.system.stream.out', 5),
 )
+
+# Channels that SoftglowOS 1.1.0 folded into system
+SYSTEM_TRACK = 'softglowos.system.stream.out'
+OLD_TRACKS = ('softglowos.game.stream.out', 'softglowos.browser.stream.out',
+              'softglowos.console.stream.out')
+GLOBAL_AUDIO = ('DesktopAudioDevice1', 'DesktopAudioDevice2', 'AuxAudioDevice1',
+                'AuxAudioDevice2', 'AuxAudioDevice3', 'AuxAudioDevice4')
 
 
 def vaapi_h264():
@@ -87,8 +94,8 @@ def prepare():
     (profile / 'basic.ini').write_text(
         f'[General]\nName={NAME}\n\n'
         '[Output]\nMode=Advanced\n\n'
-        # Stream track 1, record all six tracks (bit mask)
-        f'[AdvOut]\nEncoder={encoder()}\nTrackIndex=1\nRecTracks=63\n')
+        # Stream track 1, record all five tracks (bit mask)
+        f'[AdvOut]\nEncoder={encoder()}\nTrackIndex=1\nRecTracks=31\n')
     (CONFIG / 'user.ini').write_text(
         f'[Basic]\nProfile={NAME}\nProfileDir={NAME}\n'
         f'SceneCollection={NAME}\nSceneCollectionFile={NAME}\n')
@@ -120,11 +127,54 @@ def connect_stream_deck():
     STREAMCONTROLLER_OBS.write_text(json.dumps(settings, indent=4))
 
 
+def migrate_collection(collection):
+    """Points the audio sources of the old game, browser and console channels
+    at system. Of the global ones the first becomes "System" (unless there is
+    one already) and the others go, so the PC sound isn't recorded twice.
+    Returns whether anything changed."""
+    changed = False
+    has_system = any(collection.get(slot, {}).get('settings', {}).get('device_id') == SYSTEM_TRACK
+                     for slot in GLOBAL_AUDIO)
+    for slot in GLOBAL_AUDIO:
+        source = collection.get(slot)
+        if not source or source.get('settings', {}).get('device_id') not in OLD_TRACKS:
+            continue
+        changed = True
+        if has_system:
+            del collection[slot]
+        else:
+            source['settings']['device_id'] = SYSTEM_TRACK
+            source['name'] = 'System'
+            has_system = True
+    for source in collection.get('sources', []):
+        settings = source.get('settings') or {}
+        if settings.get('device_id') in OLD_TRACKS:
+            settings['device_id'] = SYSTEM_TRACK
+            changed = True
+    return changed
+
+
+def migrate():
+    for path in (CONFIG / 'basic' / 'scenes').glob('*.json'):
+        try:
+            text = path.read_text()
+            if not any(track in text for track in OLD_TRACKS):
+                continue
+            collection = json.loads(text)
+        except (OSError, ValueError):
+            continue
+        if migrate_collection(collection):
+            path.with_name(path.name + '.before-1.1.0').write_text(text)
+            path.write_text(json.dumps(collection, indent=4))
+
+
 if __name__ == '__main__':
     import sys
-    if not CONFIG.exists():
-        try:
+    try:
+        if CONFIG.exists():
+            migrate()
+        else:
             prepare()
-        except OSError as error:
-            print(f'softglowos-obs: could not prepare OBS: {error}', file=sys.stderr)
+    except OSError as error:
+        print(f'softglowos-obs: could not prepare OBS: {error}', file=sys.stderr)
     os.execvp('obs', ['obs', *sys.argv[1:]])

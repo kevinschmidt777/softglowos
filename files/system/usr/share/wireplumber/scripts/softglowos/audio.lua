@@ -1,13 +1,13 @@
 -- SoftglowOS audio routing (see tools/make-audio-config.py for the graph).
 --
--- 1. App streams go into a mixer channel (chat, music, browser, game,
---    everything else system). A channel the user picked in the Hub wins:
+-- 1. App streams go into a mixer channel (chat, music, everything else
+--    system). A channel the user picked in the Hub wins:
 --    WirePlumber's own find-defined-target hook runs first and restores it.
 -- 2. Our own loopbacks get their targets from here, depending on whether a
 --    GoXLR is connected (it then mixes in hardware) or not. A loopback that
 --    has nothing to do in the current mode stays unlinked.
 -- 3. The microphone chain records the best real microphone (or the GoXLR's
---    "Chat Mic"), the console channel the capture card. Neither falls back
+--    "Chat Mic"), the capture loopback (into system) the capture card. Neither falls back
 --    to anything else, and a device picked in the Hub wins.
 -- 4. Filter settings (EQ, gate, ...) and the offsets are remembered.
 -- 5. The routing matrix of the Hub (metadata "softglowos-routing") is
@@ -24,9 +24,10 @@ local PREFIX = "softglowos."
 local CHANNEL_RULES = {
   { channel = "chat", match = { "discord", "vesktop", "webcord", "teamspeak", "ts3client", "mumble" } },
   { channel = "music", match = { "spotify", "cider", "tidal", "rhythmbox", "lollypop", "amberol", "elisa" } },
-  { channel = "browser", match = { "chrome", "chromium", "firefox", "brave", "librewolf", "vivaldi", "opera", "msedge", "epiphany" } },
-  { channel = "game", match = { "wine", "proton", ".exe", "steam_app" } },
 }
+-- Games, browsers and the capture card go to system (since 1.0.2 there is no
+-- game, browser or console channel). A stream WirePlumber remembered on one of
+-- those finds no such sink any more and lands here, so on system as well.
 
 -- Apps whose sound must never go into the mixer (OBS monitoring would feed
 -- the stream back into itself).
@@ -34,13 +35,12 @@ local UNTOUCHED_APPS = { "obs" }
 
 -- Capture cards, matched against the device name (lowercase).
 local CAPTURE_CARDS = { "elgato", "game capture", "cam link", "avermedia", "live gamer", "usb3.0 capture", "hdmi capture" }
--- Capture cards made for cameras rather than consoles. The console channel
+-- Capture cards made for cameras rather than consoles. The capture loopback
 -- only takes one of these when no other capture card is connected.
 local CAMERA_CAPTURE_CARDS = { "cam link" }
 
 -- GoXLR channels by their ALSA UCM names (alsa-ucm-conf, USB-Audio/GoXLR).
-local GOXLR_SINKS = { game = "Game", chat = "Chat", music = "Music", system = "System" }
-local GOXLR_SAMPLE = "Sample"        -- browser and console go here
+local GOXLR_SINKS = { chat = "Chat", music = "Music", system = "System" }
 local GOXLR_STREAM_MIX = "Stream Mix 1"
 local GOXLR_CHAT_MIC = "Chat Mic"
 
@@ -170,7 +170,7 @@ end
 
 -- The routing matrix: which source goes to me ("monitor"), the stream and the
 -- chat mic. Defaults as before the matrix existed (same in the Hub's audio.py).
-local ROUTE_SOURCES = { "mic", "game", "chat", "music", "system", "browser", "console" }
+local ROUTE_SOURCES = { "mic", "chat", "music", "system" }
 local ROUTE_TARGETS = { "monitor", "stream", "chat" }
 local DEFAULT_ROUTES = {
   mic = { monitor = false, stream = true, chat = true },
@@ -241,7 +241,7 @@ local function own_target (om, si_props, si_flags)
     return best_device (om, si_props, "Audio/Source", function (props)
       return not is_capture_card (props) and not is_goxlr (props)
     end)
-  elseif name == PREFIX .. "console-offset.in" then
+  elseif name == PREFIX .. "capture.in" then
     if si_flags.has_defined_target then
       return "keep"
     end
@@ -268,12 +268,7 @@ local function own_target (om, si_props, si_flags)
   if role == "mix" then
     return (not hardware) and find_by_name (om, PREFIX .. "stream-mix") or nil
   elseif role == "monitor" then
-    if hardware then
-      return nil
-    elseif goxlr and not on_speakers (om, si_props, goxlr) then
-      return goxlr_node (om, "Audio/Sink", GOXLR_SAMPLE)
-    end
-    return default_output (om, si_props)
+    return (not hardware) and default_output (om, si_props) or nil
   elseif role == "goxlr" then
     return hardware and goxlr_node (om, "Audio/Sink", hardware) or nil
   elseif role == "speakers" then
@@ -417,6 +412,27 @@ end
 local state = State ("softglowos-audio")
 local saved = state:load ()
 
+-- 1.1.0: the console channel is gone, the capture card plays into system. Its
+-- offset becomes the system offset, unless that one is already set.
+local function delay_of (name)
+  local stored = saved [name]
+  local values = stored and Json.Raw (stored):parse ()
+  return type (values) == "table" and values ["offset:Delay (s)"] or 0
+end
+
+local OLD_CONSOLE_OFFSET = PREFIX .. "console-offset.in"
+if saved [OLD_CONSOLE_OFFSET] ~= nil then
+  local console = delay_of (OLD_CONSOLE_OFFSET)
+  if console > 0 and delay_of (PREFIX .. "system.stream.in") == 0 then
+    for _, path in ipairs ({ "stream", "monitor", "goxlr", "speakers" }) do
+      saved [PREFIX .. "system." .. path .. ".in"] =
+          Json.Object ({ ["offset:Delay (s)"] = console }):to_string ()
+    end
+  end
+  saved [OLD_CONSOLE_OFFSET] = nil
+  state:save_after_timeout (saved)
+end
+
 -- Only the controls the Hub offers. The node's Props also hold PipeWire's own
 -- settings and values the filters compute themselves, which we leave alone.
 local SAVED_CONTROLS = {
@@ -504,12 +520,10 @@ local function restore_params (node)
 end
 
 -- The mic chain and every delay filter behind an offset.
-local FILTER_NODES = { PREFIX .. "mic.in", PREFIX .. "console-offset.in", MIC_OFFSET }
-for _, channel in ipairs ({ "game", "chat", "music", "system", "browser" }) do
+local FILTER_NODES = { PREFIX .. "mic.in", MIC_OFFSET }
+for _, channel in ipairs ({ "chat", "music", "system" }) do
   for _, path in ipairs ({ "stream", "monitor", "goxlr", "speakers" }) do
-    if (path ~= "goxlr" and path ~= "speakers") or GOXLR_SINKS [channel] then
-      table.insert (FILTER_NODES, PREFIX .. channel .. "." .. path .. ".in")
-    end
+    table.insert (FILTER_NODES, PREFIX .. channel .. "." .. path .. ".in")
   end
 end
 

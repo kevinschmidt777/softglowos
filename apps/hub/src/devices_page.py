@@ -64,7 +64,7 @@ class DevicesPage(Adw.PreferencesPage):
                    'GoXLR Mini' if self.mixer.goxlr_model == 'Mini' else 'GoXLR',
                    _('The mixer controls its hardware channels'), goxlr)
         self._show('capture', capture.description if capture else _('Capture card'),
-                   _('Its sound goes into the Console channel'), capture is not None)
+                   _('Its sound goes into the System channel'), capture is not None)
         self._show('streamdeck', 'Stream Deck', _('Set up in StreamController'),
                    stream_deck_connected())
         self._show('mic', _('Microphone'),

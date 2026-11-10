@@ -26,23 +26,22 @@ import pulsectl
 from gi.repository import GLib, GObject, Gst
 
 PREFIX = 'softglowos.'
-CHANNELS = ('game', 'chat', 'music', 'system', 'browser', 'console')
+CHANNELS = ('chat', 'music', 'system')  # the GoXLR Mini's channels
 MIXES = ('stream', 'monitor')  # stream fader, headphone ("Me") fader
 
 MIC_FILTER = PREFIX + 'mic.in'
-CONSOLE_FILTER = PREFIX + 'console-offset.in'
-GOXLR_CHANNELS = ('game', 'chat', 'music', 'system')
+# The capture card (console) plays into system, so the system offset is its offset
+CAPTURE_LOOPBACK = PREFIX + 'capture.in'
+GOXLR_CHANNELS = CHANNELS
 
 # Delay filters behind each offset. A channel's offset delays its stream and
-# headphone faders (and the way into the GoXLR), the console's sits right
-# after the capture card, the mic's only on its way into the stream mix.
+# headphone faders (and the way into the GoXLR), the mic's only on its way into
+# the stream mix.
 OFFSET_NODES = {
-    channel: tuple(f'{PREFIX}{channel}.{path}.in' for path in
-                   (('stream', 'monitor', 'goxlr', 'speakers') if channel in GOXLR_CHANNELS
-                    else ('stream', 'monitor')))
-    for channel in CHANNELS if channel != 'console'
+    channel: tuple(f'{PREFIX}{channel}.{path}.in'
+                   for path in ('stream', 'monitor', 'goxlr', 'speakers'))
+    for channel in CHANNELS
 }
-OFFSET_NODES['console'] = (CONSOLE_FILTER,)
 OFFSET_NODES['mic'] = (PREFIX + 'mic.mix.in',)
 OFFSET_CONTROL = 'offset:Delay (s)'
 
@@ -269,7 +268,7 @@ class PipeWireMixer(GObject.Object):
         self._set_controls(MIC_FILTER, {f'eq{band + 1}:Gain': gain_db})
 
     def offsets_ms(self):
-        """Offset of every channel and the mic in ms, e.g. {"game": 0, "mic": 40}."""
+        """Offset of every channel and the mic in ms, e.g. {"system": 120, "mic": 40}."""
         nodes = self._all_controls()
         return {target: round(nodes.get(names[0], {}).get(OFFSET_CONTROL, 0.0) * 1000)
                 for target, names in OFFSET_NODES.items()}
@@ -313,16 +312,11 @@ class PipeWireMixer(GObject.Object):
     def routing_locked(self, source, target):
         return (source, target) in LOCKED_ROUTES
 
-    def linked_routes(self, source):
-        """Sources that only switch together with this one (with a GoXLR)."""
-        return (source,)
-
     def set_route(self, source, target, on):
         self.routes()
         if self.routing_locked(source, target):
             return
-        for linked in self.linked_routes(source):
-            self._routes[linked][target] = on
+        self._routes[source][target] = on
         self._set_metadata('routes', self._routes)
 
     def reset_routes(self):
@@ -365,7 +359,7 @@ class PipeWireMixer(GObject.Object):
         return self._source_of(MIC_FILTER)
 
     def current_capture_card(self):
-        return self._source_of(CONSOLE_FILTER)
+        return self._source_of(CAPTURE_LOOPBACK)
 
     def _move(self, stream_name, device):
         for stream in self._pulse.source_output_list():
@@ -377,7 +371,7 @@ class PipeWireMixer(GObject.Object):
         self._move(MIC_FILTER, device)
 
     def set_capture_card(self, device):
-        self._move(CONSOLE_FILTER, device)
+        self._move(CAPTURE_LOOPBACK, device)
 
     # Apps in the channels
 

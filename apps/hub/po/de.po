@@ -26,11 +26,6 @@ msgstr "Software"
 msgid "Settings"
 msgstr "Einstellungen"
 
-
-
-msgid "Game"
-msgstr "Game"
-
 msgid "Chat"
 msgstr "Chat"
 
@@ -42,9 +37,6 @@ msgstr "System"
 
 msgid "Browser"
 msgstr "Browser"
-
-msgid "Console"
-msgstr "Konsole"
 
 #, python-brace-format
 msgid "Listening on <b>{device}</b>"
@@ -193,8 +185,8 @@ msgstr "Der Mixer steuert seine Hardware-Kanäle"
 msgid "Capture card"
 msgstr "Capture Card"
 
-msgid "Its sound goes into the Console channel"
-msgstr "Der Ton landet im Kanal „Konsole“"
+msgid "Its sound goes into the System channel"
+msgstr "Der Ton landet im Kanal „System“"
 
 msgid "Set up in StreamController"
 msgstr "Einrichten in StreamController"
@@ -214,20 +206,17 @@ msgstr "Nicht angeschlossen"
 msgid "Report a bug"
 msgstr "Fehler melden"
 
-
 msgid "What went wrong, in one sentence"
 msgstr "Was ist schiefgelaufen, in einem Satz"
 
 msgid "Details"
 msgstr "Details"
 
-
 msgid "Already reported?"
 msgstr "Schon gemeldet?"
 
 msgid "If your bug is in here, add to it instead of reporting it again."
 msgstr "Ist dein Fehler hier dabei, ergänz ihn dort, statt ihn neu zu melden."
-
 
 msgid "open"
 msgstr "offen"
@@ -457,7 +446,6 @@ msgstr "{count} Geräte"
 msgid "Static"
 msgstr "Statisch"
 
-
 msgid "Rainbow"
 msgstr "Regenbogen"
 
@@ -551,13 +539,6 @@ msgstr ""
 
 msgid "Discord would hear itself (echo)"
 msgstr "Discord würde sich selbst hören (Echo)"
-
-msgid ""
-"With the GoXLR, browser and console share one channel (Sample), so they "
-"switch together."
-msgstr ""
-"Beim GoXLR teilen sich Browser und Konsole einen Kanal (Sample), deshalb "
-"schalten sie zusammen."
 
 msgid "Mixer, devices and software are always in the Hub."
 msgstr "Mixer, Geräte und Software findest du jederzeit im Hub."

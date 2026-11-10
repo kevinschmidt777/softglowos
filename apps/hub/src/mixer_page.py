@@ -7,19 +7,17 @@ from .widgets import DevicePicker, EqDialog
 
 FADER_CHOICE_NAMES = {
     'mic': _('Microphone'),
-    'game': _('Game'),
     'chat': _('Chat'),
     'music': _('Music'),
     'system': _('System'),
 }
 
+# The GoXLR Mini's channels. System is everything else you hear from the PC,
+# games, browsers and the capture card (console) included.
 CHANNEL_NAMES = {
-    'game': _('Game'),
     'chat': _('Chat'),
     'music': _('Music'),
     'system': _('System'),
-    'browser': _('Browser'),
-    'console': _('Console'),
 }
 
 
@@ -59,7 +57,7 @@ class MixerPage(Adw.Bin):
         self.channels = {}
         for channel_id, name in CHANNEL_NAMES.items():
             picker = None
-            if channel_id == 'console':
+            if channel_id == 'system':
                 picker = DevicePicker(mixer.capture_cards, mixer.set_capture_card,
                                       empty_label=_('No capture card'), small=True)
                 self.capture_picker = picker

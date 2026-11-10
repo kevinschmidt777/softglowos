@@ -9,6 +9,30 @@ current version is in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-10
+
+### Changed
+
+- The mixer has exactly the channels of a GoXLR Mini now: microphone, chat,
+  music and system. Game, browser and console are gone. Games, browsers and
+  the capture card (console) play into system, which is everything you hear
+  from the PC. Fewer channels, fewer ways for sound to get lost.
+- The capture card's offset is the system offset now. An offset set for the
+  console before carries over to system.
+- OBS: tracks 2–5 are mic, chat, music and system. Existing scene
+  collections are moved over on the next start of OBS: a game, browser or
+  console source becomes "System" (the others go, so the PC sound isn't
+  recorded twice). A copy of the old file stays next to it
+  (`*.json.before-1.1.0`).
+- Stream Deck keys set to game, browser or console now control system.
+
+### Fixed
+
+- With a GoXLR, the console (and the browser) could be silent in the
+  headphones while OBS recorded them fine. They went through the GoXLR's
+  Sample channel, which the Hub never routed to the headphones and which
+  sat behind two extra volume controls. That way is gone.
+
 ## [1.0.1] - 2026-11-08
 
 ### Added

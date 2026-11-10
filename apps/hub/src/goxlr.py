@@ -6,17 +6,15 @@ the hardware stay in sync both ways. API: github.com/GoXLR-on-Linux/goxlr-utilit
 (wiki "The GoXLR Utility API").
 
 How our mixer maps onto the GoXLR:
-- game, chat, music, system: the GoXLR channel of the same name. Mix A (the
+- chat, music, system: the GoXLR channel of the same name (our mixer has
+  exactly the channels of a GoXLR Mini: mic, chat, music, system). Mix A (the
   hardware fader) feeds the headphones ("Me"), mix B the stream; both are
   linked, so a fader on the desk moves both and keeps their ratio.
 - per-mix mute: the mute button of the desk fader the channel sits on, so
   its light shows it (its mute function follows which mixes are muted);
   channels without a desk fader mute through the GoXLR's routing
   (channel -> headphones / stream mix)
-- browser and console: our own software faders; their sound reaches the
-  GoXLR through its Sample channel, which we take out of the GoXLR's stream
-  mix (the WirePlumber script adds them to ours instead) and out of its Chat
-  Mic, so Discord doesn't hear them
+- games, browsers and the capture card (console) are part of system
 - microphone: level, gate, compressor and EQ in hardware; RNNoise and the
   mic offset run in software, so either takes the raw mic out of the
   GoXLR's stream mix
@@ -37,17 +35,14 @@ from .audio import PipeWireMixer
 URL = 'ws://localhost:14564/api/websocket'
 RECONNECT_SECONDS = 5
 
-CHANNELS = {'game': 'Game', 'chat': 'Chat', 'music': 'Music', 'system': 'System',
-            'mic': 'Mic'}
-INPUTS = {'game': 'Game', 'chat': 'Chat', 'music': 'Music', 'system': 'System',
-          'mic': 'Microphone'}
-GOXLR_CHANNELS = ('game', 'chat', 'music', 'system')
-SAMPLE_CHANNELS = ('browser', 'console')
+CHANNELS = {'chat': 'Chat', 'music': 'Music', 'system': 'System', 'mic': 'Mic'}
+INPUTS = {'chat': 'Chat', 'music': 'Music', 'system': 'System', 'mic': 'Microphone'}
+GOXLR_CHANNELS = ('chat', 'music', 'system')
 # Where PulseAudio names the device of an output, to tell the GoXLR apart
 GOXLR_DEVICE_KEYS = ('alsa.card_name', 'api.alsa.card.name', 'device.product.name')
 MIC_MONITOR_VOLUME = 128  # half, when listening to yourself is switched on at 0
 FADERS = ('A', 'B', 'C', 'D')
-FADER_CHOICES = ('mic', 'game', 'chat', 'music', 'system')
+FADER_CHOICES = ('mic', 'chat', 'music', 'system')
 # Set once per GoXLR (_default_faders): Discord's chat on B, music on C
 DEFAULT_FADERS = {'B': 'chat', 'C': 'music'}
 
@@ -228,13 +223,10 @@ class Mixer(PipeWireMixer):
             self.goxlr.command('SetSubMixOutputMix', 'BroadcastMix', 'B')
             for name in CHANNELS.values():
                 self.goxlr.command('SetSubMixLinked', name, True)
-        # Browser and console arrive on Sample and go to the stream through ours,
-        # never to the Chat Mic that Discord records
-        self.goxlr.command('SetRouter', 'Samples', 'BroadcastMix', False)
-        self.goxlr.command('SetRouter', 'Samples', 'ChatMic', False)
         self._route_mic()
         self._apply_routes()
         self._default_faders()
+        self._fill_faders()
 
     def _default_faders(self):
         """Our layout of the desk faders, once per GoXLR (the user may change
@@ -248,6 +240,16 @@ class Mixer(PipeWireMixer):
             if self.fader_of(channel) != letter:
                 self.put_on_fader(letter, channel)
         self._set_metadata('goxlr-default-faders', sorted(done + [serial]))
+
+    def _fill_faders(self):
+        """A desk fader on a GoXLR channel we don't use (e.g. Game or Console
+        from before 1.1.0) gets one of ours that has no fader yet."""
+        ours = {CHANNELS[choice]: choice for choice in FADER_CHOICES}
+        status = self.goxlr.mixer['fader_status']
+        missing = [choice for choice in FADER_CHOICES if self.fader_of(choice) is None]
+        for letter in FADERS:
+            if status[letter]['channel'] not in ours and missing:
+                self.put_on_fader(letter, missing.pop(0))
 
     def _mic_in_software(self):
         """RNNoise and a mic offset only work in software: the GoXLR's own
@@ -325,12 +327,6 @@ class Mixer(PipeWireMixer):
                 if super().fader(channel, 'speakers') != (value, muted):
                     super().set_fader(channel, 'speakers', value)
                     super().set_fader_muted(channel, 'speakers', muted)
-
-    def linked_routes(self, source):
-        # Browser and console share the GoXLR's Sample channel
-        if self.goxlr_active and source in SAMPLE_CHANNELS:
-            return SAMPLE_CHANNELS
-        return (source,)
 
     def set_route(self, source, target, on):
         super().set_route(source, target, on)
