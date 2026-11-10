@@ -244,11 +244,18 @@ jobs:
           rclone check --one-way . r2:softglowos-downloads/ --include "$iso*"
           curl -fsI "https://download.softglowos.com/$iso" | head -1
           # softglowos.com reads the download button from latest.json and
-          # refreshes it every 60 seconds, so the old ISO stays a bit longer
+          # refreshes it at most every 60 seconds, on the next visit. Visiting
+          # it here starts that refresh; the old ISO goes once both languages
+          # offer the new one.
           printf '{"version":"%s","file":"%s","size":%s,"sha256":"%s"}\n' \
             "$(cat "$GITHUB_WORKSPACE/VERSION")" "$iso" "$(stat -c %s "$iso")" "$(cut -d' ' -f1 "$iso.sha256")" > latest.json
           rclone copyto --header-upload "Cache-Control: no-cache" latest.json r2:softglowos-downloads/latest.json
-          sleep 180
+          for try in $(seq 40); do
+            curl -fs https://softglowos.com/de | grep -qF "$iso" &&
+              curl -fs https://softglowos.com/en | grep -qF "$iso" && break
+            [ "$try" = 40 ] && { echo "softglowos.com still offers the old ISO, keeping it"; exit 1; }
+            sleep 15
+          done
           rclone lsf r2:softglowos-downloads/ --include "softglowos-*-amd64.iso*" |
             grep -vxF -e "$iso" -e "$iso.sha256" |
             while read -r old; do rclone deletefile "r2:softglowos-downloads/$old"; echo "deleted $old"; done
