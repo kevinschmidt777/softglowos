@@ -237,6 +237,7 @@ jobs:
           RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
           sudo apt-get install -y -qq rclone >/dev/null
+          sudo chown -R "$USER" /mnt/out  # the build container wrote it as root
           cd /mnt/out
           iso=$(ls softglowos-*-amd64.iso)
           sha256sum "$iso" > "$iso.sha256"
