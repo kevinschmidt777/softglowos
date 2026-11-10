@@ -6,7 +6,8 @@ name: Ubuntu packages
 # main it then publishes them as our apt repository on GitHub Pages,
 # signed with APT_SIGNING_KEY, together with the newest Heroic and GoXLR
 # Utility, Valve's Steam and OpenRGB (ubuntu/fetch-mirrored.sh). Started by hand with "iso", it also
-# builds the live ISO (ubuntu/iso/build.sh) as a workflow artifact.
+# builds the live ISO (ubuntu/iso/build.sh) and, once it boots, publishes it
+# on Cloudflare R2 (download.softglowos.com) in place of the previous one.
 on:
   push:
     branches:
@@ -222,6 +223,29 @@ jobs:
           sudo apt-get install -y -qq qemu-system-x86 ovmf socat imagemagick >/dev/null
           sudo chmod 666 /dev/kvm
           ubuntu/iso/boot-test.sh /mnt/out/*.iso boot-test
+
+      # Only a booting ISO goes to download.softglowos.com. The bucket only
+      # keeps the newest ISO, so the older ones go once the new one is there.
+      - name: Publish the ISO on Cloudflare R2
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_REGION: auto
+          RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true"
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          sudo apt-get install -y -qq rclone >/dev/null
+          cd /mnt/out
+          iso=$(ls softglowos-*-amd64.iso)
+          sha256sum "$iso" > "$iso.sha256"
+          rclone copy --s3-upload-concurrency 8 --s3-chunk-size 64M . r2:softglowos-downloads/ --include "$iso*"
+          rclone check --one-way . r2:softglowos-downloads/ --include "$iso*"
+          curl -fsI "https://download.softglowos.com/$iso" | head -1
+          rclone lsf r2:softglowos-downloads/ --include "softglowos-*-amd64.iso*" |
+            grep -vxF -e "$iso" -e "$iso.sha256" |
+            while read -r old; do rclone deletefile "r2:softglowos-downloads/$old"; echo "deleted $old"; done
 
       - uses: actions/upload-artifact@v7
         if: always()
