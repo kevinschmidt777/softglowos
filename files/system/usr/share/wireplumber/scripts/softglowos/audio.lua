@@ -412,7 +412,7 @@ end
 local state = State ("softglowos-audio")
 local saved = state:load ()
 
--- 1.1.0: the console channel is gone, the capture card plays into system. Its
+-- 1.0.2: the console channel is gone, the capture card plays into system. Its
 -- offset becomes the system offset, unless that one is already set.
 local function delay_of (name)
   local stored = saved [name]

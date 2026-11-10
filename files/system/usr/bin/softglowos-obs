@@ -15,7 +15,7 @@ start, when there are no OBS settings yet, it prepares them first:
   has no firewall on by default), the password protects it.
 
 Existing OBS settings are never touched, except for one thing: audio sources
-on the game, browser or console channel of SoftglowOS before 1.1.0 move to
+on the game, browser or console channel of SoftglowOS before 1.0.2 move to
 system, where that sound plays now (see migrate())."""
 import json
 import os
@@ -40,7 +40,7 @@ AUDIO = (
     ('DesktopAudioDevice2', 'System', 'pulse_input_capture', 'softglowos.system.stream.out', 5),
 )
 
-# Channels that SoftglowOS 1.1.0 folded into system
+# Channels that SoftglowOS 1.0.2 folded into system
 SYSTEM_TRACK = 'softglowos.system.stream.out'
 OLD_TRACKS = ('softglowos.game.stream.out', 'softglowos.browser.stream.out',
               'softglowos.console.stream.out')
@@ -164,7 +164,7 @@ def migrate():
         except (OSError, ValueError):
             continue
         if migrate_collection(collection):
-            path.with_name(path.name + '.before-1.1.0').write_text(text)
+            path.with_name(path.name + '.before-1.0.2').write_text(text)
             path.write_text(json.dumps(collection, indent=4))
 
 

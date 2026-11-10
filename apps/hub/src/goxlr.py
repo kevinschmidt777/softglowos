@@ -243,7 +243,7 @@ class Mixer(PipeWireMixer):
 
     def _fill_faders(self):
         """A desk fader on a GoXLR channel we don't use (e.g. Game or Console
-        from before 1.1.0) gets one of ours that has no fader yet."""
+        from before 1.0.2) gets one of ours that has no fader yet."""
         ours = {CHANNELS[choice]: choice for choice in FADER_CHOICES}
         status = self.goxlr.mixer['fader_status']
         missing = [choice for choice in FADER_CHOICES if self.fader_of(choice) is None]

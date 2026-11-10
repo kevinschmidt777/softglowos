@@ -9,10 +9,14 @@ current version is in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
-## [1.1.1] - 2026-11-10
+## [1.0.2] - 2026-11-10
 
 ### Fixed
 
+- With a GoXLR, the console (and the browser) could be silent in the
+  headphones while OBS recorded them fine. They went through the GoXLR's
+  Sample channel, which the Hub never routed to the headphones and which
+  sat behind two extra volume controls. That way is gone.
 - With a GoXLR, the Stream-Mix in OBS didn't follow the mixer: a channel at
   full volume in the Hub could still be quiet in the stream (and in the
   headphones). PipeWire gave the GoXLR's channels a volume of its own (40 %
@@ -22,29 +26,21 @@ current version is in [`VERSION`](VERSION).
   full volume whatever the stream fader said. They now follow the stream
   faders and mutes, also when you move a fader on the desk.
 
-## [1.1.0] - 2026-11-10
-
 ### Changed
 
-- The mixer has exactly the channels of a GoXLR Mini now: microphone, chat,
-  music and system. Game, browser and console are gone. Games, browsers and
-  the capture card (console) play into system, which is everything you hear
-  from the PC. Fewer channels, fewer ways for sound to get lost.
+- To fix the above for good, the mixer has exactly the channels of a GoXLR
+  Mini now: microphone, chat, music and system. Game, browser and console
+  are gone. Games, browsers and the capture card (console) play into system,
+  which is everything you hear from the PC. Fewer channels, fewer ways for
+  sound to get lost.
 - The capture card's offset is the system offset now. An offset set for the
   console before carries over to system.
 - OBS: tracks 2–5 are mic, chat, music and system. Existing scene
   collections are moved over on the next start of OBS: a game, browser or
   console source becomes "System" (the others go, so the PC sound isn't
   recorded twice). A copy of the old file stays next to it
-  (`*.json.before-1.1.0`).
+  (`*.json.before-1.0.2`).
 - Stream Deck keys set to game, browser or console now control system.
-
-### Fixed
-
-- With a GoXLR, the console (and the browser) could be silent in the
-  headphones while OBS recorded them fine. They went through the GoXLR's
-  Sample channel, which the Hub never routed to the headphones and which
-  sat behind two extra volume controls. That way is gone.
 
 ## [1.0.1] - 2026-11-08
 
@@ -124,6 +120,7 @@ that works out of the box, built on Ubuntu 26.04 LTS with GNOME.
 - **Updates** through our signed apt repository on GitHub Pages
   (`sudo apt update && sudo apt full-upgrade`).
 
-[Unreleased]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kevinschmidt777/softglowos/releases/tag/v1.0.0

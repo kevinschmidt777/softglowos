@@ -14,7 +14,7 @@ from gi.repository import Adw, Gtk
 from ..texts import t
 
 CHANNELS = ('mic', 'chat', 'music', 'system')
-# Channels before SoftglowOS 1.1.0, now part of system
+# Channels before SoftglowOS 1.0.2, now part of system
 OLD_CHANNELS = ('game', 'browser', 'console')
 MIXES = ('stream', 'monitor', 'both')
 MUTED_COLOR = [190, 45, 45, 255]
