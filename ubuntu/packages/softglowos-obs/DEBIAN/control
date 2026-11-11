@@ -12,4 +12,6 @@ Description: OBS Studio set up for SoftglowOS
  first start (encoder for the graphics card, the mixer as audio, remote control
  for the Stream Deck), plus the plugins of the Bazzite image: Move Transition,
  Source Record, Source Clone, Shaderfilter, Composite Blur, Advanced Masks,
- Stroke Glow Shadow and Game Capture (obs-vkcapture).
+ Stroke Glow Shadow and Game Capture (obs-vkcapture). Its own plugin turns
+ buffering off for capture cards and webcams, so switching a monitor's input
+ can't push picture and sound out of sync.

@@ -9,6 +9,20 @@ current version is in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-11
+
+### Fixed
+
+- OBS: after switching a monitor to another input (e.g. from the PC to the
+  console), picture and sound in the stream could stay out of sync for the
+  rest of the stream, sound late against console and camera. OBS buffers
+  the frames of capture cards and webcams, and the moment the graphics card
+  hangs during the switch made that buffer grow (up to 800 ms measured).
+  SoftglowOS now turns "Use buffering" off for every capture card and
+  webcam in OBS, once per source, existing and new ones alike: the offset
+  stays within 30 ms across switches. Turn it back on in a source's
+  properties and it stays on.
+
 ## [1.0.2] - 2026-11-10
 
 ### Fixed
@@ -120,7 +134,8 @@ that works out of the box, built on Ubuntu 26.04 LTS with GNOME.
 - **Updates** through our signed apt repository on GitHub Pages
   (`sudo apt update && sudo apt full-upgrade`).
 
-[Unreleased]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/kevinschmidt777/softglowos/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kevinschmidt777/softglowos/releases/tag/v1.0.0

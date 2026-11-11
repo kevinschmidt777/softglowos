@@ -10,6 +10,8 @@
 #   Stroke Glow Shadow outlines, glows and shadows on sources
 #   vkcapture          game capture for Vulkan and OpenGL games
 # All GPL-2.0, pinned with checksums; raise them on purpose.
+# Plus our own softglowos-defaults (in this folder): capture cards and webcams
+# without buffering, so a monitor switch can't push them out of sync.
 set -euo pipefail
 
 MOVE_VERSION=3.2.1
@@ -118,11 +120,17 @@ take_plugin linux-vkcapture "$tmp/obs-vkcapture/stage"
 rm -rf "$tmp"/obs-vkcapture/stage/usr/lib/*/obs-plugins "$tmp/obs-vkcapture/stage/usr/share/obs"
 cp -a "$tmp/obs-vkcapture/stage/." "$DEST/"
 
+# Our own plugin, one C file (the PPA's libobs.pc leaves out the obs folder)
+gcc -shared -fPIC -O2 -std=gnu17 -fvisibility=hidden -Wall -Wextra -Werror -DHAVE_OBSCONFIG_H \
+  -I/usr/include/obs -o "$tmp/softglowos-defaults.so" \
+  "$PACKAGE_DIR/softglowos-defaults/softglowos-defaults.c" -lobs
+install -D -m 644 "$tmp/softglowos-defaults.so" "$DEST$plugins/softglowos-defaults.so"
+
 # The first-start launcher
 install -D -m 755 "$SRC/files/system/usr/bin/softglowos-obs" "$DEST/usr/bin/softglowos-obs"
 
 # Fail the build if a plugin landed somewhere OBS doesn't look
 for plugin in move-transition source-record source-clone obs-shaderfilter \
-  obs-composite-blur obs-advanced-masks obs-stroke-glow-shadow linux-vkcapture; do
+  obs-composite-blur obs-advanced-masks obs-stroke-glow-shadow linux-vkcapture softglowos-defaults; do
   ls "$DEST$plugins/$plugin.so"
 done
