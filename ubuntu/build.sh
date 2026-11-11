@@ -22,7 +22,9 @@ esac
 
 mkdir -p "$REPO/ubuntu/out"
 run() {  # platform step
-  docker run --rm --platform "$1" \
+  # The host's network: Docker's own DNS on GitHub's runners stopped
+  # resolving archive.ubuntu.com (2026-11-11)
+  docker run --rm --platform "$1" --network host \
     -v "$REPO:/src:ro" -v "$REPO/ubuntu/out:/out" \
     ubuntu:26.04 /src/ubuntu/build-in-container.sh "$2" "${PACKAGES[@]}"
 }

@@ -49,7 +49,7 @@ jobs:
 
       - name: Install them on Ubuntu 26.04
         run: |
-          docker run --rm -v "$PWD:/src:ro" ubuntu:26.04 bash -euo pipefail -c '
+          docker run --rm --network host -v "$PWD:/src:ro" ubuntu:26.04 bash -euo pipefail -c '
             export DEBIAN_FRONTEND=noninteractive
             # Steam needs the 32-bit libraries
             dpkg --add-architecture i386
@@ -206,7 +206,7 @@ jobs:
 
       - name: Build the ISO
         run: |
-          docker run --rm --privileged -e WORK=/work \
+          docker run --rm --privileged --network host -e WORK=/work \
             -v "$PWD:/src:ro" -v "$PWD/debs:/debs:ro" -v /mnt/work:/work -v /mnt/out:/out \
             ubuntu:26.04 /src/ubuntu/iso/build.sh
 
