@@ -51,6 +51,7 @@ jobs:
         run: |
           docker run --rm --network host -v "$PWD:/src:ro" ubuntu:26.04 bash -euo pipefail -c '
             export DEBIAN_FRONTEND=noninteractive
+            cp /src/ubuntu/apt-retries.conf /etc/apt/apt.conf.d/80-retries
             # Steam needs the 32-bit libraries
             dpkg --add-architecture i386
             sed -i "s/^Components: main.*/Components: main restricted universe multiverse/" \

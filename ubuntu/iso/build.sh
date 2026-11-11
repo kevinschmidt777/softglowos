@@ -46,6 +46,7 @@ FLATPAKS=(
   com.ranfdev.DistroShelf
 )
 
+cp /src/ubuntu/apt-retries.conf /etc/apt/apt.conf.d/80-retries
 apt-get update -qq
 apt-get install -y -qq debootstrap squashfs-tools xorriso mtools dosfstools apt-utils >/dev/null
 
@@ -67,6 +68,7 @@ rm -rf "$ROOT" "$ISO" "$WORK/efi.img"
 mkdir -p "$ROOT" "$ISO"
 debootstrap --arch=amd64 --variant=minbase --components=main,restricted,universe,multiverse \
   "$SUITE" "$ROOT" "$MIRROR" >/dev/null
+cp /src/ubuntu/apt-retries.conf "$ROOT/etc/apt/apt.conf.d/80-retries"
 mount -t proc proc "$ROOT/proc"
 mount -t sysfs sys "$ROOT/sys"
 mount --bind /dev "$ROOT/dev"
@@ -170,7 +172,8 @@ mv "$ROOT"/var/cache/apt/archives/*.deb "$ISO/pool/"
 ### Clean up ###
 
 in_root apt-get clean
-rm -rf "$ROOT/tmp/"* "$ROOT/var/tmp/"* "$ROOT/usr/sbin/policy-rc.d"
+rm -rf "$ROOT/tmp/"* "$ROOT/var/tmp/"* "$ROOT/usr/sbin/policy-rc.d" \
+  "$ROOT/etc/apt/apt.conf.d/80-retries"
 truncate -s 0 "$ROOT/etc/machine-id"
 rm -f "$ROOT/var/lib/dbus/machine-id"
 unmount_root

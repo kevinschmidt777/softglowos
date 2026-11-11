@@ -26,6 +26,8 @@ if [ "$step" = pack ]; then
   exit 0
 fi
 
+cp "$SRC/ubuntu/apt-retries.conf" /etc/apt/apt.conf.d/80-retries
+
 # VERSION from the repo plus the build date, so daily builds sort newer
 VERSION="$(cat "$SRC/VERSION")~$(date -u +%Y%m%d%H%M)"
 
